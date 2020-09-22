@@ -1,1 +1,618 @@
-##########
+```{r Environment set-up, include= FALSE}
+remove( list= objects() )
+```
+
+```{r Document-Wide Knitr Options, include= FALSE }
+knitr::opts_chunk$set(fig.width=6, fig.height=6) 
+knitr::opts_chunk$set(comment= "")
+knitr::opts_chunk$set(prompt= TRUE)
+```
+
+## Lesson A1.  Object Orientation and Operators
+
+### Vocabulary Table for Lesson A1
+|Environment Manipulation		|Arithmetic Operators		|Logical Operators		|Logical Comparisons		|Indexing Operators
+|:-				|:-				|:-				|:-		|:-
+|""				|-				|!				|<=		|:
+|#				|*				|&				|!=		|()
+|<-				|/				|\|				|==		|[]
+|help()		|%/%			|FALSE		|>=		|{}
+|remove()	|^				|					|			|
+|function(){}|+			|					|			|
+
+### Configuring Your System
+
+This lesson will introduce you to the basics of programming in R.  To begin programming, you will need to install the programming language.  You will also need an interface, which is a program or pair of programs that enable you to write programming code (an editor) and execute the code you have written (an interpreter).  Go to any one of the r-project.org data repositories [like this one]( https://mirrors.nics.utk.edu/cran/) to download the language, as well as the R Core Team's interface.  Both products are open source and cost nothing.
+
+RStudio is a popular interface.  You can download it [here]( https://www.rstudio.com/products/rstudio/download/#download).  RStudio is an Integrated Development Environment (IDE), which is a program that has many tools to help you program.  However, we encourage you to not to become over-reliant on RStudio because it can prevent you from mastering key aspects of R.  Please strive to write R code to do things rather than clicking buttons in RStudio.
+
+So that you learn R more effectively, please switch off the following options in R Studio (Tools > Global Options):
+
+|Options Tab		|Option		|Setting
+|:-|:-|:-
+|General	|Restore most recently opened project at startup	|Uncheck
+|General	|Restore previously open source documents at startup	|Uncheck
+|General	|Restore .RData into workspace at startup	|Uncheck
+|General	|Save workspace to .RData on exit	|Select No instead of Ask
+|Code>Editing	|Insert spaces for tab	| Uncheck
+|Code>Editing	|Auto-detect code indentation	|Uncheck
+|Code>Editing	|Insert matching parens/quotes	|Uncheck
+|Code>Editing	|Vertically align arguments in auto-indent	|Uncheck
+|Pane Layout	|	|Make Console the top left and Source the top right; avoid using the bottom right/left tabs.
+
+### Writing and Executing R Code
+To program in R, you need three things:
+
+* Script – R code you have written that tells the computer what do.  Consists of a plain text file with a .R extension.  In RStudio, this file will appear in your Source window once you have opened it.
+
+* Interpreter – A program that translates the code that you have written into basic binary instructions for your computer.
+
+* Console – An interface that enables you to send code to the interpreter and receive a response from it.  In RStudio, this is the Console window on your screen.  While you can write code directly to the console, it is better to send code from the script to the console.
+
+
+When you open R, the R console will display a start-up message similar to this:
+
+```
+R version 8.4.2 (2076-03-14) -- "Purring Cat IN SPAAACE"
+Copyright (C) 2076 The R Foundation for Statistical Computing
+Platform: x86_64-apple-darwin93.0 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[R.app GUI 5.42 (7847) x86_64-apple-darwin93.0]
+
+>
+```
+
+The `>` at the bottom of the console display is called a prompt.  To manipulate the environment, you can write code after the prompt.  However, as discussed above, it is better to write code in a script, and then send it to the console.  The exact way to create a new script varies from interface to interface (⌘-n  for Mac R; ⌘-⇧-n for Mac RStudio, ctrl-⇧-n for PC RStudio, etc.)  In the file menus, you would be looking for something like "New Document" or "New Script".
+
+The basic steps of R programming taught here are:
+
+1.  Write code into a script
+
+2.  Save your script ( ⌘-s on Mac, ctrl-s on PC )
+
+3.  Submit code to the interpreter ( ⌘-a + ⌘-↵ on Mac; ctrl-a + ctrl-↵ on PC; option-⌘-b also works on Mac RStudio, as does ctrl-alt-R on PC RStudio)
+
+4.  Interpreter processes the code
+
+5.  Interpreter displays results on the console
+
+6.  Type code directly into the console as needed to investigate the results
+
+7.  Determine your next steps, based on what needs to happen next in your code and what you have learned from investigating the results of code previously submitted
+
+8.  Continue programming by returning to step #1 and adding more code to your script
+
+Here is the most basic example of what you might input into the console, and the result it would produce.  Give it a try.  Then, try writing the same line into your script and submitting it to the interpreter from there.
+
+```{R Hello World!}
+"Hello World"
+```
+
+Outputting "Hello World!" is the traditional first lesson in most programming lessons, so much so that it has its own [Wikipedia page](https://en.wikipedia.org/wiki/%22Hello,_World!%22_program).  Congratulations on your first program.
+
+Use your "Hello World" script to practice steps 2-5 until you can do it reflexively and without looking at your keyboard.  This style of programming encourages rapid, frequent interaction with the interpreter and that frequent feedback will guide your programming in the right direction.  Through the console, your interpreter will supply three kinds of feedback.  
+
+First, warning/ error messages will tell you whether the interpreter understood the instructions provided.  Among beginner programmers, there is a propensity to get into a "make the error message go away" frame of mind.  However, absence of error messages does not guarantee the absence of errors and the error message usually happens one or more lines of code below the line that caused the error.  Experienced programmers find out why the error occurred and only then work on making it go away. 
+
+Second, the length of time needed to execute your code will tell you if your code is efficient.  R code should run quickly.  If it takes more than a few seconds to run your code, see if you can write the code differently to decrease runtime.  Long runtimes are also a strong indicator that your code is doing something it should not.  Remember that you can interrupt processing.  The interrupt keys differ from interface to interface (⌘-.  for Mac R; Esc for Mac/PC RStudio; etc.), so take moment to determine the right interrupt keys for your interface.
+
+Third, any test you devise will provide evidence that you code does what you intended.  As you write code, you should confirm each section.  Usually, you can do this by typing commands directly into the console that allow you to visually inspect the results of your code.  In other cases, you may need to write segments of code that perform more sophisticated tests. 
+
+### Environments, Objects, Assignment, and Expression
+
+In R, programming manipulates data inside an _environment_.  An environment hosts _objects_, which are containers that hold data or rules for transforming data.  To create an object, you _assign_ data to an object name.  To view the object created, you type the name of that object into the console, i.e., you _express_ the object.  Below is how you view the objects currently in the environment.
+
+```{R Expression}
+objects()
+```
+
+In this example, objects() is expressed, and `character(0)` is the expression returned.  The expression `character(0)` is returned because there are currently no objects in the environment.  To change this, use the `<-` operator to assign data to create new objects, express one of the new objects, and then express `objects()` to view the current contents of the environment.  You can think of `<-` as telling R to put whatever is to the right of the arrow inside the object to the left of the arrow.
+
+```{R Assignment}
+new_object <- 4
+other_new_object <- 8
+
+new_object
+
+objects()
+```
+
+On the console screen, the prompt `>` precedes the lines of code sent to the interpreter.  The `[1]` precedes expressions of object contents.  During this section of code, two new objects were created (`new.object` and `other.new.object`) and assigned the data 4 and 8 respectively.  Assignment versus expression is an important distinction in R.  Assignment alters objects but does not show you object contents.  Expression does not alter objects but does show you object contents.
+
+You may have noticed that `objects()` is different than the other objects expressed in this example code.  It has a set of parentheses after the object name, did not show up as a listed object in the environment, and did not need to be assigned.  The parentheses signal to R that an object should be treated as a function.  A function is a set of rules for transforming data.  The objects() function reads in information about the environment and expresses a roster of the names of all objects in that environment.
+
+There are actually multiple environments in R.  While `objects()` can express the object roster for any of them, it will _default_ to expressing just the _Global Environment_, which is the primary working environment in which you  store and manipulate objects.  The reason that `objects` does not appear on the roster when you express `objects()` is that it is stored in a separate environment that holds some of the functions build into R.
+
+### Functions, Operators and Comments
+
+Functions are the primary method for transforming objects in R.  They tend to have a consistent syntax with up to five components:
+
+1.	An object that will hold the results of the transformation.  This object will be on the left of the assignment operator.
+
+2.	The assignment operator.  This can be `<-` or it can be `=`.  For this class, please use `<-` for all assignments.
+
+3.	The function that will perform the transformation.  This will be the object to the right of the assignment operator and directly to the left of a set of parentheses.
+
+4.	The parenthesis.  This tells R to treat the adjacent object as a function.
+
+5.	The object to be transformed.  This is the object inside of the parentheses.
+
+```
+#1												 #2	#3									#4 #5										  #4
+objects.containing.results <- transforming.function(object.to.be.transformed)
+```
+
+The functions `objects()`, `remove()`, and `<-` are the three tools you need to do basic object management for your environment.  Below is a demonstration of the four basic object operations: assignment using `<-`, listing current objects using `objects()`, expression using the object's name (`object_manage` in this demonstration), and deletion using `remove()`.  The final `objects()` function at the end confirms that `object_manage` has been deleted.
+
+```{R Object Management}
+object_manage <- 6
+
+objects()
+
+object_manage
+
+remove( object_manage )
+objects()
+
+```
+
+Operators are another method for transforming objects in R.  They are a legacy of the older algorithmic languages that are ancestors to R, especially the root language of all algorithms – mathematics.  Operator syntax can vary, but you will recognize much of it from standard calculator syntax.
+
+```{R Operators}
+2+2
+```
+
+The `#` operator performs a vital role.  It signals to the interpreter that anything to the right of it is not code and should not be processed.  Code becomes complex very quickly.  One of the most important things you can do to keep your code comprehensible and organized is to write notes to yourself about the intended purpose.  The `#` enables you to fill your code with comments and save yourself future confusion  In addition to manually typing `#`, most interfaces will have short cut keys that allow you to select multiple lines and comment or uncomment them all at once (⌘-' on Mac R; ⌘-⇧-c on Mac RStudio; ctrl-⇧-c on PC RStudio ).
+
+The example below demonstrates `#` at work.  Note that `##` is used.  Doubling up on hashes in not required for commenting, but it is often done because it diminishes the chances of mistakenly uncommenting a comment line when using uncomment/comment short cut keys.
+
+```{R Commenting}
+## Calculates two plus two
+2+2
+
+```
+
+### Techniques for Effective Programming
+
+Many common programming errors in R result from bad technique.  Taking the time to write neat, organized code consistently leads to better code and a more productive programmer.  Here are some basic tips for good coding technique that will save you hours of frustration.  However, with any technique, it is important to remember this: there is no One True Way to program.  Evidence of good code is efficient use of computational resources, reliable performance of the intended computational function, and long-term sustainability of code.  This book will teach you a precise style of coding that a veteran programmer honed to do high impact computation in a challenging analysis environment.  If you are a beginner just learning R, I recommend you follow the styles taught in this book dogmatically for the first year or two because it will prevent you from developing bad habits before you have the experience to recognize bad habits.  If you are an intermediate programmer doing skill sharpening, I recommend that you follow the styles taught in this book dogmatically for the duration of this class because enforcing style discipline is good practice for writing precise, mindful code.  With that caveat said, below are some basic techniques for effective programming:
+
+* **Follow a style guide / code consistently** – Consistently written code is easier to check for errors, easier to co-write with other programmers, and easier to revise.  A style guide is a set of guidelines for writing code in a consistent manner.  Style guides cover topics like naming, spacing, organizational layout, documentation, etc.  There is no One True Style Guide, but I recommend that you follow sections 1-3 of the [Tidyverse style guide](https://style.tidyverse.org/) and [Google's modifications](https://google.github.io/styleguide/Rguide.html) to it.
+
+*	**Document copiously / code sustainably** – When you write code, it is important to think about long-term sustainability.  You may need to return to old code years after writing it, hand it off to another programmer, modify it to work for a different use case, or do deep inspection to fix unforeseen negative side-effects.  Documenting your code is crucial for these purposes.  This takes two forms.  First, every segment of code should have a comment that explains the intent of that segment and is clear enough that others can make sense of it.  Second, every coding project needs a README file.  This file documents the purpose, design and status of your code at a higher level.
+
+*	**Preemptively close / code humbly** – Programming is a highly precise endeavor, where comma placement, capitalization, or parenthetical structure can bring your code to a complete halt.  Taking steps to preempt those errors is an vital component of programming style.  The eight-step process described in the "Writing and Executing R Code" section of this chapter will already help you find some errors, because it entails testing each section of your code as you write it.  Another technique you can employ is preemptive closure.  There are many situations in programming where you must write initial code, followed by intermediate code, followed by concluding code.  Preemptive closure is when you write the initial code, then the concluding code, and then go back to write the code in the middle.  For example, imagine you wanted to delete an object by writing `remove(doomed.object)`.  To preemptively close, you would write `remove(`, then `)` and then hit the left arrow to go back and write `doomed.object`.  In terms of parentheticals specifically, many code editors are designed to automatically insert the closing parenthesis when you write the opening one.  However, preemptive closure is a mindset that goes beyond parentheticals.  For that reason, please disable automatic matching in your interface, so that you can practice the mindset of preemptive closure.  You can turn it back on again when preemptive closure is so deeply engrained that you reflexively close your parentheticals, even when you are composing sentences in emails.
+
+*	**Use spacing liberally / code legibly** – Most programming languages ignore spacing (Python is a notable exception).  However, well-spaced code is significantly easier to use, modify, and. de-bug.  Consider the different between the two scripts below.  Both functions do identical Pearson correlation calculations but spacing makes one significantly more programmer friendly than the other.
+
+```{R Spacing}
+
+
+
+## CODE WITHOUT SPACING
+
+##Define two vectors of numbers
+predictor<-1:10
+outcome<-predictor^2
+
+##Calculate deviation from the mean for x and y
+deviation.predictor<-predictor-mean(predictor)
+deviation.outcome<-outcome-mean(outcome)
+##Normalize deviation by standard deviation
+z.score.predictor<-deviation.predictor/sd(predictor)
+z.score.outcome<-deviation.outcome/sd(outcome)
+##Calculate correlation from z scores
+correlation<-sum(z.score.predictor*z.score.outcome)
+correlation<-correlation/{length(predictor)-1}
+##Express correlation
+correlation
+
+
+## CODE WITH SPACING
+
+## Define two vectors of numbers
+predictor <- 1:10
+outcome   <- predictor^2
+
+## Calculate deviation from the mean for x and y
+deviation_predictor <- predictor - mean(predictor)
+deviation_outcome   <- outcome   - mean(outcome)
+
+## Normalize deviation by standard deviation 
+z_score_predictor <- deviation_predictor / sd(predictor)
+z_score_outcome   <- deviation_outcome   / sd(outcome)
+
+## Calculate correlation from z scores
+correlation <- sum(z_score_predictor *  z_score_outcome)
+correlation <- correlation / {length(predictor) - 1}
+
+## Express correlation
+correlation
+```
+
+*	**Revise as you go / code precisely** – A script is a final draft of the computation you need, not a transcript of the code you typed.  Your final script does not need to document dead ends you unsuccessfully tried, expressions that helped you establish that code segments did what you intended, or calculations that were unnecessary for the final result.  Revise your code as needed to remove code clutter.  Your code should look engineered and well-planned, even if it was a long series of trial and error.  This extends to object names.  For example, do not spend 100 lines of code doing computational analysis on an object called `raw_data_to_be_processed`.  Instead, name the object to reflect whatever it will become after those 100 lines of processing or periodically transfer the data to a new object.
+
+*	**Use a fixed width font** – Fixed width fonts, such as Consolas or Courier, have letters that all have a consistent width.  Since R outputs large blocks of text for most analyses, uneven letter width can cause a surprising amount of trouble during email chains and other cut/paste situations.
+
+*	**Organize directories consistently** – For most complex computations, your scripts will need to interact with your computer's file system.  Situate your scripts in a consistent way to make these interactions more predictable and your code more portable.  For the duration of this class, please format your project directory to match the example below.  That is to say:
+
+	- Your scripts are numbered in the order they must be run, if the project was to be run start to finish.  Even though they are plaintext TXT files, they all end with a ".R" extension.  This example displays three scripts, which is suitable for complex code.  In simpler projects, one script with separate sections will suffice.  In this three-script set-up, the scripts might be:
+	
+		+ 01_DataShaping.R – Actions taken to get your data in the right form for the analysis you want to conduct.  Data cleaning and re-coding typically goes here.
+		
+		+ 02_Analysis.R – Computational analyses that turn the data you have into the insight you want.  If you were conducting linear modeling (i.e., regression), the model itself would go here.
+
+		+ 03_Deliverables.R – Frequently, some additional processing is needed to turn your result into something comprehensible and publishable.  For example, you might generate a scatter plot of your data with a trend line.  That post-analysis code would go here.
+	
+	- In addition to scripts, your project directory contains four directories that hold data relevant to your analysis.  The directories are lettered to reflect the order in which they become relevant relevant in the analysis process.
+
+		+ A_Inputs – Raw data files that your code will process.  For example, this might contain a spreadsheet of survey responses.  In the multiple script set-up like the one below, A_Inputs contains the data that 1_DataShaping will read and process.  To prevent data corruption, never write to your A_Inputs directory.
+
+		+ B_Intermediates – Useful data products to be passed to subsequent scripts or saved in case a deep dive into your computations is necessary.  This might include raw outputs from your analysis or other saved R objects.  In a multiple script set-up, B_Intermediates would hold the objects outputted in 1_DataShaping.R to be used in 2_Analysis.R and also those outputted in 2_Analysis.R to be used in 3_Deliverables.R
+
+		+ C_Outputs – Document-ready outputs, such as charts and tables.  In the three script set-up, these would be the outputs from 3_Deliverables.R.
+
+		+ D_Misc – Any other files you might need, such as the data dictionaries for your A_Input files.
+
+		+ README.txt – High-level overview of your project and other similar project documentation.  This file has no starting number or letter, because git (a popular version control program) looks for the exact name "README".
+
+* **Organize scripts consistently** – The contents of your scripts will vary with the needs of the project.  However, there are some basic features that will serve you well in any script.  For the duration of this class, please include these features at the top/bottom of your code:
+
+  - Guidelines (First and last line of code) – These are lines of hashes that help you avoid writing overly long lines of code.  I like to use groups of 10 `#` interspaced with groups of 10 `=`, but this is purely an aesthetic choice.  The important thing to avoid writing code that is longer than your guidelines.
+
+  - Meta-Information section (first section at top) – this first section of code supplies information about the script, including author's name, author's email, creation date, project ID, and a brief description of the purpose of the script.
+
+  - Environmental set-up section (second section at top) – this section holds basic instructions to R that lay the groundwork for your code.  This includes:
+
+    + `remove(list= objects())`  – A clearing statement.  This combination function clears all of the objects currently in your R environment.  This ensures that the results you get from your code are solely the result of the code you ran.  Otherwise, there is a risk of getting non-reproducible results because of contamination from previously run code.
+    + `options(width= 80)` – Your settings.  The `options()` function allows you to change different R settings.  `width= 80` instructs R to display no more than 80 characters on a line of console text.  Whatever number you specify should match the length of your guideline.  Personally, I also like using `digits= 6`, which limits how many decimal places R displays and `scipen= 4`, which instructs R to hold off on using scientific notation until the numbers start getting into the billions.
+
+    + IF APPLICABLE: `library()` – There are thousands (millions?) of available functions out there, and not all of them are enabled when you start up R. `library()` enables you to access "packages" of other functions.  Do not load packages unless you really need them because it makes your code less portable and more difficult to maintain.
+
+    + Addresses for input files – To do most analyses, you will need to read in data from your computer to the R environment.  There is some error avoidance benefit to telling R where to look for files and placing these instructions right at the beginning of your code.
+
+    + Data import section (third section at top) – this section takes the data addresses specified above and reads in the actual data.
+
+    + Data outputs section (last section at bottom) – this section holds the code used to write your data/analysis/deliverables to disk for use elsewhere.
+
+Here is an example script that uses the techniques outlined above.  Some of it uses material you will not cover until later in this class but you can start practicing the general formatting right from the start:
+
+```{R Example Script (Pre), include= FALSE}
+library( openxlsx )
+write.xlsx(
+	data.frame(Outcome= 1:10, Temperature= {1:10}^2),
+	file= "A_Inputs/Dataset.xlsx"
+	)
+```
+
+```{R Example Script}
+##########==========##########==========##########==========##########==========
+
+## HEADER SECTION ====================
+
+## Meta-information
+## Author: Joshua Mendelsohn (jmendel@example.com)
+## Creation: 2020-09-22 for "R Programming for Scientific Analysis", Chp. 1
+## Description: This script correlates variables from a weather dataset
+
+## Environment set-up
+remove(list= objects())
+options(width= 80, scipen= 4, digits= 6)
+library(openxlsx)
+
+## Input file locations
+weather_data <- "A_Inputs/Dataset.xlsx"
+
+## READ IN DATA ====================
+
+weather_data <- read.xlsx(weather_data)
+
+## CALCULATE PEARSON CORRELATION FROM SCRATCH ====================
+
+## Assign independent/dependent variables to separate objects
+predictor <- weather_data$Temperature
+outcome   <- weather_data$Outcome
+
+## Calculate deviation from the mean for x and y
+deviation_predictor <- predictor - mean(predictor)
+deviation_outcome   <- outcome   - mean(outcome)
+
+## Normalize deviation by standard deviation 
+z_score_predictor <- deviation_predictor / sd(predictor)
+z_score_outcome   <- deviation_outcome   / sd(outcome)
+
+## Calculate correlation from z scores
+correlation <- sum(z_score_predictor *  z_score_outcome)
+correlation <- correlation / {length(predictor) - 1}
+
+## Express correlation
+correlation
+
+##########==========##########==========##########==========##########==========
+```
+
+
+```{R Example Script (Post), include= FALSE}
+detach(package:openxlsx)
+file.remove("A_Inputs/Dataset.xlsx")
+remove( list= objects() )
+```
+
+### Vector Operations
+
+Vectors are the basic unit of data in R.  Vectors are analogous to columns in a dataset in that they contain a sequence of data values.  For convenience, we will use the term "element" to reference a particular data value within a vector.  Perhaps the simplest way to create a vector is with the `:` operator. See the example below.  It creates a vector of sequential integers starting from the integer to the left and listing all integers between it and the integer to the right.  Each one of the integers is a separate element.  Many functions are designed to work element-wise along vectors.  In the example below, when you divide this_is_a_vector by itself, the result is a vector of `1`'s because the operation is applied element-wise to both vectors.
+
+```{R Vectors}
+## Create vector of sequential integers
+this_is_a_vector <- 2:12
+
+## Express vector
+this_is_a_vector
+
+## Express a vector divided by itself
+this_is_a_vector / this_is_a_vector
+
+## delete object that is no longer needed
+remove(this_is_a_vector)
+```
+
+Vectors do not have to hold integers.  However, all elements of a vector must be of the same type of data.  R supports many types of data, but, for practical purposes, the major kinds are numbers, logical values (TRUE or FALSE), and text characters (also called "strings").  This lesson will show examples of numeric and logical data.  The example below expresses a numeric vector and a logical vector.  The numeric vector uses the `:` operator to create a vector of sequential integers between -2 and 2.  The logical vector uses the "greater than or equal to" operator (`>=`) to determine which values of the `numeric_vector` are greater than or equal to zero.  Logical vectors can only take on the values of `TRUE` or `FALSE`.  These are reserved words, meaning that you cannot create objects with these names.  Like everything in R, capitalization matters.  `TRUE` is a reserved system word denoting logical truth, but "True" and "true" are not.
+
+```{R Numeric and Logical}
+## this is a numeric vector
+numeric_vector <- -2:2
+numeric_vector
+ 
+## this is a logical vector
+positive_numbers <- numeric_vector >= 0
+positive_numbers
+
+## Delete demonstration objects that are no longer needed
+remove(numeric_vector, positive_numbers)
+```
+
+Here is a demonstration of basic arithmetic functions in R.
+
+```{R Basic Arithmetic Demonstration}
+## : generates integer sequences
+one_five <- 1:5
+
+## Subtraction
+one_five - one_five
+
+## Addition
+one_five + one_five
+
+## Multiplication
+one_five * one_five
+
+## Division
+one_five / one_five
+
+## Exponentiation (You can also use the ** operator)
+one_five^one_five
+
+## Integer division
+one_five %/% 2
+
+## integer division remainder
+one_five %% 2
+
+## Delete demonstration objects that are no longer needed
+remove(one_five)
+```
+
+Here is a demonstration of basic logical functions in R:
+
+```{R Basic Logic Demonstration}
+## generate a starting vector
+numeric_vector <- -2:2
+numeric_vector <- numeric_vector^2
+numeric_vector <- numeric_vector^0.5
+numeric_vector
+
+## == determines logical equivalence
+logical_vector <- numeric_vector == 1
+logical_vector
+
+## ! determines logical non-equivalence
+numeric_vector != 1
+
+## ! indicates logical negation
+logical_vector
+!logical_vector
+
+## & (logical and) returns TRUE is both arguments are TRUE
+TRUE  & TRUE
+TRUE  & FALSE
+FALSE & FALSE
+
+## | (logical or) returns TRUE if either argument is TRUE
+TRUE  | TRUE
+TRUE  | FALSE
+FALSE | FALSE
+
+## Delete demonstration objects that are no longer needed
+remove(numeric_vector, logical_vector)
+```
+
+Basic mathematical and logical functions are very computationally efficient, so using them in code is generally a good move.  Moreover, you can do many tasks with clever application of basic operators.  For example, imagine you wanted to round down a set of numbers to the nearest increment of 0.4.  Here is how you would accomplish this using only basic operators.
+
+```{R Using Math To Do things}
+## Generate a starting vector with decimals ==========
+number_vector <- 1:9
+number_vector <- number_vector * 0.67
+
+## Round down in arbitrary increments (like multiples of 0.4) =========
+
+## divide by 0.4
+by_four <- number_vector / 0.4
+
+## integer divide by 1 to get highest multiple of 0.4
+by_four <- by_four %/% 1
+
+## multiply by 0.4
+by_four <- by_four * 0.4
+
+## compare starting vector to highest multiple of 0.4
+number_vector
+by_four
+
+## Delete demonstration objects that are no longer needed
+remove(number_vector, by_four)
+```
+
+### Coercion
+
+All elements of a vector must be of the same data type.  Operations involving vectors act on data of a single type.  When either of these conditions are false, R will engage in _coercion_.  Coercion is when R changes the data type of a vector to make sense of the specified operation.  Understanding the rules of coercion is important to diagnosing certain types of common errors.  While relying on coercion is generally bad form, there are circumstances under which clever use of coercion can solve problems.
+
+```{R Coercion}
+## Logical negation + numeric vector
+## Result: 0 becomes FALSE, others become TRUE
+number_vector <- -2:2
+logical_coercion <- number_vector & TRUE
+logical_coercion
+
+## Arithmetic operator + logical vector
+## Result: FALSE becomes 0, TRUE becomes 1
+logical_coercion * 1
+
+## Delete demonstration objects that are no longer needed
+remove(logical_coercion, number_vector)
+```
+
+### Vector Positions
+
+Parentheticals play a prominent role in R.  Round parentheses `()` signal tell R to treat an object as a function.  Curly brackets `{}` change the order of operations in the same way as parentheses in mathematical equations.  Round parentheses can do that too but it is computationally inefficient to use round parenthesis where curly would do, because R does extra computation work on every round parenthesis related to their role in functions.
+
+```{R Parentheticals}
+## This is function without its parentheticals
+## Result: Expressed like any other object
+sum
+
+## this is a function with its parentheticals
+## Result: Expresses 0 (the sum of no numbers)
+sum()
+
+## This is arithmetic, following the order of operations
+2 + 5 / 2
+
+## This is arithmetic, overriding Order of Operations with curly brackets
+{2 + 5} / 2
+
+## Round parentheses do this too, but it is computationally wasteful
+(2 + 5) / 2
+```
+
+Square brackets `[]` are the other important type of parentheticals in R.  Square brackets enable you to extract elements from inside a vector.  Implicitly, every element in a vector has a position coordinate.  Brackets allow you to extract elements at specific position coordinates.  The basic syntax is `object[position_coordinate ]`.  There are several types of position arguments that you can input into a square bracket.  First, you can input a vector of numbers.  This will extract the elements of the vector corresponding to those positions.  Second, you can input negative numbers.  This will extract all elements except for the ones in those positions.  Third, you can input a logical vector that has one element for each element in the vector from which you wish to extract (e.g., the two vectors are of "equal length").
+
+```{R Square Brackets}
+## Create a vector of integers
+number_vector <- {1:10}^2
+number_vector
+
+## Extract just the third element
+number_vector[3]
+
+## Extract a range of elements
+number_vector[3:6]
+
+## Extract all elements, except a range
+number_vector[-3:-6]
+
+## Extract elements that meet a logical criteria
+only_even <- {number_vector %% 2} == 0
+number_vector[only_even]
+
+## Delete demonstration objects that are no longer needed
+remove(only_even, number_vector)
+```
+
+Extracts from vectors are available for operations, just like any other vector.  They are available both as left-side targets and right-side inputs for assignment.  In the example below, extraction is used to turn every even number in a vector negative.
+
+```{R Vector Extracts}
+## Create a vector of integers
+number_vector <- {1:10}^2
+number_vector
+
+## Identify elements that meet a logical criteria
+only_even <- {number_vector %% 2} == 0
+
+## Perform operations on the extracted elements
+number_vector[only_even] <- number_vector[only_even] * -1
+number_vector
+
+## Delete demonstration objects that are no longer needed
+remove(only_even, number_vector)
+```
+
+### Exercise - Generating Number Sequences
+
+In the end, a computer is just a fancy calculator that adds numbers together really fast.  All mathematical operations are clever implementations of this calculation.  All complex functions are clever combinations of mathematical operators.  This exercise is about using basic mathematical and logical operators to achieve complex results.  The exercise is simple: Choose a mathematical sequence of numbers, and then use only A1 vocabulary to reproduce that sequence.
+
+```{R Mimic Exercise}
+## STEP 1: Choose a goal sequence that has some form of mathematical
+	## regularity to it.  Choose a sequence with at least 20 elements,
+	## but, for simplicity, this example will use a 6 element goal:
+	## 1.0 2.1 3.2 5.3 8.4 13.5
+
+## STEP 2: Generate a starting integer sequence that has the same
+	## number of elements as your goal sequence
+mimic <- 1:6
+mimic
+
+## STEP 3: apply transformations to your start sequence until it
+	## matches your end sequence. Take care to apply all of the basic
+	## technique discussed in A1 - commenting, spacing, etc. Example
+	## below.  Reminder: in the example, I will express each step so
+	## you can follow along.  However, you should not write expressions
+	## into your code, just assigments.
+
+
+## generate the decimal part, since that a straightforward increment
+mimic <- mimic + 0:5 / 10
+mimic
+
+## fix the last three integers
+end_fix <- {1:7}[{1:7} %% 2 != 0]
+mimic[4:6] <- mimic[4:6] + end_fix[-3]
+mimic
+
+## Delete demonstration objects that are no longer needed
+remove(mimic, end_fix)
+```
+
+As you carry out this exercise, strive for solutions that require few lines of code.  Also strive for your lines of code to be short (70-80 characters max) and avoid approaches where you are assigning elements individually.  Here is the better solution from above side-by-side with a less elegant solution.
+
+```{R}
+
+## CLUMSY SOLUTION (6 lines)
+mimic    <- 1:6
+mimic[2] <-  2.1
+mimic[3] <-  3.2
+mimic[4] <-  5.3
+mimic[5] <-  8.4
+mimic[6] <- 13.5
+
+
+## SLIGHTLY LESS CLUMSY SOLUTION (4 lines)
+mimic <- 1:6
+mimic <- mimic + 0:5 / 10
+end_fix <- {1:7}[{1:7} %% 2 != 0]
+mimic[4:6] <- mimic[4:6] + end_fix[-3]
+
+```
+
