@@ -1,1 +1,511 @@
-##########
+```{r Environment set-up, include= FALSE}
+remove( list= objects() )
+```
+
+```{r Document-Wide Knitr Options, include= FALSE }
+knitr::opts_chunk$set(fig.width=6, fig.height=6) 
+knitr::opts_chunk$set(comment= "")
+knitr::opts_chunk$set(prompt= TRUE)
+```
+## Lesson Links
+
+[Go to the Table of Contents](00_TableOfContents.html)
+
+[Return to Last Lesson (A1: Object Orientation and Operators)](01_LessonA1.html)
+
+[Proceed to Next Lesson (A3: Classes, Constants, and Comparison Operators)](03_LessonA3.html)
+
+## Lesson A2.  Basic Vector Mathematics
+
+This lesson will introduce you to many of the basic mathematical functions for constructing numeric vectors and manipulating them.
+
+### Functions and Arguments
+
+Functions are the primary tool for transforming objects into useful information.  Functions typically accept arguments, which are controls that you can use to modify how a function behaviors.  An argument is an object placed between the parentheses of a function so that it is passed to that function for use.  In the simplest case, a function will require a single argument like the arithmetic average example below:
+
+```{R Arguments, Simple Example}
+mean( 1:3 )
+```
+
+Many functions listen for multiple arguments and your argument choices will determine your results.  In this case, specify the argument by name, followed by `=`, and spaced with `,`.  Consider the function `seq()`, which constructs sequences of numbers according to different combinations of arguments: 
+
+* `from=` What is the first number in the vector?
+
+* `to=` What is the last number in the vector?
+
+* `by=` What should the function add to each element to generate the next one?
+
+* `length.out=` How many elements does the vector have?  I.e., what is the vector's length?
+
+* `along.with=`  [Supplies an argument for length.out= by measuring the number of elements in the vector passed to it]
+
+Here are examples of how different combinations of arguments lead to achieve different outcomes.  This example works because each of the arguments implies some information about the others, so the function can deduce missing arguments from the present arguments.  
+
+```{R Arguments Illustrated with Seq()}
+## Using seq() to mimic the behavior of the : operator
+	## Also exemplifies a horizontal spacing approach to arguments.  Horizontal or
+  ## vertical spacing are equally correct; use whichever makes your code more
+  ## readable.
+seq(from= 0, to= 9)
+
+## Using seq() to increment more than 1 at a time.
+	## Also exemplifies a vertical spacing approach to arguments
+seq(
+	from= 0,
+	to=   9,
+	by=   2
+	)
+
+## Using seq() to produce a vector of equal length to the by3 object
+by3 <- { 1:3 } * 3
+by3
+
+seq(from= 30, by= 30, along.with= by3)
+
+##  Using the increment, desired length, and ending value
+seq(to= 9, by= 2, length.out= 3)
+
+## Arguments have an implicit ordering.  If you don't name your arguments,
+  ## R will assume to this ordering.  Here, to= and from=
+  ## are assumed
+seq(0, 9)
+
+## Starved of all arguments, seq() will return 1
+seq()
+
+## Delete demonstration objects that are no longer needed
+remove(by3)
+```
+
+The last two examples illustrate an important concept – defaults.  A default is an assumption that a function will make if it does not receive the inputs it needs.  R functions make two types of default assumptions - argument order and argument value.  In terms of order, `seq()` will assume that the first argument is for `from=` and the second argument is for `to=` if two arguments are given but not named (E.g., `seq(1, 2)`).  In terms of value, `seq` will assume `from= 1`, `to= 1`, and `by= 1` if you do not specify arguments.
+
+Defaults are why `seq()` does not error out if you starve it for arguments. Thus, `seq()` returns `[1] 1`.  This behavior can be contrasted with `mean()`, which does not have a default value for its main argument `x= `. Thus, `mean()` returns `Error in mean.default() : argument "x" is missing, with no default`.
+
+The output of `args()` takes some practice to interpret, but look up arguments for you.  The manual page also has this information.  It can be accessed using `help()`.
+
+```{R args()}
+args( mean )
+```
+
+In addition to using R's built-in functions, you can make function using `function()`.  This function will create a new object in your environment that can be used to like any other function.  Below is a simple demonstration of function creation.  The basic components are:
+
+1.  Name of the function object you will create.
+
+2.  function(), which is a function for making functions.
+
+3.  The arguments that your function will expect.  These go inside `()`.
+
+4.  Calculations that your function will do to make the object you have into the object you want.  These go inside `{}`, immediately following the `()`
+
+5.  An expression at the end of the function.  This is the "output" of the function
+
+
+```{R Defining Functions}
+
+#1										#2												 #3
+NameOfYourFunction <- function(the_first_argument, the_next_argument) {
+	
+	#4
+  the_result <- the_first_argument + the_next_argument
+  the_result <- the_first_argument / the_result
+  
+  #5
+  the_result
+}
+
+
+## You can use your function just like any other
+NameOfYourFunction( 2, 3 )
+
+## If you express it without the parentheses, it will express the code you put into it.
+NameOfYourFunction
+
+## Delete demonstration objects that are no longer needed
+remove(NameOfYourFunction)
+```
+
+We will discuss function creation is greater detail in latter lessons.
+
+### Object Construction
+
+Vectors - objects that contain one or more elements of the same data type - are the basic building blocks of R objects.  There are many ways to construct vectors, either with determined or randomly generated data in them.  Here are some options for creating vectors with determined contents.
+
+```{R Constructing Vectors with Determined Data}
+## : produces a vector of consecutive integers
+0:9
+
+## c() produces a vector with whatever you put in it
+ 	## note how it is able to accept an arbitrary number of arguments
+c( 0, 1, 2, 3, 4 )
+
+## seq() produces number sequence with regular properties
+seq( from= 0, to= 9, by= 2 )
+
+## rep() produces sequences by repeating the vector elements passed to it
+	## now how the times= and each=  arguments provide different outputs
+rep( x= 3:4, times= 3 )
+rep( x= 3:4, each= 3 )
+
+## vector() produces an empty vector of a given length.  The interpretation of
+	## "empty" is specific to the type of data.  This function is probably the
+ 	## closest analogy to the declaration of a variable that is required in some
+ 	## languages (such as C) before that variable can be assigned a value
+vector( length= 4, mode= "numeric" )
+vector( length= 4, mode= "logical" )
+```
+
+### Pseudo- Random Number Generation (PRNG)
+
+There are many circumstances in which it is helpful to have vectors of random data, instead of determined data.  Randomization is particularly important for code testing because it can reveal flaws in functions.  It is also useful for understanding the analytic power of a program to detect patterns buried amid data noise, the robustness of the analysis results to idiosyncrasies in data, and the range of outputs that might result during the normal operations of a program, etc.
+
+Randomization was a difficult problem in the early days of computing, because computers are mathematically precise machines that do exactly as instructed.  With that kind of precision, there is no variation from run to run.  To this day, no computer produces truly random numbers.  Instead, computers use algorithms that generate data with statistical properties that approximate randomness.  If you know the exact input data feeding into one of these algorithms, you can exactly predict the data it will generate.  This input data is called a "seed."
+
+When you start R, it automatically generates a seed using the precise time of day (down to the millisecond or smaller), and the internal numeric ID that your operating system has assigned to your session of R (I.e., the process ID).  The resulting seed is a vector of 626 integers.  The first two provide information about the seed, and the last 624 integers are the seed itself.  The algorithm used is a ubiquitous randomization algorithm called a Mersenne Twister.  You can express `.Random.seed[ -1:-2 ]` to view the seed.  When you run a function in R that involves randomization, R resets this seed using the new time/process ID.  You can also reset the seed manually using `set.seed()`.  This function accepts a single integer argument and uses it to generate the full 624 integer seed.
+
+Seed setting matters for two reasons.  First, science requires replicability.  By setting the seed, you are documenting the random numbers you used, such that other research teams can replicate your results exactly.  Remember, random does not mean unknown.  It just means that the numbers used probably do not follow an obvious pattern.  Second, seed generation really matters for parallel processing, which is when you have multiple computations running at the same time on your machine.  Because seed selection relies heavily on the current time, extra care must be taken when running multiple instances of the same computation simultaneously.  Incidentally, this is why R uses the process ID to help determine the starting seed - unlike the date, it is different for each thread.
+
+R has many randomization functions.  Each function starts from the core PRNG process and then builds from those outputs to produce random outputs with specific properties.  Such properties include statistical distribution, replacement, etc.  Here is a demonstration of some randomization functions I use often:
+
+```{R PRNG Functions}
+####---- Randomization Functions in R
+
+## sample() takes a random sample from a vector.  The sample can be done with or 
+	## with out replacement, and you can specify the probability that each element
+	## gets selected.  Note: the vector does not need to be numbers. Other types
+  ## of data work just as well for the x= argument
+
+set.seed(736)
+sample(
+	x= 0:9,
+	size= 3,
+	replace= TRUE,
+	prob= {1:10} / 10
+)
+
+## runif() generates a uniformly distributed sample, meaning that all numbers
+	## that fall between the min= and max= arguments have an equal change of 
+	## being selected.  n= specifies how many numbers to generate
+runif(n= 5, min= 0, max= 9)
+
+runif(n= 7, min= 1, max= 2)
+
+## rbinom() generates a binomially distributed sample (picture a sample of coin
+	## flips).  The size= argument basically tells it how many coins to flip
+	## at a time.  The prob= argument basically specifies the chances that each 
+	## coin comes up "heads".
+
+rbinom(n= 5, size= 5, prob= 0.2)
+
+rbinom(n= 5, size= 5, prob= 0.9)
+
+rbinom(n= 5, size= 3, prob= 0.2)
+
+## rnorm generates a normally distributed sample (picture a dart
+	## board where most darts hit close to the bullseye). The mean= argument
+  ## specifies the spot for which the person is aiming.  The sd= argument
+  ## specifies how far off they are from hitting that spot on average.
+
+rnorm(n= 4, mean= 4.5, sd= 3)
+
+rnorm(n= 4, mean= 45, sd= 3)
+
+rnorm(n= 4, mean= 4.5, sd= 30)
+
+## rpois() generates a Poisson distributed sample.  For Poisson, picture a pile
+	## of coins. Imagine that people walk by and either take a coin or leave
+	## a coin.  rpois() is kind of like randomly simulating how many coins will
+	## be in the pile at a given time. The lambda= argument specifies the
+	## average number of coins that will be in the pile across a long span
+	## of time. Poisson distributions only output positive integers, which can
+ 	## be really useful for computation.  Moreover, if you set lambda high enough
+ 	## those integer become approximately normally distributed.
+
+rpois( n= 5, lambda= 5 )
+
+rpois(n= 5, lambda= 8)
+
+```
+
+### Conceptualizing Function Input/ Output Relationships
+There are many mathematical functions in R.  The next section will introduce you to 22 of them.  However, let us take a step back to consider the input-output behavior of functions at a conceptual level first.  Functions receive input and express output.  The assignment operator takes the expressed output and saves it in an object.  In many cases, both the input and the output are vectors.  However, the relationship between the input and output vector can vary.  Here are some basic kinds of input/output relationships to consider.
+
+#### Element-Wise Functions
+
+Element-wise functions perform an operation individually on each element of a vector.  If they require more than one vector argument, they interact the element in a given position in a vector with the element in the equivalent position in another vector.  If a given element holds invalid data, it might not contaminate the rest of the results because each element is processed independent of the others  For single-argument element-wise functions, consider devising tests that will detect if any invalid cells have developed.  Often, one of the summary functions discussed in the next paragraph will suffice for this test.  For double-argument element-wise function, be aware of a behavior called recycling.  Recycling happens when an element-wise function (or operator) receives vectors with a different number of elements.  In R parlance, the vectors are said to have different "lengths."  In this circumstance, R will repeat the elements of the short vector as needed to make it of equal length to the longer vector.  This is useful behavior if intended but can silently introduce errors when unintended.
+
+```{R Element-Wise}
+## create two sample vectors
+vector1 <- runif( n= 6, min= 0, max= 9 )
+vector1
+
+vector2 <- rep( c(0,1), times= length( vector1 )/2 )
+vector2
+
+## demonstrate single vector element-wise
+vector1 <- ceiling( vector1 )
+vector1
+
+## demonstrate double vector element-wise
+vector1 * vector2
+
+
+## demonstration of recycling
+vector2 <- vector2[1:2]
+
+vector1 * vector2
+
+####---- Demo. of all element-wise math functions in this lesson's vocabulary
+
+## floor() rounds numbers down to nearest integer
+floor( c(1.2, 1.5, 1.8) )
+
+## round() rounds numbers to nearest integer
+round( c(1.2, 1.5, 1.8) )
+
+## ceiling() rounds numbers up to nearest integer
+ceiling( c(1.2, 1.5, 1.8) )
+
+## abs() finds the absolute value of a number
+abs(-2:2)
+
+## exp() raises Eulers number to the power specified in the input
+	## vector
+exp(0:2)
+
+## log() calculates the logarithm of numbers in a given base
+log( c(10, 100, 1000), base= 10 )
+
+log( c(2, 4, 8, 16), base= 2 )
+
+## rank() ranks numbers from least to greatest
+rank( c(5, 8, 3) )
+
+## sqrt() calculates the square root of a number
+sqrt( c(9, 16, 25) )
+
+## Delete demonstration objects that are no longer needed
+remove(vector1, vector2)
+```
+
+#### Summary Functions
+
+Summary functions consider all elements of a vector jointly in producing a single result.  This might either be a single element or a dashboard of elements that characterize aspects of the vector.  Since every element contributes to a common output, summary functions are vulnerable to invalid data in any element.  This can either be a literal invalid character, such as NA, or outlier data elements.
+
+```{R Summary Functions}
+## demonstration of mean()
+mean( c(4:6, 1) )
+
+## demonstration of mean() with invalid data
+mean( c(4:6, NA) )
+
+## prod() multiplies all all arguments together
+prod( 4, c(2, 3) )
+
+## sum() adds all arguments together
+sum( 3, c(2, 2, 3) )
+
+## min() finds the minimum of all arguments
+min( 15, c(-5, 2, 10) )
+
+## max() finds the maximum of all arguments
+max( 15, c(-5, 2, 10) )
+
+## mean() averages the elements of a vector
+mean( c(3, 5, 22) )
+
+## median() finds the median of the elements in a vector
+median( c(3, 5, 22) )
+
+## sd() finds the standard deviation of the elements in a vector
+sd( c(0, 25, 50, 75, 100) )
+
+## mad() is a the median absolute deviation - a robust alternative to SD. 
+mad( c(0, 25, 50, 75, 1000) )
+
+## length() counts the number of elements in a vector
+length(11:15)
+```
+
+#### Cumulative Functions
+
+Cumulative functions interact the current element with all elements in positions less than the position of the current element.  This typically results in an output vector that is the same length as the input vector or is one element shorter than the input.  Like summary functions, cumulative functions are vulnerable to invalid data, especially when that data occurs in positions near the beginning of the vector.  Moreover, they are also vulnerable to order effects – if the order of a cumulative vector changes (such as by reordering the rows of an input spreadsheet), the output will also change.
+
+```{R Cumulative Functions}
+#### The "cum" functions apply a transformation to the current
+	## element of the input vector, and all elements in positions
+	## before the current element (ie cumulatively)
+
+## cumsum() applies the sum() function cumulatively
+cumsum( 1:3 )
+
+## cumprod() applies the prod() function cumulatively
+cumprod( 1:3 )
+
+## cummax() applies the max() function cumulatively
+cummax( c(1, 1, 5, 1, 1) )
+
+## cummin() applies the max() function cumulatively
+cummin( c(5, 5, 1, 5, 5) )
+
+## diff() subtracts the previous element for the current element
+	## note how the output vector is one element smaller than the
+	## input.
+diff( c(3, 4, 5)^2 )
+```
+
+#### Duplicable Functions
+
+Duplicable functions transform data such that doing a transformation multiple times will not yield a different output than doing it once. 
+
+```{R Duplicable}
+normal_numbers <- rpois(n= 5, lambda= 100) / 10
+normal_numbers <- {normal_numbers / 10}^2
+
+## Demonstration of sqrt() which is not duplicable
+sqrt(normal_numbers) == sqrt( sqrt(normal_numbers) )
+
+## Demonstration of round() which is duplicable
+round(normal_numbers) == round( round(normal_numbers) )
+
+## Delete demonstration objects that are no longer needed
+remove(normal_numbers)
+```
+
+#### Reversible Functions
+
+Reversible functions transform data in a way that produces no information loss.  For those functions, there is generally some function or series of functions that can transform the object back to its original state. 
+
+```{R Reversible Functions}
+normal_numbers <- rpois(n= 5, lambda= 100) / 10
+normal_numbers <- {normal_numbers / 10}^2
+normal_numbers
+
+## Demonstration of sqrt() which is reversible
+sqrt(normal_numbers)
+normal_numbers == sqrt(normal_numbers)^2
+
+## Demonstration of round() which is irreversible
+round(normal_numbers)
+normal_numbers == round(normal_numbers)
+
+## Delete demonstration objects that are no longer needed
+remove(normal_numbers)
+```
+
+### Precision Limits in Mathematical Functions
+
+As you do conduct mathematical computations in R, keep in mind the limitations of calculation software.  In the same way that software cannot do true randomization, it also cannot do infinitely precise mathematics.  Odd behavior can occur as your machine rounds off calculations at the end of long decimals.  This is called "machine error". 
+
+```{R Precision Limits}
+## PRECISION LIMITS - THRESHOLDS ==========
+
+## Limits can be platform specific; your exact thresholds may differ slightly
+
+## At 10 to the -317th power, R expresses correctly in scientific noation
+10^-317
+
+## At 10 to the -318th power, R starts to express incorrectly
+10^-318
+
+## At 10 to the -323th power, R still expresses a non-zero number
+10^-323
+
+## At 10 to the -324th power, R gives up
+almost_zero <- 10^-324
+almost_zero
+almost_zero == 0
+
+## PRECISION LIMITS - ODD BEHAVIOR RISKS DURING ANALYSIS ==========
+
+## Precision limits can cause tests of exact equivalence to fail unexpectedly 
+	## Since the function below is encased it its reverse, it should be equal to
+	## starting vector.  However, exact equivalence test returns FALSE on 4 of 5
+	## elements.
+
+## create vector of normally distributed data
+set.seed(1237)
+normal_numbers <- rnorm(n= 5, mean= 100)
+
+## test input vector against function + reverse function outputs.
+exp( log(normal_numbers) ) == normal_numbers
+
+## Rounding to a reasonable number of decimals solves the problem
+rounded_normal <- round( normal_numbers, 6  )
+rounded_reverse <- exp( log(rounded_normal) )
+rounded_normal == round(rounded_reverse, digits= 6)
+
+## Using a less exact test of equivalence is a better solution
+number_diff <- normal_numbers - exp( log(normal_numbers) )
+number_diff <= 10^-6
+
+## Delete demonstration objects that are no longer needed
+remove(almost_zero, normal_numbers, rounded_normal, rounded_reverse, number_diff)
+```
+
+### Exercise - Function Boycott (Repeat for A3 and A4)
+
+An analysis a sequence of general transformation rules, ordered to get you from the data you have to the information you want.  For most complex problems, multiple transformation rules will need to be applied, incrementally moving inputs closer the desired state.  To engage in this kind of problem solving, a programmer needs strong familiarity with the "toolkit" of available transformations, and experience chaining them together.  This exercise will help you build both.
+
+As we progress through the lessons, do this exercise for each function in the vocabulary table of that lesson.  If you cannot find a solution for one of the vocabulary items, come back to it after you have completed the next lesson, and see if you can now find a solution.
+
+1.  STEP 1: Choose a starting function - This example uses mean().
+
+2.  STEP 2: Develop a test case, so you can see what result your chosen function produces at any given time. Strong test cases mix positive/negative numbers, decimals, large/small numbers, etc and change randomly each time you run the code.
+
+```{R Simple Boycott - Step 2}
+test_data <- rnorm(n= 10^4, mean= 10, sd= 5)
+```
+
+3.  STEP 3: Create a boycott list, and add your starting function to it.
+```{R Simple Boycott - Step 3}
+boycott_list <- c("mean()")
+boycott_list
+```
+
+4.  STEP 4: Write an expression that does the same thing as your function, but uses functions more basic than your starting function.  Use your function to confirm that the two express identical results.
+
+```{R Simple Boycott - Step 4}
+mean(test_data) ## starting function
+sum(test_data) / length(test_data) ## equivalent expression
+```
+
+5.  STEP 5: Add one of the functions from your equivalent expressions to the boycott list, and replace it with a more basic equivalent.
+
+```{R Simple Boycott - Step 5}
+boycott_list <- c(boycott_list, "length()")
+boycott_list
+
+mean(test_data) ## starting function
+sum(test_data) / sum(test_data == test_data) ## equivalent expression
+```
+
+6.  STEP 6+:  Until you have either replaced everything with operators, or run out of options for replacement.  Aspire for elegant solutions. Elegant solutions:
+
+    * Replace higher level functions with lower level functions.  For the purpose of this exercise, lower level means that the function is closer to being basic math.
+  
+    * Work at scale. Something that works for a test vector with thousands of elements is better than something that requires manual intervention on each element.
+
+    * Have no vulnerabilities.  For example, `sum(test.data) / sum(test.data / test.data)` would also have been valid for step 5.  However, it would be vulnerable to bad results if any element of `test.data == 0`.
+
+    * Stick only to vocabulary covered in the lessons so far.  As you progress through the course, periodically revisit your solutions to see if new lesson vocabulary has created new options.  However, the lowest level vocabulary is in the earliest lessons, so later lessons will probably yield more options for good starting functions, rather than good replacement functions.
+
+
+### Vocabulary Table for Lesson A2
+
+In order to program effectively, you will need to memorize basic functions, operators, and constants.  Write each of the functions/operators/constants below on a flash card.  On the back of each card, write a succinct definition of what it does and a example of a line code you could enter into console that uses it.  Drill with these cards until you have memorized them.  Then drill again, coming up with a fresh example for each and testing that example in the console.
+
+In order to understand what each function/operator/constant does, use the `help()` function to pull the documentation for it.  For example, `help("objects")` would pull up the documentation for the function `objects()`.  This document includes a description of what the function does ("Description" section), a list of all the arguments that can be given to the function ("Arguments" section), and examples of how to use the function ("Examples" section) at the bottom.  Only copy the definition or example from the documentation to your flash card if you absolutely understand what it does.  Otherwise, substitute your own.
+
+The help documentation may be a difficult to read at first but keep practicing.  Over time, getting useful information from the documentation will become effortless.  Resist the impulse to do a Google search before you have consulted the documentation.  Google results can be of mixed quality - sometimes you will get a thoughtful, efficient solution, sometimes you will get a byzantine work-around that will teach you bad habits.
+
+|Object Construction		|Randomization		|Math, Element-wise		|Math, Summary		|Math, Cumulative
+|:-		|:-		|:-		|:-		|:-
+|`=`				|`rbinom()`		|`abs()`		|`length()`			|`cummax()`
+|`args()`		|`rnorm()`		|`ceiling()`|`mad()`				|`cummin()`
+|`c()`			|`rpois()`		|`exp()`		|`max()`				|`cumprod()`
+|`rep()`		|`runif()`		|`floor()`	|`mean()`				|`cumsum()`
+|`seq()`		|`sample()`		|`log()`		|`median()`			|`diff()`
+|`vector()`	|`set.seed()`	|`rank()`		|`min()`				|
+|`function(){}`|					|`round()`	|`prod()`				|
+|						|							|`sqrt()`		|`sd()`					|
+|						|							|						|`sum()`				|
