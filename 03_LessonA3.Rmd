@@ -1,1 +1,16 @@
-##########
+```{r Environment set-up, include= FALSE}
+remove( list= objects() )
+```
+
+```{r Document-Wide Knitr Options, include= FALSE }
+knitr::opts_chunk$set(fig.width=6, fig.height=6) 
+knitr::opts_chunk$set(comment= "")
+knitr::opts_chunk$set(prompt= TRUE)
+```
+## Lesson Links
+
+[Go to the Table of Contents](00_TableOfContents.html)
+
+[Return to Last Lesson (A2: Basic Vector Mathematics)](02_LessonA2.html)
+
+[Proceed to Next Lesson (A4: Factor and Chronological Classes, Advanced Ordering)](04_LessonA4.html)
