@@ -14,3 +14,407 @@ knitr::opts_chunk$set(prompt= TRUE)
 [Return to Last Lesson (A2: Basic Vector Mathematics)](02_LessonA2.html)
 
 [Proceed to Next Lesson (A4: Factor and Chronological Classes, Advanced Ordering)](04_LessonA4.html)
+
+## A3.  Classes, Constants, and Comparison Operations
+
+This lesson will explore R's object classes and special constants.  It will also explore functions for performing set theory and logical comparison operations on vectors.
+
+### Object Classes and Modes
+
+In R, objects have labels called classes.  Classes supply insight to the functions and tell the R interpreter on how to process and display the object.  At the vector level, classes are strongly related to the mode/type of data.  However, as objects become more complex, the two become less related.
+.
+A class provides R with insight on how to process an object, especially for functions that do different things with objects of different classes.  An object can have multiple classes, and programmers can manually change object class.  A mode is tied to the fundamental structure of the data in the object's elements, and relates to how R decides whether a series of ones and zeros represent numbers, text, logic, etc.  An object can have many classes, and users can change the class arbitrarily.  An object can have only one mode, and R places constraints on what mode manipulations are possible.  When you create a vector, the class and mode are generally the same.  You can use `mode()` and `class()` to determine the current mode and class of an object.
+
+**Note:** The terms type, mode, and storage mode are all similar concepts in R.  For simplicity's sake, this class will treat the terms type and mode as interchangeable.  However, `storage.mode()`, `mode()`, and `typeof()` do not return identical results in all circumstances.  Please use `mode()` for the purposes of this class.
+
+```{R Classes and Modes}
+
+## Mode and class demonstration ==========
+
+## Textual characters - note how numbers can be stored as text
+text_vector <- c("1", "2", "3")
+mode( text_vector)
+class(text_vector)
+
+## Logical values
+logical_vector <- sample(
+	x= c(TRUE, FALSE),
+	size= 3,
+	replace= TRUE
+	)
+mode( logical_vector)
+class(logical_vector)
+
+
+## Numbers - standard format
+number_vector <- rnorm(n= 3, mean= 10, sd= 5)
+mode( number_vector)
+class(number_vector)
+
+## Complex numbers are not a significant component of this R class.
+	## However, here is a complex number example in case you ever
+	##  need to do calculations with complex numbers:
+complex_vector <- rnorm( n= 3, mean= 10, sd= 5 ) * 1i
+mode( complex_vector)
+class(complex_vector)
+
+## Mode and Class modification ==========
+
+## Create a vector for demonstration
+test_vector <- c(-3, 0, 3)
+test_vector
+
+## Arbitrarily set class of object to "kitten"
+class(test_vector) <- "kitten"
+test_vector
+attr(test_vector,"class")
+
+## Unsuccessfully attempt to set the mode to "kitten" (will throw an error)
+# mode( test_vector ) <- "kitten"
+
+## Set the mode to valid option (logical)
+mode(test_vector) <- "logical"
+test_vector
+attr(test_vector,"class")
+
+## Delete demonstration objects that are no longer needed
+remove(text_vector, logical_vector, number_vector, complex_vector, test_vector)
+```
+
+ In R, there are `is.__()` functions that test the mode of an object, and `as.__()` functions that coerce it to a new mode.
+
+```{R as.__() and is.__()}
+test_vector <- c( -3, 0, 3 )
+class(test_vector) <- "Kitten"
+
+## is.() functions test whether an object is of a specific mode
+is.numeric(  test_vector)
+is.logical(  test_vector)
+is.character(test_vector)
+
+## as.() functions coerce an object to a specific mode
+as.numeric(  test_vector)
+as.logical(  test_vector)
+as.character(test_vector)
+
+## Delete demonstration objects that are no longer needed
+remove(test_vector)
+```
+
+The `is.__()` and `as.__()` variable name format is common in R.  Nearly any mode or class will have functions of this form.
+
+### Reserved Indefinite Quantities, and other Built-In Objects
+
+Earlier lessons discussed reserved words in the context of TRUE and FALSE.  Reserved words are object names that R automatically assigns a meaning and will not allow you to reassign.  Numbers and TRUE/FALSE are reserved words because R cannot do computation if you scramble these fundamental concepts.  In addition to reserved words, R also has built-in objects.  R automatically assigns values to these objects at start-up but can be changed.  Built-in objects include the functions available at start-up.
+
+```{R Reserved Words Versus Built-in Constants}
+## Reserved words will resist assignment
+# TRUE <- FALSE ## Will throw an error
+
+## Built-in constants have a meaning, but it can be reassigned
+	## Example: at start-up T and F are set to TRUE and FALSE.
+	## However, T and F are not protected like TRUE and FALSE.
+	## That is why TRUE and FALSE are always spelled out in this
+	## course.
+T
+T <- FALSE
+T
+
+## Reset built-in objects to typical values.  Reflect on this line of code when you have learned more about environments (Lesson B3) - this line illustrates important principles about how environment precedence works.
+remove(T)
+```
+
+Indefinite quantities are an important type of reserved word.  They enable R to represent constants that cannot be quantified.  You can test for indefinite quantities using their respective is.__() functions.
+
+```{R Indefinite Quantities}
+
+## NA ==========
+
+## NA represents invalid data.  You can build NA into any vector to
+	## represent missing data.  You can also generate NA if you 
+	## instruct R to perform an operation that doesn't make sense,
+	## such trying to coerce letter characters with as.numeric().
+
+invalid_character <- c("a", NA, "c")
+invalid_character
+
+invalid_number <- as.numeric("x")
+invalid_number
+
+## Incidentally, there is actually a different NA for each mode. This
+	## can be useful for understanding R's class coercion rules.
+	## Also, note the use of spacing to keep these compound expressions
+	## readable.
+
+class(
+	c(as.character(NA), as.numeric(NA))
+	)
+
+class(
+	c(as.character(NA), as.logical(NA))
+	)
+
+class(
+	c(as.logical(NA), as.numeric(NA))
+	)
+
+## Infinity (Inf) ==========
+
+## Inf and -Inf represent positive and negative infinity.
+
+ 1/0
+-1/0
+is.infinite
+
+## Not a number (NaN) ==========
+
+## NaN "Not a Number" represents mathematical quantities that involve
+	## pitting one infinity against another.  R considers
+	## NaN as meeting the criteria for NA, but not the reverse.
+
+0/0
+Inf/Inf
+
+is.na( 0/0)
+is.nan(0/0)
+is.nan(NA)
+
+## NULL ==========
+
+## NULL represents nothing-ness in a computer comprehensible way.
+	## NULL behaves very differently than zero or NA, and should be
+	## used carefully.  Examine each of the examples below until you
+	## have a better sense of the peculiar behavior of NULL.	
+
+c(1, NULL, 3)
+1:3 * NULL
+integer(0)
+NULL == NULL
+rep(NULL, times= 10)
+NULL
+
+is.null(NULL)
+is.null( c(1, NULL, 3) )
+
+## Delete demonstration objects that are no longer needed
+remove(invalid_number, invalid_character)
+```
+
+Among R's built-in objects are five built-in constants that hold useful reference data.
+
+```{R Built-In Constants}
+## The months
+month.name
+
+month.abb
+
+
+## The alphabet
+letters
+
+LETTERS
+
+
+## Pi.  Only accurate for the first sixteen digits (3. 141 592 653 589 793). 
+## Past that point, odd behavior ensues.
+pi
+```
+
+### Set Theory
+
+Set theory is branch of logic that deals with collections of items.  R has many set theory functions that can be useful for dataset management, especially in terms of ensuring completeness and avoiding duplication.
+
+```{R Set Theory}
+## generate a demonstration set
+set.seed(4320)
+pets <- sample(
+	x= c("fish", "cat", "dog"),
+	size= 9,
+	replace= TRUE,
+	prob= c( 0.55, 0.25, 0.2 )
+	)
+
+set.seed(3282)
+pet_containers <- sample(
+	x= c("fish", "bird", "reptile"),
+	size= 5,
+	replace= TRUE,
+	prob= c( 0.5, 0.25, 0.25 )
+	)
+
+pet_containers
+pets
+
+## duplicated() returns a logical vector with TRUE for every
+	## element that has not appeared in elements with positions
+	## less than the current element
+duplicated(pets)
+
+## unique() returns the non-duplicated elements themselves.  It is very
+	## closely related to duplicated()
+
+unique( pets )
+pets[!duplicated(pets)]
+
+## union() compares two sets, and returns the unduplicated elements
+	## from the two combined.  Note how the order of the arguments
+	## changes the order of the results, even though the same
+	## elements are returned.
+union(pets, pet_containers)
+union(pet_containers, pets)
+
+## intersect() compares two sets, and returns only elements that can
+	## be found in both sets
+intersect(pets, pet_containers)
+
+## The %in% operator and setdiff() compare one vector to another,
+	## identifying differences and commonalities.  For union() and
+	## intersect(), switching around which object comes first will
+	## change the order of the elements in the result, but not
+	## which elements are in the result.  For setdiff() and %in%,
+	## the order in which objects are given as arguments matters.
+
+## %in% identifies *all* elements in the first vector *are* in the
+	## second vector.  It returns a logical vector that is of the
+	## same length as the vector to the left of %in%
+
+pets[pets %in% pet_containers]
+pet_containers[pet_containers %in% pets]
+
+## setdiff() determines which *unique* elements in the first vector
+	## *are not* in the second vector. It returns the unique elements
+
+setdiff(pets, pet_containers)
+setdiff(pet_containers, pets)
+
+## Delete demonstration objects that are no longer needed.
+remove(pets, pet_containers)
+```
+
+### Logical Comparisons and Summations
+
+In addition to the set theory material above, here are some other functions that perform logical operations.  They are either perform logical summations or element-wise comparisons that are more sophisticated than the basic logical operators.
+
+```{R Logical Comparisons and Summation}
+## Logical Summations ==========
+
+## any() returns TRUE if any element of any vector passed to it
+	## contains a TRUE.  Typically, you'll only pass one vector
+	## as an argument, but, like sum(), it can process any number
+	## of input vectors.
+
+any(
+	rep( FALSE, 5 ),
+	c( FALSE, TRUE, FALSE )
+	)
+
+## all() returns TRUE if all elements of all vectors passed to it
+	## contain TRUE values.  Typically, you'll only pass one vector
+	## as an argument, but, like sum(), it can process any number
+	## of input vectors.
+
+all(
+	rep( TRUE, 5 ),
+	c( TRUE, FALSE, TRUE )
+	)
+
+## identical() returns TRUE if each element of the first argument
+	## vector matches each element of the second argument vector.
+
+identical( 1:3, 1:3 )
+
+## Logical Comparisons ==========
+
+## For elements in corresponding positions in two vectors, xor()
+	## returns TRUE if one of the elements is TRUE, but not both.
+
+set1 <- c( TRUE, TRUE, FALSE, FALSE )
+set2 <- c( FALSE, TRUE, FALSE, TRUE )
+xor( set1, set2 )
+
+## For elements in corresponding positions in two vectors, pmin()
+	## returns the lesser of the two, and pmax() returns the greater
+	## of the two.  This works for all three of the major modes. For
+	## characters, alphabetical order is used, instead of numeric
+	## value.  For logical values, they are coerced to numeric.
+
+pmax(
+	c( 2, 2 ),
+	c( 1, 3 )
+	)
+
+pmin(
+	c( 2, 2 ),
+	c( 1, 3 )
+	)
+
+pmin(
+	c( "b", "b", "B" ),
+	c( "a", "c", "b" )
+	)
+
+pmin(
+	c( FALSE, FALSE ),
+	c( TRUE , FALSE )
+	)
+
+## pmin() and pmax() are specific cases of a general type of
+	## comparison. ifelse() is a function that allows you to make
+	## comparisons like pmin()/pmax(), but with a test= argument
+	## that enables you to specify exactly what logical comparison
+	## you would like to make.
+
+set1 <- c( 2, 2 )
+set2 <- c( 1, 3 )
+
+ifelse(
+	test= set1 < set2, 
+	yes=  set1,
+	no=   set2
+	)
+
+pmin(
+	c( 2, 2 ),
+	c( 1, 3 )
+	)
+
+## If you can either use ifelse() or pmin()/pmax(), use the latter.
+	## pmin()/pmax() is hardwired to do a specific test, and
+	## that allows it to run at a lower level.  This makes it orders
+	## of magnitude faster. On my machine, pmin() can make 10 million
+	## comparisons in roughly 12% of the time it takes ifelse to make
+	## the same comparison.
+```
+
+### R Notation for Document Writing
+
+Code documentation is an important programming activity.  Programmers need to document code internally in the README file and externally in any documents presenting the results of the code.  While there is no canonical set of rules for documenting R code, there are some useful conventions that will make your documents more accessible.  The bullet points below supply guidance on writing up R code.
+
+*	Use a monospaced font when writing the names of R objects.  In a monospaced font, the width of each letter is exactly the same.  For example, `ll` and `ww` are the same width in monospaced font, but ll and ww are not the same size in a font that is not monospaced.  This practice is useful because many R objects are standard English words.  Using monospaced font, we know when you are talking about pi, the mathematical constant for a circle's circumstance divided by its diameter, and when you are talking about `pi`, the built-in R object containing the first sixteen digits of the mathematical constant.
+
+*	Write the parentheses after the object name when notating functions.  Since everything in R is an object, it is useful to be explicit about when you are documenting a functional transformation, rather than an object.  For example, `mean()` would be the correct way to denote the function for the arithmetic average of a vector of numbers.
+
+*	Write the equals sign after the object name when notating arguments to function.  An argument is an actual object within the temporary environment of that function.  It is useful to distinguish between when you are discussing the objects supplied to a function vs. the series of object manipulations happening within that environment.  For example, `sample()` has an argument `prob=`.  If you specify a `prob=` that does not sum to 1, `sample()` will perform the operation `prob / sum(prob)` to convert the argument to probabilities.
+
+*	In lesson A5, we will discuss Regular Expressions.  Regular Expressions use many of the same operators as R syntax with different meanings.  Be explicit in distinguishing when you are talking about Regular Expression operators vs. R operators.  In addition, regular Expression syntax, there is a difference between the meaning of an operator inside and outside Regular Expression square brackets.  For notating Regular Expressions, encase applicable operators in square brackets when talking about that operation.  For example, the regular expression `^` indicates the start of a line, but the regular expression `[^]` indicates an omission/negative search.
+
+*	Markdown is language for generating documents that weave code and text together.  Consider using markdown to generate document that have a large portion of code and a large portion of text.  These class materials are markdown documents, outputted as HTML (web-pages).  You can review the source code on our git repository.
+
+### Vocabulary Table for Lesson A3
+
+In order to program effectively, you will need to memorize basic functions, operators, and constants.  Write each of the functions/operators/constants below on a flash card.  On the back of each card, write a succinct definition of what it does and a example of a line code you could enter into console that uses it.  Drill with these cards until you have memorized them.  Then drill again, coming up with a fresh example for each and testing that example in the console.
+
+In order to understand what each function/operator/constant does, use the `help()` function to pull the documentation for it.  For example, `help("objects")` would pull up the documentation for the function `objects()`.  This document includes a description of what the function does ("Description" section), a list of all the arguments that can be given to the function ("Arguments" section), and examples of how to use the function ("Examples" section) at the bottom.  Only copy the definition or example from the documentation to your flash card if you absolutely understand what it does.  Otherwise, substitute your own.
+
+The help documentation may be a difficult to read at first but keep practicing.  Over time, getting useful information from the documentation will become effortless.  Resist the impulse to do a Google search before you have consulted the documentation.  Google results can be of mixed quality - sometimes you will get a thoughtful, efficient solution, sometimes you will get a byzantine work-around that will teach you bad habits.
+
+|Object Class		|Indefinite Quantities		|Built-In Objects		|Set Theory		|Logical Switches
+|:-							|:-					|:-							|:-							|:-		
+|as.character()	|Inf				|letters				|%in%						|all()
+|as.logical()		|is.infinite()|LETTERS			|duplicated()		|any()
+|as.numeric()		|is.na()		|month.abb			|intersect()		|identical()
+|class()				|is.nan()		|month.name			|setdiff()			|ifelse()
+|as.__()				|is.null()	|pi							|union()				|pmax()
+|is.__()				|NA					|								|unique()				|pmin()
+|mode()					|NaN				|								|								|xor()
+|								|NULL				|								|								|

@@ -371,6 +371,473 @@ summary {
 <p><a href="02_LessonA2.html">Return to Last Lesson (A2: Basic Vector Mathematics)</a></p>
 <p><a href="04_LessonA4.html">Proceed to Next Lesson (A4: Factor and Chronological Classes, Advanced Ordering)</a></p>
 </div>
+<div id="a3.-classes-constants-and-comparison-operations" class="section level2">
+<h2>A3. Classes, Constants, and Comparison Operations</h2>
+<p>This lesson will explore R’s object classes and special constants. It will also explore functions for performing set theory and logical comparison operations on vectors.</p>
+<div id="object-classes-and-modes" class="section level3">
+<h3>Object Classes and Modes</h3>
+<p>In R, objects have labels called classes. Classes supply insight to the functions and tell the R interpreter on how to process and display the object. At the vector level, classes are strongly related to the mode/type of data. However, as objects become more complex, the two become less related. . A class provides R with insight on how to process an object, especially for functions that do different things with objects of different classes. An object can have multiple classes, and programmers can manually change object class. A mode is tied to the fundamental structure of the data in the object’s elements, and relates to how R decides whether a series of ones and zeros represent numbers, text, logic, etc. An object can have many classes, and users can change the class arbitrarily. An object can have only one mode, and R places constraints on what mode manipulations are possible. When you create a vector, the class and mode are generally the same. You can use <code>mode()</code> and <code>class()</code> to determine the current mode and class of an object.</p>
+<p><strong>Note:</strong> The terms type, mode, and storage mode are all similar concepts in R. For simplicity’s sake, this class will treat the terms type and mode as interchangeable. However, <code>storage.mode()</code>, <code>mode()</code>, and <code>typeof()</code> do not return identical results in all circumstances. Please use <code>mode()</code> for the purposes of this class.</p>
+<pre class="r"><code>&gt; ## Mode and class demonstration ==========
+&gt; 
+&gt; ## Textual characters - note how numbers can be stored as text
+&gt; text_vector &lt;- c(&quot;1&quot;, &quot;2&quot;, &quot;3&quot;)
+&gt; mode( text_vector)</code></pre>
+<pre><code>[1] &quot;character&quot;</code></pre>
+<pre class="r"><code>&gt; class(text_vector)</code></pre>
+<pre><code>[1] &quot;character&quot;</code></pre>
+<pre class="r"><code>&gt; ## Logical values
+&gt; logical_vector &lt;- sample(
++   x= c(TRUE, FALSE),
++   size= 3,
++   replace= TRUE
++   )
+&gt; mode( logical_vector)</code></pre>
+<pre><code>[1] &quot;logical&quot;</code></pre>
+<pre class="r"><code>&gt; class(logical_vector)</code></pre>
+<pre><code>[1] &quot;logical&quot;</code></pre>
+<pre class="r"><code>&gt; ## Numbers - standard format
+&gt; number_vector &lt;- rnorm(n= 3, mean= 10, sd= 5)
+&gt; mode( number_vector)</code></pre>
+<pre><code>[1] &quot;numeric&quot;</code></pre>
+<pre class="r"><code>&gt; class(number_vector)</code></pre>
+<pre><code>[1] &quot;numeric&quot;</code></pre>
+<pre class="r"><code>&gt; ## Complex numbers are not a significant component of this R class.
+&gt;   ## However, here is a complex number example in case you ever
+&gt;   ##  need to do calculations with complex numbers:
+&gt; complex_vector &lt;- rnorm( n= 3, mean= 10, sd= 5 ) * 1i
+&gt; mode( complex_vector)</code></pre>
+<pre><code>[1] &quot;complex&quot;</code></pre>
+<pre class="r"><code>&gt; class(complex_vector)</code></pre>
+<pre><code>[1] &quot;complex&quot;</code></pre>
+<pre class="r"><code>&gt; ## Mode and Class modification ==========
+&gt; 
+&gt; ## Create a vector for demonstration
+&gt; test_vector &lt;- c(-3, 0, 3)
+&gt; test_vector</code></pre>
+<pre><code>[1] -3  0  3</code></pre>
+<pre class="r"><code>&gt; ## Arbitrarily set class of object to &quot;kitten&quot;
+&gt; class(test_vector) &lt;- &quot;kitten&quot;
+&gt; test_vector</code></pre>
+<pre><code>[1] -3  0  3
+attr(,&quot;class&quot;)
+[1] &quot;kitten&quot;</code></pre>
+<pre class="r"><code>&gt; attr(test_vector,&quot;class&quot;)</code></pre>
+<pre><code>[1] &quot;kitten&quot;</code></pre>
+<pre class="r"><code>&gt; ## Unsuccessfully attempt to set the mode to &quot;kitten&quot; (will throw an error)
+&gt; # mode( test_vector ) &lt;- &quot;kitten&quot;
+&gt; 
+&gt; ## Set the mode to valid option (logical)
+&gt; mode(test_vector) &lt;- &quot;logical&quot;
+&gt; test_vector</code></pre>
+<pre><code>[1]  TRUE FALSE  TRUE
+attr(,&quot;class&quot;)
+[1] &quot;kitten&quot;</code></pre>
+<pre class="r"><code>&gt; attr(test_vector,&quot;class&quot;)</code></pre>
+<pre><code>[1] &quot;kitten&quot;</code></pre>
+<pre class="r"><code>&gt; ## Delete demonstration objects that are no longer needed
+&gt; remove(text_vector, logical_vector, number_vector, complex_vector, test_vector)</code></pre>
+<p>In R, there are <code>is.__()</code> functions that test the mode of an object, and <code>as.__()</code> functions that coerce it to a new mode.</p>
+<pre class="r"><code>&gt; test_vector &lt;- c( -3, 0, 3 )
+&gt; class(test_vector) &lt;- &quot;Kitten&quot;
+&gt; 
+&gt; ## is.() functions test whether an object is of a specific mode
+&gt; is.numeric(  test_vector)</code></pre>
+<pre><code>[1] TRUE</code></pre>
+<pre class="r"><code>&gt; is.logical(  test_vector)</code></pre>
+<pre><code>[1] FALSE</code></pre>
+<pre class="r"><code>&gt; is.character(test_vector)</code></pre>
+<pre><code>[1] FALSE</code></pre>
+<pre class="r"><code>&gt; ## as.() functions coerce an object to a specific mode
+&gt; as.numeric(  test_vector)</code></pre>
+<pre><code>[1] -3  0  3</code></pre>
+<pre class="r"><code>&gt; as.logical(  test_vector)</code></pre>
+<pre><code>[1]  TRUE FALSE  TRUE</code></pre>
+<pre class="r"><code>&gt; as.character(test_vector)</code></pre>
+<pre><code>[1] &quot;-3&quot; &quot;0&quot;  &quot;3&quot; </code></pre>
+<pre class="r"><code>&gt; ## Delete demonstration objects that are no longer needed
+&gt; remove(test_vector)</code></pre>
+<p>The <code>is.__()</code> and <code>as.__()</code> variable name format is common in R. Nearly any mode or class will have functions of this form.</p>
+</div>
+<div id="reserved-indefinite-quantities-and-other-built-in-objects" class="section level3">
+<h3>Reserved Indefinite Quantities, and other Built-In Objects</h3>
+<p>Earlier lessons discussed reserved words in the context of TRUE and FALSE. Reserved words are object names that R automatically assigns a meaning and will not allow you to reassign. Numbers and TRUE/FALSE are reserved words because R cannot do computation if you scramble these fundamental concepts. In addition to reserved words, R also has built-in objects. R automatically assigns values to these objects at start-up but can be changed. Built-in objects include the functions available at start-up.</p>
+<pre class="r"><code>&gt; ## Reserved words will resist assignment
+&gt; # TRUE &lt;- FALSE ## Will throw an error
+&gt; 
+&gt; ## Built-in constants have a meaning, but it can be reassigned
+&gt;   ## Example: at start-up T and F are set to TRUE and FALSE.
+&gt;   ## However, T and F are not protected like TRUE and FALSE.
+&gt;   ## That is why TRUE and FALSE are always spelled out in this
+&gt;   ## course.
+&gt; T</code></pre>
+<pre><code>[1] TRUE</code></pre>
+<pre class="r"><code>&gt; T &lt;- FALSE
+&gt; T</code></pre>
+<pre><code>[1] FALSE</code></pre>
+<pre class="r"><code>&gt; ## Reset built-in objects to typical values.  Reflect on this line of code when you have learned more about environments (Lesson B3) - this line illustrates important principles about how environment precedence works.
+&gt; remove(T)</code></pre>
+<p>Indefinite quantities are an important type of reserved word. They enable R to represent constants that cannot be quantified. You can test for indefinite quantities using their respective is.__() functions.</p>
+<pre class="r"><code>&gt; ## NA ==========
+&gt; 
+&gt; ## NA represents invalid data.  You can build NA into any vector to
+&gt;   ## represent missing data.  You can also generate NA if you 
+&gt;   ## instruct R to perform an operation that doesn&#39;t make sense,
+&gt;   ## such trying to coerce letter characters with as.numeric().
+&gt; 
+&gt; invalid_character &lt;- c(&quot;a&quot;, NA, &quot;c&quot;)
+&gt; invalid_character</code></pre>
+<pre><code>[1] &quot;a&quot; NA  &quot;c&quot;</code></pre>
+<pre class="r"><code>&gt; invalid_number &lt;- as.numeric(&quot;x&quot;)</code></pre>
+<pre><code>Warning: NAs introduced by coercion</code></pre>
+<pre class="r"><code>&gt; invalid_number</code></pre>
+<pre><code>[1] NA</code></pre>
+<pre class="r"><code>&gt; ## Incidentally, there is actually a different NA for each mode. This
+&gt;   ## can be useful for understanding R&#39;s class coercion rules.
+&gt;   ## Also, note the use of spacing to keep these compound expressions
+&gt;   ## readable.
+&gt; 
+&gt; class(
++   c(as.character(NA), as.numeric(NA))
++   )</code></pre>
+<pre><code>[1] &quot;character&quot;</code></pre>
+<pre class="r"><code>&gt; class(
++   c(as.character(NA), as.logical(NA))
++   )</code></pre>
+<pre><code>[1] &quot;character&quot;</code></pre>
+<pre class="r"><code>&gt; class(
++   c(as.logical(NA), as.numeric(NA))
++   )</code></pre>
+<pre><code>[1] &quot;numeric&quot;</code></pre>
+<pre class="r"><code>&gt; ## Infinity (Inf) ==========
+&gt; 
+&gt; ## Inf and -Inf represent positive and negative infinity.
+&gt; 
+&gt;  1/0</code></pre>
+<pre><code>[1] Inf</code></pre>
+<pre class="r"><code>&gt; -1/0</code></pre>
+<pre><code>[1] -Inf</code></pre>
+<pre class="r"><code>&gt; is.infinite</code></pre>
+<pre><code>function (x)  .Primitive(&quot;is.infinite&quot;)</code></pre>
+<pre class="r"><code>&gt; ## Not a number (NaN) ==========
+&gt; 
+&gt; ## NaN &quot;Not a Number&quot; represents mathematical quantities that involve
+&gt;   ## pitting one infinity against another.  R considers
+&gt;   ## NaN as meeting the criteria for NA, but not the reverse.
+&gt; 
+&gt; 0/0</code></pre>
+<pre><code>[1] NaN</code></pre>
+<pre class="r"><code>&gt; Inf/Inf</code></pre>
+<pre><code>[1] NaN</code></pre>
+<pre class="r"><code>&gt; is.na( 0/0)</code></pre>
+<pre><code>[1] TRUE</code></pre>
+<pre class="r"><code>&gt; is.nan(0/0)</code></pre>
+<pre><code>[1] TRUE</code></pre>
+<pre class="r"><code>&gt; is.nan(NA)</code></pre>
+<pre><code>[1] FALSE</code></pre>
+<pre class="r"><code>&gt; ## NULL ==========
+&gt; 
+&gt; ## NULL represents nothing-ness in a computer comprehensible way.
+&gt;   ## NULL behaves very differently than zero or NA, and should be
+&gt;   ## used carefully.  Examine each of the examples below until you
+&gt;   ## have a better sense of the peculiar behavior of NULL.    
+&gt; 
+&gt; c(1, NULL, 3)</code></pre>
+<pre><code>[1] 1 3</code></pre>
+<pre class="r"><code>&gt; 1:3 * NULL</code></pre>
+<pre><code>integer(0)</code></pre>
+<pre class="r"><code>&gt; integer(0)</code></pre>
+<pre><code>integer(0)</code></pre>
+<pre class="r"><code>&gt; NULL == NULL</code></pre>
+<pre><code>logical(0)</code></pre>
+<pre class="r"><code>&gt; rep(NULL, times= 10)</code></pre>
+<pre><code>NULL</code></pre>
+<pre class="r"><code>&gt; NULL</code></pre>
+<pre><code>NULL</code></pre>
+<pre class="r"><code>&gt; is.null(NULL)</code></pre>
+<pre><code>[1] TRUE</code></pre>
+<pre class="r"><code>&gt; is.null( c(1, NULL, 3) )</code></pre>
+<pre><code>[1] FALSE</code></pre>
+<pre class="r"><code>&gt; ## Delete demonstration objects that are no longer needed
+&gt; remove(invalid_number, invalid_character)</code></pre>
+<p>Among R’s built-in objects are five built-in constants that hold useful reference data.</p>
+<pre class="r"><code>&gt; ## The months
+&gt; month.name</code></pre>
+<pre><code> [1] &quot;January&quot;   &quot;February&quot;  &quot;March&quot;     &quot;April&quot;     &quot;May&quot;       &quot;June&quot;     
+ [7] &quot;July&quot;      &quot;August&quot;    &quot;September&quot; &quot;October&quot;   &quot;November&quot;  &quot;December&quot; </code></pre>
+<pre class="r"><code>&gt; month.abb</code></pre>
+<pre><code> [1] &quot;Jan&quot; &quot;Feb&quot; &quot;Mar&quot; &quot;Apr&quot; &quot;May&quot; &quot;Jun&quot; &quot;Jul&quot; &quot;Aug&quot; &quot;Sep&quot; &quot;Oct&quot; &quot;Nov&quot; &quot;Dec&quot;</code></pre>
+<pre class="r"><code>&gt; ## The alphabet
+&gt; letters</code></pre>
+<pre><code> [1] &quot;a&quot; &quot;b&quot; &quot;c&quot; &quot;d&quot; &quot;e&quot; &quot;f&quot; &quot;g&quot; &quot;h&quot; &quot;i&quot; &quot;j&quot; &quot;k&quot; &quot;l&quot; &quot;m&quot; &quot;n&quot; &quot;o&quot; &quot;p&quot; &quot;q&quot; &quot;r&quot; &quot;s&quot;
+[20] &quot;t&quot; &quot;u&quot; &quot;v&quot; &quot;w&quot; &quot;x&quot; &quot;y&quot; &quot;z&quot;</code></pre>
+<pre class="r"><code>&gt; LETTERS</code></pre>
+<pre><code> [1] &quot;A&quot; &quot;B&quot; &quot;C&quot; &quot;D&quot; &quot;E&quot; &quot;F&quot; &quot;G&quot; &quot;H&quot; &quot;I&quot; &quot;J&quot; &quot;K&quot; &quot;L&quot; &quot;M&quot; &quot;N&quot; &quot;O&quot; &quot;P&quot; &quot;Q&quot; &quot;R&quot; &quot;S&quot;
+[20] &quot;T&quot; &quot;U&quot; &quot;V&quot; &quot;W&quot; &quot;X&quot; &quot;Y&quot; &quot;Z&quot;</code></pre>
+<pre class="r"><code>&gt; ## Pi.  Only accurate for the first sixteen digits (3. 141 592 653 589 793). 
+&gt; ## Past that point, odd behavior ensues.
+&gt; pi</code></pre>
+<pre><code>[1] 3.141593</code></pre>
+</div>
+<div id="set-theory" class="section level3">
+<h3>Set Theory</h3>
+<p>Set theory is branch of logic that deals with collections of items. R has many set theory functions that can be useful for dataset management, especially in terms of ensuring completeness and avoiding duplication.</p>
+<pre class="r"><code>&gt; ## generate a demonstration set
+&gt; set.seed(4320)
+&gt; pets &lt;- sample(
++   x= c(&quot;fish&quot;, &quot;cat&quot;, &quot;dog&quot;),
++   size= 9,
++   replace= TRUE,
++   prob= c( 0.55, 0.25, 0.2 )
++   )
+&gt; 
+&gt; set.seed(3282)
+&gt; pet_containers &lt;- sample(
++   x= c(&quot;fish&quot;, &quot;bird&quot;, &quot;reptile&quot;),
++   size= 5,
++   replace= TRUE,
++   prob= c( 0.5, 0.25, 0.25 )
++   )
+&gt; 
+&gt; pet_containers</code></pre>
+<pre><code>[1] &quot;fish&quot;    &quot;fish&quot;    &quot;reptile&quot; &quot;reptile&quot; &quot;bird&quot;   </code></pre>
+<pre class="r"><code>&gt; pets</code></pre>
+<pre><code>[1] &quot;fish&quot; &quot;fish&quot; &quot;dog&quot;  &quot;dog&quot;  &quot;dog&quot;  &quot;fish&quot; &quot;fish&quot; &quot;fish&quot; &quot;dog&quot; </code></pre>
+<pre class="r"><code>&gt; ## duplicated() returns a logical vector with TRUE for every
+&gt;   ## element that has not appeared in elements with positions
+&gt;   ## less than the current element
+&gt; duplicated(pets)</code></pre>
+<pre><code>[1] FALSE  TRUE FALSE  TRUE  TRUE  TRUE  TRUE  TRUE  TRUE</code></pre>
+<pre class="r"><code>&gt; ## unique() returns the non-duplicated elements themselves.  It is very
+&gt;   ## closely related to duplicated()
+&gt; 
+&gt; unique( pets )</code></pre>
+<pre><code>[1] &quot;fish&quot; &quot;dog&quot; </code></pre>
+<pre class="r"><code>&gt; pets[!duplicated(pets)]</code></pre>
+<pre><code>[1] &quot;fish&quot; &quot;dog&quot; </code></pre>
+<pre class="r"><code>&gt; ## union() compares two sets, and returns the unduplicated elements
+&gt;   ## from the two combined.  Note how the order of the arguments
+&gt;   ## changes the order of the results, even though the same
+&gt;   ## elements are returned.
+&gt; union(pets, pet_containers)</code></pre>
+<pre><code>[1] &quot;fish&quot;    &quot;dog&quot;     &quot;reptile&quot; &quot;bird&quot;   </code></pre>
+<pre class="r"><code>&gt; union(pet_containers, pets)</code></pre>
+<pre><code>[1] &quot;fish&quot;    &quot;reptile&quot; &quot;bird&quot;    &quot;dog&quot;    </code></pre>
+<pre class="r"><code>&gt; ## intersect() compares two sets, and returns only elements that can
+&gt;   ## be found in both sets
+&gt; intersect(pets, pet_containers)</code></pre>
+<pre><code>[1] &quot;fish&quot;</code></pre>
+<pre class="r"><code>&gt; ## The %in% operator and setdiff() compare one vector to another,
+&gt;   ## identifying differences and commonalities.  For union() and
+&gt;   ## intersect(), switching around which object comes first will
+&gt;   ## change the order of the elements in the result, but not
+&gt;   ## which elements are in the result.  For setdiff() and %in%,
+&gt;   ## the order in which objects are given as arguments matters.
+&gt; 
+&gt; ## %in% identifies *all* elements in the first vector *are* in the
+&gt;   ## second vector.  It returns a logical vector that is of the
+&gt;   ## same length as the vector to the left of %in%
+&gt; 
+&gt; pets[pets %in% pet_containers]</code></pre>
+<pre><code>[1] &quot;fish&quot; &quot;fish&quot; &quot;fish&quot; &quot;fish&quot; &quot;fish&quot;</code></pre>
+<pre class="r"><code>&gt; pet_containers[pet_containers %in% pets]</code></pre>
+<pre><code>[1] &quot;fish&quot; &quot;fish&quot;</code></pre>
+<pre class="r"><code>&gt; ## setdiff() determines which *unique* elements in the first vector
+&gt;   ## *are not* in the second vector. It returns the unique elements
+&gt; 
+&gt; setdiff(pets, pet_containers)</code></pre>
+<pre><code>[1] &quot;dog&quot;</code></pre>
+<pre class="r"><code>&gt; setdiff(pet_containers, pets)</code></pre>
+<pre><code>[1] &quot;reptile&quot; &quot;bird&quot;   </code></pre>
+<pre class="r"><code>&gt; ## Delete demonstration objects that are no longer needed.
+&gt; remove(pets, pet_containers)</code></pre>
+</div>
+<div id="logical-comparisons-and-summations" class="section level3">
+<h3>Logical Comparisons and Summations</h3>
+<p>In addition to the set theory material above, here are some other functions that perform logical operations. They are either perform logical summations or element-wise comparisons that are more sophisticated than the basic logical operators.</p>
+<pre class="r"><code>&gt; ## Logical Summations ==========
+&gt; 
+&gt; ## any() returns TRUE if any element of any vector passed to it
+&gt;   ## contains a TRUE.  Typically, you&#39;ll only pass one vector
+&gt;   ## as an argument, but, like sum(), it can process any number
+&gt;   ## of input vectors.
+&gt; 
+&gt; any(
++   rep( FALSE, 5 ),
++   c( FALSE, TRUE, FALSE )
++   )</code></pre>
+<pre><code>[1] TRUE</code></pre>
+<pre class="r"><code>&gt; ## all() returns TRUE if all elements of all vectors passed to it
+&gt;   ## contain TRUE values.  Typically, you&#39;ll only pass one vector
+&gt;   ## as an argument, but, like sum(), it can process any number
+&gt;   ## of input vectors.
+&gt; 
+&gt; all(
++   rep( TRUE, 5 ),
++   c( TRUE, FALSE, TRUE )
++   )</code></pre>
+<pre><code>[1] FALSE</code></pre>
+<pre class="r"><code>&gt; ## identical() returns TRUE if each element of the first argument
+&gt;   ## vector matches each element of the second argument vector.
+&gt; 
+&gt; identical( 1:3, 1:3 )</code></pre>
+<pre><code>[1] TRUE</code></pre>
+<pre class="r"><code>&gt; ## Logical Comparisons ==========
+&gt; 
+&gt; ## For elements in corresponding positions in two vectors, xor()
+&gt;   ## returns TRUE if one of the elements is TRUE, but not both.
+&gt; 
+&gt; set1 &lt;- c( TRUE, TRUE, FALSE, FALSE )
+&gt; set2 &lt;- c( FALSE, TRUE, FALSE, TRUE )
+&gt; xor( set1, set2 )</code></pre>
+<pre><code>[1]  TRUE FALSE FALSE  TRUE</code></pre>
+<pre class="r"><code>&gt; ## For elements in corresponding positions in two vectors, pmin()
+&gt;   ## returns the lesser of the two, and pmax() returns the greater
+&gt;   ## of the two.  This works for all three of the major modes. For
+&gt;   ## characters, alphabetical order is used, instead of numeric
+&gt;   ## value.  For logical values, they are coerced to numeric.
+&gt; 
+&gt; pmax(
++   c( 2, 2 ),
++   c( 1, 3 )
++   )</code></pre>
+<pre><code>[1] 2 3</code></pre>
+<pre class="r"><code>&gt; pmin(
++   c( 2, 2 ),
++   c( 1, 3 )
++   )</code></pre>
+<pre><code>[1] 1 2</code></pre>
+<pre class="r"><code>&gt; pmin(
++   c( &quot;b&quot;, &quot;b&quot;, &quot;B&quot; ),
++   c( &quot;a&quot;, &quot;c&quot;, &quot;b&quot; )
++   )</code></pre>
+<pre><code>[1] &quot;a&quot; &quot;b&quot; &quot;b&quot;</code></pre>
+<pre class="r"><code>&gt; pmin(
++   c( FALSE, FALSE ),
++   c( TRUE , FALSE )
++   )</code></pre>
+<pre><code>[1] 0 0</code></pre>
+<pre class="r"><code>&gt; ## pmin() and pmax() are specific cases of a general type of
+&gt;   ## comparison. ifelse() is a function that allows you to make
+&gt;   ## comparisons like pmin()/pmax(), but with a test= argument
+&gt;   ## that enables you to specify exactly what logical comparison
+&gt;   ## you would like to make.
+&gt; 
+&gt; set1 &lt;- c( 2, 2 )
+&gt; set2 &lt;- c( 1, 3 )
+&gt; 
+&gt; ifelse(
++   test= set1 &lt; set2, 
++   yes=  set1,
++   no=   set2
++   )</code></pre>
+<pre><code>[1] 1 2</code></pre>
+<pre class="r"><code>&gt; pmin(
++   c( 2, 2 ),
++   c( 1, 3 )
++   )</code></pre>
+<pre><code>[1] 1 2</code></pre>
+<pre class="r"><code>&gt; ## If you can either use ifelse() or pmin()/pmax(), use the latter.
+&gt;   ## pmin()/pmax() is hardwired to do a specific test, and
+&gt;   ## that allows it to run at a lower level.  This makes it orders
+&gt;   ## of magnitude faster. On my machine, pmin() can make 10 million
+&gt;   ## comparisons in roughly 12% of the time it takes ifelse to make
+&gt;   ## the same comparison.</code></pre>
+</div>
+<div id="r-notation-for-document-writing" class="section level3">
+<h3>R Notation for Document Writing</h3>
+<p>Code documentation is an important programming activity. Programmers need to document code internally in the README file and externally in any documents presenting the results of the code. While there is no canonical set of rules for documenting R code, there are some useful conventions that will make your documents more accessible. The bullet points below supply guidance on writing up R code.</p>
+<ul>
+<li><p>Use a monospaced font when writing the names of R objects. In a monospaced font, the width of each letter is exactly the same. For example, <code>ll</code> and <code>ww</code> are the same width in monospaced font, but ll and ww are not the same size in a font that is not monospaced. This practice is useful because many R objects are standard English words. Using monospaced font, we know when you are talking about pi, the mathematical constant for a circle’s circumstance divided by its diameter, and when you are talking about <code>pi</code>, the built-in R object containing the first sixteen digits of the mathematical constant.</p></li>
+<li><p>Write the parentheses after the object name when notating functions. Since everything in R is an object, it is useful to be explicit about when you are documenting a functional transformation, rather than an object. For example, <code>mean()</code> would be the correct way to denote the function for the arithmetic average of a vector of numbers.</p></li>
+<li><p>Write the equals sign after the object name when notating arguments to function. An argument is an actual object within the temporary environment of that function. It is useful to distinguish between when you are discussing the objects supplied to a function vs. the series of object manipulations happening within that environment. For example, <code>sample()</code> has an argument <code>prob=</code>. If you specify a <code>prob=</code> that does not sum to 1, <code>sample()</code> will perform the operation <code>prob / sum(prob)</code> to convert the argument to probabilities.</p></li>
+<li><p>In lesson A5, we will discuss Regular Expressions. Regular Expressions use many of the same operators as R syntax with different meanings. Be explicit in distinguishing when you are talking about Regular Expression operators vs. R operators. In addition, regular Expression syntax, there is a difference between the meaning of an operator inside and outside Regular Expression square brackets. For notating Regular Expressions, encase applicable operators in square brackets when talking about that operation. For example, the regular expression <code>^</code> indicates the start of a line, but the regular expression <code>[^]</code> indicates an omission/negative search.</p></li>
+<li><p>Markdown is language for generating documents that weave code and text together. Consider using markdown to generate document that have a large portion of code and a large portion of text. These class materials are markdown documents, outputted as HTML (web-pages). You can review the source code on our git repository.</p></li>
+</ul>
+</div>
+<div id="vocabulary-table-for-lesson-a3" class="section level3">
+<h3>Vocabulary Table for Lesson A3</h3>
+<p>In order to program effectively, you will need to memorize basic functions, operators, and constants. Write each of the functions/operators/constants below on a flash card. On the back of each card, write a succinct definition of what it does and a example of a line code you could enter into console that uses it. Drill with these cards until you have memorized them. Then drill again, coming up with a fresh example for each and testing that example in the console.</p>
+<p>In order to understand what each function/operator/constant does, use the <code>help()</code> function to pull the documentation for it. For example, <code>help(&quot;objects&quot;)</code> would pull up the documentation for the function <code>objects()</code>. This document includes a description of what the function does (“Description” section), a list of all the arguments that can be given to the function (“Arguments” section), and examples of how to use the function (“Examples” section) at the bottom. Only copy the definition or example from the documentation to your flash card if you absolutely understand what it does. Otherwise, substitute your own.</p>
+<p>The help documentation may be a difficult to read at first but keep practicing. Over time, getting useful information from the documentation will become effortless. Resist the impulse to do a Google search before you have consulted the documentation. Google results can be of mixed quality - sometimes you will get a thoughtful, efficient solution, sometimes you will get a byzantine work-around that will teach you bad habits.</p>
+<table>
+<colgroup>
+<col width="20%"></col>
+<col width="20%"></col>
+<col width="20%"></col>
+<col width="20%"></col>
+<col width="20%"></col>
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">Object Class</th>
+<th align="left">Indefinite Quantities</th>
+<th align="left">Built-In Objects</th>
+<th align="left">Set Theory</th>
+<th align="left">Logical Switches</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">as.character()</td>
+<td align="left">Inf</td>
+<td align="left">letters</td>
+<td align="left">%in%</td>
+<td align="left">all()</td>
+</tr>
+<tr class="even">
+<td align="left">as.logical()</td>
+<td align="left">is.infinite()</td>
+<td align="left">LETTERS</td>
+<td align="left">duplicated()</td>
+<td align="left">any()</td>
+</tr>
+<tr class="odd">
+<td align="left">as.numeric()</td>
+<td align="left">is.na()</td>
+<td align="left">month.abb</td>
+<td align="left">intersect()</td>
+<td align="left">identical()</td>
+</tr>
+<tr class="even">
+<td align="left">class()</td>
+<td align="left">is.nan()</td>
+<td align="left">month.name</td>
+<td align="left">setdiff()</td>
+<td align="left">ifelse()</td>
+</tr>
+<tr class="odd">
+<td align="left">as.__()</td>
+<td align="left">is.null()</td>
+<td align="left">pi</td>
+<td align="left">union()</td>
+<td align="left">pmax()</td>
+</tr>
+<tr class="even">
+<td align="left">is.__()</td>
+<td align="left">NA</td>
+<td align="left"></td>
+<td align="left">unique()</td>
+<td align="left">pmin()</td>
+</tr>
+<tr class="odd">
+<td align="left">mode()</td>
+<td align="left">NaN</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left">xor()</td>
+</tr>
+<tr class="even">
+<td align="left"></td>
+<td align="left">NULL</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 
 
 
