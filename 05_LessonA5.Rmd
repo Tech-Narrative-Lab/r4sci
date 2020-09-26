@@ -1,1 +1,775 @@
-##########
+```{r Environment set-up, include= FALSE}
+remove( list= objects() )
+```
+
+```{r Document-Wide Knitr Options, include= FALSE }
+knitr::opts_chunk$set(fig.width=6, fig.height=6) 
+knitr::opts_chunk$set(comment= "")
+knitr::opts_chunk$set(prompt= TRUE)
+```
+## Lesson Links
+
+[Go to the Table of Contents](00_TableOfContents.html)
+
+[Return to Last Lesson (A4: Factor and Chronological Classes, Advanced Ordering)](04_LessonA4.html)
+
+[Proceed to Next Lesson (B1:Array and List Objects)](06_LessonB1.html)
+
+## A5.  Regular Expressions
+
+### Text Encoding and Display
+
+Computers store textual symbols as positions on a character table.  Computers use these positions to retrieve instructions for displaying the characters on screen.  There are many character encoding tables.  Unicode Consortium's UTF-8 is the dominant encoding system on the web, and for many Unix-like operating systems.  UTF-16 is the dominant encoding system for Windows.  Each Unicode encoding system extends is be backwards compatible with older standards – ASCII and UCS-2 respectively.  If you open a file and find gibberish text, character encoding may be at issue.  Here are examples of what happens if you mix character encodings in various ways.  The ઀ symbol indicates an unrecognized character.  Different operating systems and applications may display it differently.
+
+|Encoding Mix		|Displayed Text
+|:-|:-
+|UTF-8 with no mixing		|85% of ƒ(∆)'s value in Ñuçéz's Equation results from ∂∑π
+|UTF-8 read as ASCII		|85% of Æ’(âˆ†)'s value in Ã‘uÃ§Ã©z's Equation results from âˆ‚âˆ‘Ï€
+|UTF-8 written in ASCII		|85% of ઀઀(઀઀઀)'s value in ઀઀u઀઀઀઀z's Equation results from ઀઀઀઀઀઀઀઀
+|UTF-8 read as UTF-16		|㔸‥景옠⢒裢⦆猧瘠污敵椠⁮釃썵쎧窩猧䔠畱瑡潩⁮敲畳瑬⁳牦浯芈裢쾑
+|UTF-16 read as UTF-8		|��85% of �(")'s value in �u��z's Equation results from ""� 
+
+The function `iconv()` will convert character strings between encodings.  If `sub=` is specified, R will substitute that character for any character that it cannot render in the new encoding scheme.  If you do not specify an argument, R will turn the entire string into a single NA if any invalid characters are present.
+
+```{R Iconv()}
+iconv(
+	x= "85% of ƒ(∆)'s value in Ñuçéz's Equation results from ∂∑π",
+	from= "UTF-8", to= "ASCII",
+	sub= "•"
+)
+
+iconv(
+	x= "85% of ƒ(∆)'s value in Ñuçéz's Equation results from ∂∑π",
+	from= "UTF-8", to= "ASCII"
+)
+```
+
+The reason that so many characters are invalid in the example above is that ASCII is a _very_ old standard only supports 127 characters.
+
+UTF-8 is the encoding favored for this lesson.  On its Unicode table, each UTF-8 character is denoted with a four-digit hexadecimal location.  Hexadecimal is a way of writing numbers in base 16 instead of base 10.  In hexadecimal, the numbers from 8 to fifteen are `8 9 A B C D E F`. In other words, 10 is the decimal notation for ten, but A is the hexadecimal notation.  Twenty-eight is "28" in decimal notation, but 1C in hexadecimal.  Below is a sample of symbols from the UTF-8 table, along with their hexadecimal position on the table.
+
+|Character		|Description		|Hexadecimal Location		|Location as Decimal Number
+|:-		|:-		|:-		|:-
+|"		|Double Quotes							|0022		|34
+|9		|Nine												|0039		|57
+|A		|Latin Capital A						|0041		|65
+|O		|Latin Capital O						|004F		|79
+|a		|Latin lower case A					|0061		|97
+|Α		|Greek Capital Alpha				|0391		|913
+|ا		|Arabic Alef								|0627		|1575
+|ᚨ		|Runic Ansuz								|16A8		|5800
+|→		|Rightwards Arrow						|2192		|8594
+|∛		|Cubic Root									|221B		|8731
+|♴		|Type 2 Plastic Recycling Symbol	|2674	|9844
+|✓		|Check Mark									|2713		|10003
+Source: [Unicode Table](http://unicode-table.com)
+
+Several features are noteworthy:
+
+1.  Numbers and punctuation are encoded on the table just like any other symbol.  This is why, for example, as.character( 9 ) does not generate an NA.
+
+2.  Capital and lower-case letters have separate locations on the table.  This is part of why R is case sensitive.
+
+3.  Visibly identical symbols can be encoded multiple times if they have different meanings.  For example, Latin Capital A and Greek Capital Alpha display identically, but occupy different table positions.
+
+4.  UTF-8 support for various languages and alphabets is vast, even extending to historical alphabets like Runic.
+
+5.  UTF-8 offers an extensive array of mathematical operators, geometric shapes, and even symbols.  You can input any Unicode character into R by prefacing its hexadecimal location with \u.
+
+```{R Unicode u}
+"\u221B"
+```
+
+This example also demonstrates `\`, which is R's escape character.  The escape character tells R to interpret the symbol differently than it otherwise would.  Escape characters are important for writing spacing characters or punctuation that otherwise have multiple meetings.
+
+```{R Escape Characters}
+## Escape characters denote when a symbol is being used in an
+	## alternate way.  \u indicates that a text string should be
+	## interpreted as a position on the Unicode table.  The
+	## noquote() function is applied here to render the text
+	## more clearly than R's default display method.
+
+"\u16A8"
+
+noquote("\u16A8")
+
+## Escape characters can represent punctuation that
+	## would typically be interpreted as an operator.  For example,
+	## \" indicates that a double quote should be taken literally
+	## as a character.  By default, R will continue to express
+	## the escape character, but display methods like noquote()
+	## demonstrate how the string would look when written to a word
+	## document.
+
+"This could get \"a little\" complicated."
+
+noquote("This could get \"a little\" complicated.")
+
+## Escape characters can also represent spacing characters.  Tab and
+	## return are both Unicode characters.  In R, \t and \n represent
+	## them.  In the example below, the first sentence would be
+	## indented, and there would be two blanks lines between the
+	## first and second sentence.
+
+"\tThis could get \"a little\" complicated.\n\nNext sentence here."
+
+## While capital and lower-case letters occupy distinct positions on the Unicode
+  ## table, R does have built-in methods for converting between cases, using
+  ## tolower() and toupper().
+
+test_string <- c("AaBbCb", "\u0391µπΩ")
+test_string
+tolower(test_string)
+toupper(test_string)
+
+## Delete demonstration objects that are no longer needed
+remove(test_string)
+```
+
+### Merging and Splitting Text
+
+The same way that elements occupy positions within vectors, characters occupy positions within an element.  The function `nchar()` plays a role analogous to `length()` in counting the number of character positions in an element.
+
+```{R nchar()}
+## create a vector of character elements
+
+text_vector <- c("This", "is", "a", "", "sentence")
+
+## nchar() counts how many positions are in each element
+
+text_vector
+nchar(text_vector)
+ 
+## nzchar() tests whether each element contains at least one character
+nzchar(text_vector)
+ 
+## both functions work on vectors of different modes, but the results
+	## are more meaningful for numbers than TRUE/FALSE.  Note how
+	## nchar() recognizes that 0001 is really only a one digit number,
+	## but does not recognize that number of letters in the word
+	## TRUE vs FALSE is irrelevant to the mathematical concept.
+
+
+power_of_ten <- 10^{1:4}
+nchar(power_of_ten)
+nchar(0001)
+ 
+logical_vector <- c(TRUE, FALSE)
+nchar(logical_vector)
+
+## Delete demonstration objects that are no longer needed
+remove(logical_vector, power_of_ten, text_vector)
+```
+
+This character position system makes it possible to extract portions of strings from within elements.
+
+```{R substring()}
+## create a vector of character elements
+text_vector <- c("This", "is", "a", "", "sentence")
+
+text_vector
+
+## substring() splits up strings by character position.
+	## It will return empty elements if the first= argument is longer
+	## than the nchar() for that element, as with the "a".  It will
+	## only return positions in the range from first= to last= that
+	## are valid for that element.
+
+substring(text= text_vector, first= 2, last= 4)
+
+## nchar() opens up options for making substring() behavior fit the
+	## elements better. This segment of code extracts the last two
+	## characters for any word containing at least two characters but
+	## turns empty elements into NA.
+
+last_two <- substring(
+	text= text_vector,
+	first= nchar( text_vector ) - 1,
+	last= nchar( text_vector )
+)
+last_two[!nzchar( last_two )] <- NA
+
+last_two
+
+## Delete demonstration objects that are no longer needed
+remove(last_two, text_vector)
+```
+
+An alternative approach is to split up a string according to a specific delimiter.  A delimiter is a symbol that indicates the breaks between meaningful chunks of a string.  For example, spaces mark the breaks between words.
+
+```{R strsplit()}
+## splitting up a sentence by strsplit()
+
+a_sentence <- "This is a sentence"
+sentence_split <- strsplit(a_sentence, split= " ")
+
+a_sentence
+
+sentence_split
+
+sentence_split[[1]]
+
+## Delete demonstration objects that are no longer needed
+remove(a_sentence, sentence_split)
+```
+
+In the example above, `strsplit()` splits a single element into a vector of elements.  It uses `split=` to specify that the space character denotes where the breaks between elements should go.  This function expresses its results in a class of object called a "list", which is denoted with the double square brackets.  List class will be discussed in detail in Lesson B1.  For now, you can extract the vector from the list object by adding `[[1]]` to the end of the object.
+
+The `paste()` might be considered the inverse of `strsplit()`.  It either combines the character elements of a vector into a single element using `collapse=`, or it combines elements in equivalent positions in two vectors using `sep=`.
+
+```{R paste()}
+## Generate two character vectors with different cases
+lower_sentence <- strsplit("this is a sentence", split= " ")[[1]]
+upper_sentence <- toupper(lower_sentence)
+
+upper_sentence
+lower_sentence
+
+## By default, paste() will attempt to combine text element-wise, with
+	## a space separating the text that has been combined.  This is
+	## equivalent to arguing sep= " "
+
+paste(upper_sentence, lower_sentence)
+
+## However, collapse= argument will cause paste() to take all of the
+	## elements of a single vector and combine them.
+
+paste(upper_sentence, collapse= "-")
+
+
+## The sep= default remains in effect, despite collapse=
+
+paste(upper_sentence, lower_sentence, collapse= "-")
+
+## In general I recommend using a delimiter that is unlikely to show
+	## up in your text.  That way, there is limited risk if you use
+	## paste() to combine your text and then later use strsplit() to
+	## pull it back apart.  A multi-letter, non-sense word like "_xyzyz_"
+  ## can be a good option.
+
+put_together <- paste(
+	upper_sentence, lower_sentence,
+	collapse= "_xyzyz1_", sep= "_xyzyz2_"
+	)
+put_together
+
+strsplit(put_together, split= "_xyzyz1_")[[1]]
+
+
+## Delete demonstration objects that are no longer needed
+remove(lower_sentence, upper_sentence, put_together)
+```
+
+### Regular Expressions - Character Matching
+
+There are many instances in which it is helpful to search for patterns in text and apply transforms on matching patterns.  Regular expressions ("RegEx") supplies a vocabulary for performing these operations across many programming languages.  In R, the basic find-and-replace function is `gsub()`.  It can replace the string of characters specified in `pattern=` with the one specified in `replacement=`.
+
+```{R gsub()}
+## create a character object for demonstration purposes
+test_sentence <- paste(
+	"The quick brown fox jumps over the lazy dog,",
+	"and then, the lazy dog took a nap.",
+	"Later, Brown Fox did likewise."
+	)
+
+## basic demonstration of gsub, replacing on string with another
+gsub(
+	x = test_sentence,
+	pattern= "lazy dog",
+	replacement= "purring cat"
+	)
+
+## Delete demonstration objects that are no longer needed
+remove(test_sentence)
+```
+
+However, consider if we had wanted to replace brown fox instead.  Since it is capitalized in the second sentence, but not the first, the approach above would fail to replace both.  Regular expressions enables us to specify text searches more flexibly, so that one operation applies to multiple variations on a given character pattern. When used in a RegEx function, the `[]` operator indicates a range of characters that would match the search for that particular character position.  Specifying both capital and lower-case letters, `gsub()` can capture both forms of brown fox in a single search.
+
+```{R RegEx Brackets}
+test_sentence <- paste(
+	"The quick brown fox jumps over the lazy dog,",
+	"and then, the lazy dog took a nap.",
+	"Later, Brown Fox did likewise."
+	)
+
+gsub( ## won't capture both forms of brown fox
+	x = test_sentence,
+	pattern= "brown fox",
+	replacement= "playful cat"
+	)
+
+gsub( ## will capture both forms of brown fox
+	x = test_sentence,
+	pattern= "[Bb]rown [Ff]ox",
+	replacement= "playful cat"
+	)
+
+## Delete demonstration objects that are no longer needed
+remove(test_sentence)
+```
+
+Regular expressions are powerful, but tricky to master.  The key question to ask with RegEx is "what else will this search match?"  Here is an example that replaces both " fox" and    " dog" with " animal".  However, " fog" and " dox" would have also matched this search criteria.
+
+```{R RegEx Unintended Matches}
+## regular expression bracket search with potential unintended matches
+test_sentence <- paste(
+	"The quick brown fox jumps over the lazy dog,",
+	"and then, the lazy dog took a nap.",
+	"Later, Brown Fox did likewise."
+	)
+
+gsub( ## won't capture both forms of brown fox
+	x = test_sentence,
+	pattern= " [FfDd]o[xg]",
+	replacement= " animal"
+	)
+
+## Delete demonstration objects that are no longer needed
+remove(test_sentence)
+```
+
+A RegEx [-] specifies a range of characters to match.  This range is based on the order of those characters inside the character encoding table, regardless of whether those characters have comparable meaning.  Since character encoding can be platform and locale specific, character ranges should be used cautiously and with rigorous testing.  To get around this issue, there are built-in character groups, such as `[[:space:]]` for spacing characters (space, tab `\t`, return `\n`, etc.), `[[:punct:]]` for punctuation characters, `[[:alpha:]]` for letters, and `[[:digits:]]` for numbers.  However, these too require some caution, especially when working with text in non-Latin alphabets.
+
+```{R Character Ranges}
+## assign unicode characters from 0030 to 006F to an object
+unicode_blocks <- c(
+	"003- Latin Digit/Punct"= "0123456789:;<=>?",  ## 0030-003F
+	"004- Latin Punct/Alpha"= "@ABCDEFGHIJKLMNO",  ## 0040-004F
+	"005- Latin Alpha/Punct"= "PQRSTUVWXYZ[\\]^_", ## 0050-005F
+	"006- Latin Punct/Alpha"= "`abcdefghijklmno",  ## 0060-006F
+	"00A- Latin Space/Punct"= " ¡¢£¤¥¦§¨©ª«¬®¯",   ## 00A0-00AF
+	"042- Cyrillic Alpha"= "РСТУФХЦЧШЩЪЫЬЭЮЯ",     ## 0420-042F
+	"136- Ethiopic Punct/Digit"= "፠፡።፣፤፥፦፧፨፩፪፫፬፭፮፯"  ## 1360-136F
+	)
+
+## use a search range to match everything between 9 and L
+unicode_blocks
+
+gsub(
+	x= unicode_blocks,
+	pattern= "[9-L]",
+	replacement= "✓"
+	)
+
+## matching classes of characters
+unicode_blocks
+
+gsub( ## match all punctuation
+	x= unicode_blocks,
+	pattern= "[[:punct:]]",
+	replacement= "✓"
+	)
+
+gsub( ## match all spacing
+	x= unicode_blocks,
+	pattern= "[[:space:]]",
+	replacement= "✓"
+	)
+
+gsub( ## match all letters
+	x= unicode_blocks,
+	pattern= "[[:alpha:]]",
+	replacement= "✓"
+	)
+
+gsub( ## match all digits
+	x= unicode_blocks,
+	pattern= "[[:digit:]]",
+	replacement= "✓"
+	)
+
+## Delete demonstration objects
+remove(unicode_blocks)
+```
+
+In the demonstration above, there are several features of note.  
+
+1.  Backslash displays as \\.  This indicates that the backslash should be treated literally as a backlash, rather than as an escape character.
+
+2.  The Ethiopic section mark displays as \u1360.  If R does not have a display method for a character, it will display its position on the encoding table.
+
+3.  The digits search missed the Ethiopic numbers.  Even class searches can be hit-or-miss, especially in non-Latin alphabets.
+
+Two other useful RegEx operators are the wildcard `.` and negative search `[^]` operations.  In RegEx, a period will match any character exactly once.  To match a literal period, you would need to place the period inside square brackets.   The `^` operator, used inside square brackets, will match any character except the one following it.  You can place it in front of ranges to negative match the entire range.  In addition, for situations where only the first match needs to be replaced, the `sub()` function can be used in place of the `gsub()` function.  
+
+```{R Wildcard, Negative Match, First-Match Searches}
+## Generate a test_sentence
+test_sentence <- paste(
+	"The quick brown fox jumps over the lazy dog,",
+	"and then, the lazy dog took a nap.",
+	"Later, the brown Fox did likewise."
+	)
+
+## Replace the first letter of each word using wildcards
+	## Note that first letter of the first word is not replaced, since
+	## it doesn't have the requisite space in front of it
+
+gsub(
+	x= test_sentence,
+	pattern= " .",
+	replacement= " ∆"
+	)
+
+## Replace all non-letters with underscores using negative searches
+	## and ranges
+gsub(
+	x= test_sentence,
+	pattern= "[^A-Za-z]",
+	replacement= "_"
+	)
+
+## Replace only the first dog with cat using sub() in place of gsub()
+sub(
+	x= test_sentence,
+	pattern= " dog",
+	replacement= " cat"
+	)
+
+### Delete demonstration objects
+remove(test_sentence)
+```
+
+### Regular Expressions - Feature Matching
+
+RegEx also has a language for matching a specific number of times, matching the start/end of lines, and even reintroducing matched content back into replacement strings. Here is a demonstration of indefinite quantity matching.
+
+```{R Indefinite Quantity matching}
+## Create a character object for demonstration purposes
+test_strings <- c("took partook leftkey mistook",
+	"tk tok took toook tooook")
+names(test_strings) <- test_strings
+test_strings
+
+## The + operator matches a character >= 1 times
+gsub(
+	x= test_strings,
+	pattern= "to+k",
+	replacement= "-tk-"
+	)
+
+## The * operator matches a character >= 0 times.  Note how "tk" now
+	## as tk matches the criteria of zero or more "o". * is more
+	## computationally intensive than +, so don't use a * when a +
+	## will do.
+gsub(
+	x= test_strings,
+	pattern= "to*k",
+	replacement= "-tk-"
+	)
+
+## {,} matches the character for a specified range of times, where
+	## the number before the comma is the min and the number after
+	## is the max.  If left blank, the defaults are {1,∞}.
+gsub(
+	x= test_strings,
+	pattern= "to{3,}k",
+	replacement= "-tk-"
+	)
+
+## Delete demonstration objects
+remove(test_strings)
+```
+
+In an earlier demonstration, we used space to match whole words.  However, this method of detecting words can fail if the word is at the start or end of a string element, as well as if there is punctuation involved.  When used outside of `[]`, the `^` and `$` operators denote the start and end of lines, respectively.  The `|` operator denotes logical "or" as it does in standard R syntax, and the `()` can play the same role as `{}` in standard R syntax to specify order of operations.  Placed together with negative search, whole word searches become feasible.
+
+```{R Whole word matches}
+## Create a character object for demonstration purposes
+test_strings <- c(
+	"I mistok the leftkey for the book I toook.",
+	"Then, I shok the book I toook until I forsooook it's loooook",
+	"Lok at a book if you mistoook it toooo."
+	)
+names(test_strings) <- test_strings
+
+## Combine regex searches to redact all words that end in "ok"
+	## Here is what each component of the pattern string does:
+	## (^|[^A-Za-z])  == match either a start of line OR a character that
+		## is not a Latin letter.
+	## [A-Za-z]*      == match zero or more Latin letters
+	## ok             == match the extract string "ok"
+	## ([^A-Za-z]|$)  == match either the end of line OR a character that
+		## is not a Latin letter.
+gsub(
+	x= test_strings,
+	pattern= "(^|[^A-Za-z])[A-Za-z]*ok([^A-Za-z]|$)",
+	replacement= " [X] "
+)
+
+## Delete demonstration objects
+remove(test_strings)
+```
+
+The round parentheses play a second role in regular expressions – they enable text to be matched in `pattern=` and then injected into `replacement=` .  A `\\1` placed in the replacement string will insert the match from the first parenthesis into that string.  `\\2` will inject the contents of the second parenthesis, `\\3` from the third, and so forth.  Here are two examples.  The first is a simple example to show the concept.  The second returns to the example above, removing the extraneous spacings that occurs when the first or last word is matched.
+
+```{R RegEx Reinsertion}
+
+## simple example - extracting years from dates
+test_line <- "Garcia 1/1/1990 reported three, but Smith 10/12/1989 saw..."
+test_line
+
+gsub(
+	x= test_line,
+	pattern= "[^ ]+([0-9]{4,4})",
+	replacement= "\\1"
+)
+
+## Returning to the previous example - targeting whole words with a
+	## common characteristic.  Adding \\1 and \\2 to replacement=
+	## allows the matched space, punctuation of start/end of line to be
+	## returned into the text.
+
+test_strings <- c(
+	"I mistok the leftkey for the book I toook.",
+	"Then, I shok the book I toook until I forsooook it's loooook",
+	"Lok at a book if you mistoook it toooo."
+	)
+names(test_strings) <- test_strings
+
+gsub(
+	x= test_strings,
+	pattern= "(^|[^A-Za-z])[A-Za-z]*ok([^A-Za-z]|$)",
+	replacement= "\\1[X]\\2"
+)
+
+## Delete demonstration objects
+remove(test_strings, test_line)
+```
+
+### Generating Match Positions Among and Within Elements
+
+R assigns positions to each element within a vector and positions to each character within an element.  The `grep()` and `grepl()` functions search for a matching regular expression among the elements of a vector, returning numeric and logical position vectors, respectively.  The `grepexpr()` and `regexpr()` functions search for a matching regular expression within an element, returning all matches and the first match, respectively.
+
+```{R Matching Element Positions}
+## generate demonstration object
+set.seed(1329)
+
+test_string <- paste(
+	sample( c( "F", "M" ), size= 10, replace= TRUE),
+	sample( c( "A", "E" ), size= 10, replace= TRUE),
+	"D", sep= ""
+)
+test_string
+
+## generate numeric matching element positions
+element_index <- grep(x= test_string, pattern= "FA")
+
+element_index
+test_string[element_index]
+
+
+## generate logical matching element positions
+element_index <- grepl(x= test_string, pattern= "FA")
+
+element_index
+test_string[element_index]
+
+## There are multiple ways of doing searches for strings that match
+	## many criteria.  Here are three approaches to a two-criteria
+	## search.
+
+element_index <- grepl( ## logical joint condition
+	x= test_string,
+	pattern= "FA"
+	)
+element_index <- element_index | grepl(
+	x= test_string,
+	pattern= "ME"
+	)
+
+test_string[element_index]
+
+element_index <- grep( ## numeric joint condition
+	x= test_string,
+	pattern= "FA"
+	)
+element_index <- union(
+	element_index,
+	grep(
+		x= test_string,
+		pattern= "ME"
+		)
+)
+
+test_string[element_index]
+
+
+element_index <- grep( ## joint regular expression
+	x= test_string,
+	pattern= "(FA|ME)"
+	)
+
+test_string[element_index]
+
+#### ---- GENERATING MATCHING CHARACTER POSITIONS WITHIN ELEMENTS
+
+## generate demonstration object
+
+set.seed( 2148 )
+test_object <- paste0(
+	sample( c( "a", "B" ), size= 10, replace= TRUE ),
+	sample( c( "a", "B" ), size= 10, replace= TRUE ),
+	sample( c( "a", "B" ), size= 10, replace= TRUE ),
+	sample( c( "a", "B" ), size= 10, replace= TRUE )
+	)
+names(test_object) <- test_object
+
+## detect position of first occurance of "ab" within each element
+	## regexprt will return -1 if the string does not appear in an
+	## element.  Setting all -1 to be larger than the largest string
+	## ensures that an empty element is returned if the pattern is
+	## not found. The attr() lines indicates secondary meta-information
+	## available about the match.
+
+character_index <- regexpr(text= test_object, pattern= "aB")
+
+character_index
+character_index[ character_index < 1 ] <- max( nchar(test_object) ) + 1
+
+substring(test_object, first= character_index)
+
+## detects the position of all matches within an element.
+	## This example returns 1 3 because there is a matching aB starting
+	## at character position 1 and another starting at character position 3.
+	## The [[1]] indicates that this is a list class object, which we will
+	## discuss further in the next lecture.
+
+gregexpr(text= "aBaB", pattern= "aB")
+
+## Delete demonstration objects
+remove(test_string, character_index, test_object, element_index)
+```
+
+### Approximate Matching
+
+When matching text strings, it is often helpful to make the searches robust to small variations in characters, such as spelling errors and conjugation.  Levenshtein Distance is an approach for measuring the distance between a string and other strings, enabling a search to capture them both.  Levenshtein Distance defines the similarly of two strings by the number of transformations necessary to convert one to the other.  A transformation can either be insertion of a new letter, deletion of an existing letter, or a substitution of one letter for another letter.  The table reports the one insertion, one deletion and one substitution needed to convert the misspelling Missisippye to the properly spelled Mississippi.  These words have a Levenshtein Distance of 3, because it took three operations to transform the string into its end state. 
+
+|Starting Word	|Transformation					|Result
+|:-							|:-											|:-
+|Missisippye		|Deletion: e						|Missisippy
+|Missisippy			|Substitution: y to i		|Missisippi
+|Missisippi			| Insertion: s					|Mississippi
+
+In R, the function `adist()` calculates Levenshtein Distance, as in the example below.  The object it returns is of class matrix, which we will explore in further detail in B1.  The argument `cost=` enables you to customize the distance cost of each transformation, which have a cost of 1 by default.  If you raised the cost of an insertion to 2, than the total Levenshtein distance between Missisippye and Mississippi would be four instead of three.  By setting the `count=` argument to `TRUE`, you can reveal detailed information on the transformations applied.
+
+```{R Calculating Levenshtein Distance with adist()}
+## calculating Levenshtein Distance with adist()
+adist(x= "Missisippye", y= "Mississippi")
+
+## adjusting distance costs for insertions
+adist( x= "Missisippye", y= "Mississippi",
+	costs= c("insertion"= 2, "substitution"= 1, "deletion"= 1)
+	)
+```
+
+The function `agrep()` uses Levenshtein Distance to find strings that are only a few transformations away from the search string.  The maximum number of transformations or normalized transformations can be specified with `max.distance=`.
+
+```{R Approximate Matching}
+##  calculate Levenshtein distance strings compared to abcde
+misspellings <- c("ab", "abcdef", "acfe", "xyzxyzxyz")
+
+lev_distance <- adist(x= misspellings, y= "abcde")
+lev_distance <- as.vector(lev_distance)
+names(lev_distance) <- misspellings
+
+lev_distance
+
+## find approximate matches with agrep() at two distance thresholds
+
+match_index <- agrep( ## distance thresold == 1 transformation
+	x= misspellings,
+	pattern= "abcde",
+	max.distance= 1
+)
+
+misspellings[match_index]
+
+match_index <- agrep( ## distance threshold == 3 transformations
+	x= misspellings,
+	pattern= "abcde",
+	max.distance= 3
+)
+
+misspellings[match_index]
+
+## agrep() also supports specifying distance threshold normalized to
+	## pattern length
+
+match_index <- agrep( ## normalized distance threshold == 0.1
+	x= misspellings,
+	pattern= "abcde",
+	max.distance= 0.2
+)
+misspellings[match_index]
+
+match_index <- agrep( ## normalized distance threshold == 0.5
+	x= misspellings,
+	pattern= "abcde",
+	max.distance= 0.5
+)
+misspellings[match_index]
+
+## Delete demonstration objects
+remove(match_index, lev_distance, misspellings)
+```
+
+Approximate matching can only detect similarity in the literal characters of a string.  However, there are higher order features of language that a human would recognize as conceptually similar.  While such features are beyond the scope of a basic R class, you should at least be familiar with the concepts.  One such concept is "stemming."  Stemming is the process of regularizing different conjugations of the same word to a shared form.  For example, if you passed the string "Speak Speaking Spoke Spoken" to a stemming function, it might return something like "Speak Speak Speak Speak".  Another such concept is synonym regularization.  This form of regularization converts words with similar meanings to a single form.  For example, if you passed the string "Say Speak Utter" to a regularization function, it might return "Say Say Say".  Libraries such as `SnowballC` and `wordnet` supply access to resources for multi-language stemming and English-language synonyms respectively.
+
+In addition, R contains text regularizers for specific types of strings.  The `strptime()` function regularizes dates.  See the help page for the extensive menu for date formatting schemes you can specify using the `format=` argument.
+
+```{R strptime()}
+strptime(
+	x= "October 8 86",
+	format= "%B %d %y",
+	tz= "UTC"
+)
+```
+
+### Exercise - RegEx Practice
+
+Pick a list of five words at random that have similar spelling to each other.  Either encode these words as a five-item character vector or single character string with words separated by spaces.  Devise a regular expression that matches the second and fourth word, but not the first, third, and fifth.  Use that regular expression to encase the second and fourth words in curly brackets and then rearrange the words, so that the words in brackets are next to each in the center of the expression.
+
+For example, if you began with the character string "Throw Throwing Thrown Threw Throws", the goal would be to use regular expressions and functions to transform the string to " Throw Thrown {Throwing} {Threw} Throws".  Repeat this exercise multiple times with different sets of character strings (words, dates, numbers, words with punctuation, etc.) to improve your fluency with regular expressions.
+
+### Summary Chart of Regular Expressions
+
+For convenience, this table summarizes some of the basic regular expressions.
+
+|Regular Expression		|Description
+|:-		|:-
+|`AZ`		|Matches the two-character sequence "AZ".
+|`[AZ]`		|Matches a single character that is either the capital letter A or the capital letter Z.
+|`.`	|Matches any single character.
+|`[.]`	|Matches literal "." periods.  When placed inside brackets, many punctation marks become literal, instead of having a specific regular expression meaning.
+|`[A-Z]`	|Matches a single character that is between capital A and capital Z on the Unicode table.  This includes all capital letters of the Latin alphabet.
+|`[^AZ]`	|Matches a single character that is neither A nor Z.
+|`A+`	|Matches the character A one or more times.  So, "A" and "AA" both match.
+|`A*`	|Matches the character A zero or more times.  For example, "Words*" would match both "Word" and "Words".
+|`A{1,3}`	|Matches the character A one to three times.  So, "A" and "AA" match, but "AAAA" does not.
+|`A{2,}`	|Matches the character A at least twice.  So "AA" and "AAAA" match, but "A" does not.
+|`^A`	|Matches the start of a line, followed by capital A.  So, "A words" would match, but "Some A words" would not.  Note that ^ has different meaning when inside `[ ]`, compared to outside.
+|`A$`	|Matches capital A, followed by the end of a line. So, " Group A" matches, but "Group A and B" does not.
+|`(AB)\|(YZ)`	|Matches the two-character string "AB" or "YZ".  so "AB Words" and "Words YZ" would both match. 
+|`[\\n\\t]`	|Matches a single character that is either a "\n" return,  "\t" tab, " " space.
+|`[[:space:]]`	|Matches a pre-defined range of (Latin alphabet) spacing characters, including returns, tabs, and spaces. There are many other pre-defined ranges, such as `[[:punct:]]` for punctuation.
+
+
+### Vocabulary Table for Lesson A5
+
+In order to program effectively, you will need to memorize basic functions, operators, and constants.  Write each of the functions/operators/constants below on a flash card.  On the back of each card, write a succinct definition of what it does and a example of a line code you could enter into console that uses it.  Drill with these cards until you have memorized them.  Then drill again, coming up with a fresh example for each and testing that example in the console.
+
+In order to understand what each function/operator/constant does, use the `help()` function to pull the documentation for it.  For example, `help("objects")` would pull up the documentation for the function `objects()`.  This document includes a description of what the function does ("Description" section), a list of all the arguments that can be given to the function ("Arguments" section), and examples of how to use the function ("Examples" section) at the bottom.  Only copy the definition or example from the documentation to your flash card if you absolutely understand what it does.  Otherwise, substitute your own.
+
+The help documentation may be a difficult to read at first but keep practicing.  Over time, getting useful information from the documentation will become effortless.  Resist the impulse to do a Google search before you have consulted the documentation.  Google results can be of mixed quality - sometimes you will get a thoughtful, efficient solution, sometimes you will get a byzantine work-around that will teach you bad habits.
+
+|Text Encoding and Display		|Text Merging and Splitting		|Regular Expressions I		|Regular Expressions II		|R Regex Interface
+|:-		|:-		|:-		|:-		|:-
+|`\`				|`nchar()`		|`.`			|`()`			|`adist()`
+|`\n`				|`nzchar()`		|`[-]`		|`{,}`		|`agrep()`
+|`\t`				|`paste()`		|`[[::]]`	|`*`			|`gregexpr()`
+|`\u`				|`strsplit()`	|`[]`			|`\\`			|`grep()`
+|`iconv()`	|`substring()`|`[^]`		|`^`			|`grepl()`
+|`noquote()`|							|`gsub()`	|`+`			|`regexpr()`
+|`tolower()`|							|`sub()`	|`|`			|`strptime()`
+|`toupper`	|							|					|`$`			|
+
+
