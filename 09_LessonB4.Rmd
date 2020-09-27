@@ -1,1 +1,20 @@
-##########
+```{r Environment set-up, include= FALSE}
+remove(list= objects())
+```
+
+```{r Document-Wide Knitr Options, include= FALSE }
+knitr::opts_chunk$set(fig.width=6, fig.height=6) 
+knitr::opts_chunk$set(comment= "")
+knitr::opts_chunk$set(prompt= TRUE)
+```
+## Lesson Links
+
+[Go to the Table of Contents](00_TableOfContents.html)
+
+[Return to Last Lesson (B3: Environment)](08_LessonB3.html)
+
+[Proceed to Next Lesson (B5: Control Language)](10_LessonB5.html)
+
+## B4.  Visualization
+
+### Vocabulary Table for Lesson B4

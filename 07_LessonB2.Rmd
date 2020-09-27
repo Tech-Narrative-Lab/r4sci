@@ -1,1 +1,20 @@
-##########
+```{r Environment set-up, include= FALSE}
+remove(list= objects())
+```
+
+```{r Document-Wide Knitr Options, include= FALSE }
+knitr::opts_chunk$set(fig.width=6, fig.height=6) 
+knitr::opts_chunk$set(comment= "")
+knitr::opts_chunk$set(prompt= TRUE)
+```
+## Lesson Links
+
+[Go to the Table of Contents](00_TableOfContents.html)
+
+[Return to Last Lesson (B1: Array and List Objects)](06_LessonB1.html)
+
+[Proceed to Next Lesson (B3: Environment)](08_LessonB3.html)
+
+## B2.  Segmentation
+
+### Vocabulary Table for Lesson B2
