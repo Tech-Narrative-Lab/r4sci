@@ -1,1 +1,549 @@
-##########
+```{r Environment set-up, include= FALSE}
+remove(list= objects())
+```
+
+```{r Document-Wide Knitr Options, include= FALSE }
+knitr::opts_chunk$set(fig.width=6, fig.height=6) 
+knitr::opts_chunk$set(comment= "")
+knitr::opts_chunk$set(prompt= TRUE)
+```
+## Lesson Links
+
+[Go to the Table of Contents](00_TableOfContents.html)
+
+[Return to Last Lesson (A5: Regular Expressions)](05_LessonA5.html)
+
+[Proceed to Next Lesson (B2: Segmentation)](07_LessonB2.html)
+
+## B1.  Array and List Objects
+
+### Lists and Hierarchical Vector Storage
+Vectors are the basic building blocks of R data structures.  All complex R objects that store data consist of vectors embedded in various forms of higher organizational structures.  The list class object is perhaps the most important and versatile of these structures.  A list is like a vector, except that each element of a list can hold a vector, or another list.  Using lists embedded as elements of other lists, list class objects enable organization of vectors into arbitrary hierarchies of data.  To illustrate the basic mechanics of a list, let us return to `substring()`, a text parsing function from Lesson A5.  The `strsplit()` function divides a text string into a vector of elements, splitting it up everywhere that a specific character appears.  Packaging those vectors into a list, `strsplit()` can split multiple strings at the same time.
+
+```{R List Objects}
+## create vector of text strings
+hamlet <- c(
+	"To be, or not to be, that is the question:",
+	"Whether 'tis nobler in the mind to suffer",
+	"The slings and arrows of outrageous fortune",
+	"Or to take Arms against a Sea of troubles"
+	)
+
+## For tidyness, clean out the punctuation
+hamlet <- gsub( "[[:punct:]]", "", hamlet )
+
+## parse into words using substring()
+hamlet <- strsplit( hamlet, split= "[[:space:]]+" )
+
+## express object
+hamlet
+
+## Delete demonstration objects
+remove(hamlet)
+```
+
+In the example, the `strsplit()` function receives a character vector with four text string elements, as well as instructions to split each string up at the spaces.  It expresses a list with four elements, each of which is a vector holding the words from one of the inputted text strings.  The `[[]]` indicate the elements of the list, while the `[]` indicate the elements of the vector inside the list.  So, "that" is the seventh element of the vector inside the first element of the list, and "nobler" is the third element of the vector inside the third list element.  In total, this list packages four vectors of different lengths into something that you can assign to one object.
+
+The `list()` function generates list objects, where each object it receives as an input is packaged as an element of that list.  Each element of a list is accessible through the standard `[]` operator.  Each object held in an element of a list is extractable through the `[[]]` operator.
+
+```{R List Extraction}
+## make a list with two elements
+list_object <- list(
+	1:3,
+	2:6
+	)
+
+list_object
+
+## extract an element of a list
+list_object[2]
+
+## The extracted element remains a list element, so the enclosed
+	## vector is inaccessible for vector operations
+
+#list_object[2]/2 # Uncomment line to see the error thrown
+
+#  Double brackets fully extract the contents of the element, making
+	## it accessible for vector operations
+list_object[[2]]
+
+list_object[[2]]/2
+
+## Delete demonstration list_object
+remove(list_object)
+```
+
+Like vectors, lists support the use of `names()` position meta-data.  When list items have names, the `$` operator notates them during object expression and provides an alternative way to extract them.  In the example below, also note how the list can hold vectors of multiple modes without coercion occurring.  This is one of the unique strengths of the list class.
+
+```{R Named Lists}
+
+## generate list with names
+list_object <- list(
+	"Numbers"= 1:3,
+	"Strings"= month.abb[2:5],
+	"Three Word Name"= TRUE
+	)
+
+list_object
+
+names( list_object )
+
+## extract elements by name using [[]] or $
+
+list_object$Strings
+list_object[[ "Strings" ]]
+
+## quotes are necessary for $ extraction with multi-word names
+list_object$"Three Word Name"
+
+## Delete demonstration object
+remove(list_objects)
+```
+
+Lists can hold other lists, forming hierarchies with arbitrary structure.  In the example below, `list.object` has two elements.  Element A is a two-element list, holding elements A1 and A2.  Element B is a three-element list, holding elements B1, B2, and B3.  B3 is a one-element list, holding the element B3.1.  Using `$` extractions, any element in this hierarchy is retrievable.
+
+```{R Hierarchical Lists}
+
+list_object <- list(
+	"A"= list( "A1"= 1, "A2"= 2 ),
+	"B"= list( "B1"= 3, "B2"= 4, "B3"= list( "B3.1"= 5 ) )
+	)
+
+list_object
+
+list_object$B$B3$B3.1 ## extract B3.1 from the hierarchy by $ extraction
+
+## Delete demonstration objects
+remove(list_object)
+```
+
+R can convert vectors into lists with no information loss using `as.list()`.  R can convert lists to vectors with mild information loss using `unlist()`.
+
+```{R Conversion to/from lists}
+## Convert a vector to a list
+named_vector <- 1:3
+names(named_vector) <- letters[named_vector]
+named_vector
+
+## Convert to list - note how the vector elements become list elements
+	## and the vector names become list names
+new_list <- as.list(named_vector)
+new_list
+
+## Add a new named list element by $
+new_list$d <- 5:6
+names(new_list$d) <- letters[new_list$d]
+new_list
+
+## Use unlist() to coerce back to vector - note how unlist() attempts
+	## to preserve information on hierarchical structure by building
+	## it into the names of the expressed vector.
+unlist(new_list)
+
+## Delete demonstration objects
+remove(new_list, named_vector)
+```
+
+List class is perhaps the most versatile basic object class in R.  Most complex object classes in R are actually list objects with sophisticated display characters and special hooks for eliciting class-sensitive behavior in other functions.  For example, in R, the function 'lm()' generates linear models (i.e., performs regression analysis).  The 'lm()' function expresses objects of lm class.  However, if you set the class identifier to 'NULL', the object will reveal its true underlying structure – a list object with 12 elements.
+
+```{R Lists Underly Most Complex Objects}
+## generate a simple linear model object
+ind_variable <- 1:10
+dep_variable <- ind_variable^2
+lm_object <- lm(dep_variable~ind_variable)
+
+class(lm_object)
+
+## Expression Linear Modeling Object
+lm_object
+
+## Reset assigned class to reveal underlying list structure, and re-express
+class(lm_object) <- NULL
+lm_object
+
+## Delete demonstration objects
+remove(ind_variable, dep_variable, lm_object)
+```
+
+### Multi-dimensional Positioning with Arrays
+
+The typical scientific dataset consists of a spreadsheet – data arrayed into rows of cases and columns of variables / fields.  R can support this format using vectors.  R can use a positioning system with multiple dimensions, simulating rows and columns, and it has a display method to reflect dimensions.  The function 'dim()' supplies access to the dimensionality of the vector.  Setting the dimensions attribute to a vector with greater than one element will generate a multi-dimensional position system.  The number of elements in the vector passed to 'dim()' determines the number of dimensions in the resulting system.  The numbers in each element determine the number of rows / columns / etc. that the given dimension can support.  The 'prod()' of the 'dim()' of the vector must equal the total number of elements in the vector.  In other words, R will reject setting 'dim( x )' to anything that would make 'prod( dim( x ) ) == length( x )' not express TRUE.
+
+```{R dim() and vector dimensionality}
+## This is a basic vector with 24 elements.
+a_vector <- 1:24
+a_vector
+
+## The vector has a length, but does not yet have specified dimensions
+length( a_vector )
+dim(a_vector)
+
+## The dimensions attribute can be set to 24, but this has no
+	## practical effect
+dim(a_vector) <- 24
+
+a_vector
+
+length(a_vector)
+dim(a_vector)
+
+## Setting the dimensions to 6 rows x 4 colums
+dim(a_vector) <- c(6, 4)
+a_vector
+
+## Delete demonstration objects
+remove(a_vector)
+```
+
+This multi-dimensional vector is an array.  Because it has exactly two-dimensions, it is also a special type of array called a matrix.  For the purposes of this class, the term array is privileged over the term matrix, as matrices are only a special sub-type of the larger object class.  However, `class()` will identify 2D arrays as matrix class, and 3+ D arrays as array class.  Moreover, there are many functions that work on 2D vectors, but are not flexible enough to generalize to N-Dimensional space.  The examples below make side by side comparisons of the class and display methods of a 1D vector, 2D matrix, and a 3D array object.  For class vs mode, note how `class()` and `mode()` diverge.  This is typical for higher order objects – while classes may become more complex, the basic storage modes for the data inside them do not.  For object display, note the use of the new `[,]` syntax to display rows / columns, and the `,,` syntax to display higher dimensions.
+
+```{Vectors of various dimensionality} 
+## create objects
+a_array <- a_matrix <- a_vector <- as.numeric(1:24)
+dim(a_matrix) <- c(6, 4)
+dim(a_array) <- c(4, 3, 2)
+
+## object class / mode
+
+class(a_vector)
+class(a_matrix)
+class(a_array)
+
+mode(a_vector)
+mode(a_matrix)
+mode(a_array)
+
+## objects displayed
+a_vector
+
+a_matrix
+
+a_array
+
+## Delete demonstration object
+remove(a_vector, a_matrix, a_array)
+```
+
+Each array has two position coordinate systems – its basic vector system and a new set of coordinates for each dimension.  You can use either to do `[]` extraction.
+
+```{R Bracket Extraction in Multiple Dimensions}
+## create objects
+a_array <- a_matrix <- a_vector <- as.numeric(1:24) + 100
+dim(a_matrix) <- c(6, 4)
+dim(a_matrix)
+
+dim(a_array) <- c(4, 3, 2)
+dim(a_array)
+
+## Extracting a single element by different positioning systems
+a_matrix
+
+a_matrix[7] ## vector element position
+a_matrix[1, 2] ## element multi-dimensional coordinate
+
+## Same principle in higher-dimensions
+a_array
+
+a_array[7]
+a_array[3, 2, 1]
+
+## Multiple element vectors can be supplied for each, just keep
+	## in mind that they are not interpreted pairwise
+a_array
+
+## Delete demonstration objects
+remove(a_array, a_matrix, a_vector)
+```
+
+By design, the product of bracket extraction from an array is another array.   However, when the resulting array reduces any element of `dim()` to 1, R automatically drops that dimension from the array's positioning system.  This can result in an array devolving back to a vector.  However, the `drop= FALSE` argument will disable this behavior, and can be important for making sure that unexpected dimension change does not cause errors in your code.
+
+```{R the drop argument}
+## create object
+a_matrix <- substring( {1:24} + 100, 2)
+dim(a_matrix) <- c(6, 4)
+
+## demonstrate drop=
+a_matrix[1, 1:3]  ## reduces to simple vector
+a_matrix[1, 1:3, drop= FALSE] ## retains dimension
+
+## Delete demonstration object
+remove(a_matrix)
+```
+
+In the same way that `dim()` is the multi-dimensional counterpart to `length()`, `dimnames()` is the multi-dimensional counterpart to `names()`.  The `dimnames()` expression is a list object with one vector for each dimension of the array.  As a list object, the `dimnames()` object itself has a `names()` vector, which you can use to name each dimension.
+
+```{R dimnames() object}
+## Create an empty array object using the array() constructor
+an_array <- array(data= 0, dim= c(4, 3, 2))
+an_array
+
+## Generate dimension names for the object
+dimnames(an_array) <- list(
+	"Rows"= letters[1:dim(an_array)[1]],
+	"Cols"= LETTERS[1:dim(an_array)[2]],
+	"Dim3"= paste0("x", LETTERS)[1:dim(an_array)[3]]
+	)
+
+an_array
+
+## Delete demonstration object
+remove(an_array)
+```
+
+In this example, also note the use of `dim()` to determine the length of each `dimnames()` vector.  This is a more powerful approach than writing in the actual number because this code will not throw an error if the dimensions of the array change.  Writing in the actual number, i.e., 'letters[1:4]' instead of 'letters[1:dim( an.array )[1]]' is called "hard coding" a value and is considered bad practice in most programming scenarios.
+
+### List-Array Hybrids: Multi-Dimensional List Vectors and Data Frames
+
+List class objects rely on much of the same logic as vectors, except that individual elements have their own modes and list elements can nest inside other list elements.  Because lists are infused with R's underlying vector-based logic, they will often respond in vector-like ways.  List object responsiveness to `dim()` and `dimnames()` illustrates this concept quite well.
+
+```{R Lists as Vectors}
+## Create list
+list_object <- as.list(1:4)
+list_object[[1]] <- list_object[[4]] <- as.list(101:102)
+
+## Apply dim() and dimnames() to list
+dim(list_object) <- c(2, 2)
+dimnames(list_object) <- list(
+	"Rows"= letters[1:2],
+	"Cols"= LETTERS[1:2]
+	)
+
+
+## Express object and expressions by various methods
+list_object
+list_object["a", "A", drop= FALSE]
+list_object[["a", "A"]]
+
+## Delete demonstration objects
+remove(list_object)
+```
+
+Hybridizing the unique strengths of lists and arrays is an effective strategic for data storage.  The `data.frame` class (henceforth called "data frame" class for simplicity) is R's premier hybrid data storage object class.  Most of your work cleaning, manipulating, and analyzing datasets will involve at least one object from this highly versatile class.  Essentially, data frames are lists that behave like cases x variables data spreadsheets.  The R constrains data frame list elements to hold vectors of identical length, and the object has a positioning system for recognizing element in each list's vector that occupy the same row.
+
+```{R Data Frames}
+## Create a data.frame class object
+survey_results <- data.frame(
+	"ID"= c( "r159", "p652", "a048" ),
+	"Name"= c( "Smith, Emma", "Garcia, Liam", "Williams, Olivia" ),
+	"Gender"= 	as.factor( c( "F", "M", "F") ),
+	"Age"= 	c( 20, 58, 37 ),
+	"FavColor"= c( "Red", "Red", "Blue" )
+)
+dimnames(survey_results)[[1]] <- survey_results$ID
+
+survey_results
+
+## Extract like a list - example uses RegEx to generate a last names
+	## variable
+survey_results$LastName <- gsub(
+	x= survey_results$Name,
+	pattern= ",.*",
+	replacement= ""
+	)
+
+survey_results
+
+## Extract like an array - example uses logical indexing to express
+	## just the data on respondents with a favorite color of Red
+index <- survey_results$FavColor == "Red"
+survey_results[index, ]
+
+## Convert to list and back again
+
+as.list(survey_results)
+
+as.data.frame( as.list(survey_results) )
+
+## Delete demonstration object
+remove(survey_results, index)
+```
+
+### Array Index Functions
+
+The `slice.index()` function provides access to the multi-dimensional positioning system of array and array-like objects.  Functions like `aperm()` and the `arr.ind= TRUE` version of `which()` interact with this system to generate useful position transformations.
+
+```{R Array Index Functions}
+## Generate an array object
+array_object <- array(101:106, dim= c(3, 2))
+dimnames(array_object) <- list(
+	"Rows"= paste("Rows", 1:dim( array_object)[1]),
+	"Columns"= paste("Cols", 1:dim(array_object)[2])
+	)
+array_object
+
+##  slice.index() expresses the position coordinate of each element in
+	## an array along a specified dimension.  The MARGIN= argument specifies
+  ## which dimension.  MARGIN= is a common argument for functions that act
+  ## on dimensions of an object.
+
+slice.index(array_object, MARGIN= 1) ## rows
+slice.index(array_object, MARGIN= 2) ## columns
+
+## The arr.ind= TRUE function alters the behavior of which() to index
+	## in the multi-dimensional position system of an object, rather
+	## than the basic vector position system.
+
+## Indexing with arr.ind= FALSE (the default)
+index_vector <- which({array_object %% 2} == 0)
+index_vector
+
+array_object[index_vector]
+
+## Indexing with arr.ind= TRUE
+index_multi <- which({array_object %% 2} == 0, arr.ind= TRUE)
+index_multi
+
+array_object[index_multi]
+
+## aperm() reassigns which coordinate system is associated with which
+	## dimension.  For a two dimensional object, that means transposing
+	## the rows and columns.  However, aperm() supports transformations
+  ## for objects with more complex dimensions too.
+
+array_object
+
+aperm(array_object, perm= 2:1)
+
+## Delete demonstration object
+remove(array_object, index_multi, index_vector)
+```
+
+Many of the functions in the previous section have counterparts that work only on two-dimensional arrays.  The 2D counterpart of `aperm()` is `t()`, and the counterparts of `slice.index()` are `row()` and `col()`.  There are trade-offs to using the 2D functions when applicable versus using the generalized multi-dimensional versions instead.  The 2D functions are slightly less computationally intensive and require fewer arguments because they do not have the burden of configuring to arrays of different dimensionality.  However, a programming style built on generalized multi-dimensional functions is more versatile because the same code and coding strategies will work across a broader set of use cases.  This can become important when working on projects where the final specifications for the code may change repeatedly and when recycling code from old projects to rapidly carry out similar tasks on new ones.  
+
+My recommendation for this case is to go with the generalized form unless extremely high performance is needed - the versatility advantages of the generalized form can easily outweigh the additional computational costs.  For example, on my machine, the more general `aperm()` runs equivalent calculations only 3.4 percent slower than the more specific `t()`.  This is different than the typical trade-off between specific functions  and generalized functions.  For example, the more general `ifelse()` runs 530.5 percent factor than its more specific counterpart `pmax()`.
+
+Three more 2D-specific positioning functions that _do_ perform well enough for consideration are` diag()`, `lower.tri()`, and `upper.tri()`.  These functions express `TRUE` for the elements of a two-dimensional array for which the row position equals, is greater than, or is less than the column position respectively.
+
+```{R diag(), lower.tri(), upper.tri()}
+## create a simple 2D array
+array_2d <- array(101:109, dim= rep(3, 2))
+array_2d
+
+## diag() selects the middle diagonal of a matrix.  It supports
+	## direct left hand assignment
+
+diag(array_2d) <- 0
+array_2d
+
+## lower.tri() and upper.tri() generate logical indices for the top
+	## and bottom half of a matrix
+
+lower.tri(array_2d)
+
+upper.tri(array_2d)
+
+## Delete demonstration object
+remove(array_2d)
+```
+
+### Combining Arrays
+
+The functions rbind(), cbind() and merge() supply options for combining two-dimensional arrays and array-like objects into one.  They combine objects row-wise, column-wise, and by a common matching variable, respectively.
+
+```{R Combining 2D Arrays}
+## Create two datasets
+state_population <- data.frame(
+	"State"= c("NH", "MA", "RI", "CT"),
+	"Population"= c(1356458, 6902149, 1059639, 3588184)
+	)
+state_population
+
+state_area <- data.frame(
+	"Area"= c(5567, 9349, 1214, 10565),
+	"Jurisdiction"= c("CT", "NH", "RI", "MA")
+	)
+state_area
+
+## cbind() stacks datasets by column
+
+cbind(state_population, state_area)
+
+## rbind() stacks datasets by row.  However, the datasets must have
+	## the same column names.  Note how rbind matches up columns with
+	## matching names, even through the columns are ordered differently
+	## in each dataset.
+
+#rbind( state_population, state_area ) ## throws error b/c name mismatch
+
+matched_names <- state_area
+colnames(matched_names) <- colnames(state_population)[2:1]
+
+rbind(state_population, matched_names)
+
+## merge() matches two datasets together by a common case/row ID
+
+merge(
+	x= state_population, by.x= "State",
+	y= state_area,       by.y= "Jurisdiction"
+)
+
+## Delete demonstration objects
+remove(state_population, state_area, matched_names)
+```
+
+### Matrix Calculations
+
+To complete this lesson, here are six highly efficient functions that perform computations on two-dimensional arrays.  The first four perform simple mathematical operations on each row or column.  On my machine, they are about 600 percent more efficient than their generalized counterparts, which we will discuss next lesson.
+
+```{R Efficient Calculations for 2D Arrays}
+## create a 2D array test object
+array_2d <- array(1:6, dim= c(3, 2))
+array_2d
+
+## rowSums() calculates the sum of each row
+rowSums(array_2d)
+
+## rowMeans() calculates the arithmetic average of each row
+rowMeans(array_2d)
+
+## colSums() calculates the sum of each column
+colSums(array_2d)
+
+## colMeans() calculates the sum of each column
+colMeans(array_2d)
+
+
+## The %*% operator performs matrix multiplication.
+
+matrix2 <- matrix1 <- array(1, dim= c(2, 2))
+matrix2[1, 1] <- 2
+
+matrix1 %*% matrix2
+
+## Delete demonstration objects
+remove(array_2d, matrix2, matrix1)
+```
+
+The `outer()` function accepts two vectors as input, and generates a matrix as output, whereas the matrix has as many rows as the length of the first vector and as many columns as the length of the second vector.  Each element of the matrix performs a given function using the corresponding element of each vector.  The `FUN`= argument determines the function, and it is even able to accept operators if encased in quotes.
+
+In the first example below, `outer()` generates the standard multiplication table after having received two vectors with the digits 1 through 10, and `"*"` as the `FUN=`.  The second example illustrates what `outer()` is doing, using `paste()` to capture which elements of the vectors interact in which cells.  Also, note the use of `sep=` to pass an argument through `outer()` to `paste()`.  This is common behavior for functions that accept other functions as arguments.  Functions that support this behavior will typically return `…` as one of the results of `args()`.  The ellipses instruct the function to not throw an error upon receiving an unexpected argument.
+
+```{R outer()}
+## generating the multiplication table with outer()
+outer(1:10, 1:10, FUN= "*")
+
+## illustrating the underlying mechanics of outer() using paste()
+outer(
+	as.character(1:3),
+	as.character(4:6),
+	FUN= paste,
+	sep= " x "
+)
+```
+
+### Vocabulary Table for Lesson B1
+
+In order to program effectively, you will need to memorize basic functions, operators, and constants.  Write each of the functions/operators/constants below on a flash card.  On the back of each card, write a succinct definition of what it does and a example of a line code you could enter into console that uses it.  Drill with these cards until you have memorized them.  Then drill again, coming up with a fresh example for each and testing that example in the console.
+
+In order to understand what each function/operator/constant does, use the `help()` function to pull the documentation for it.  For example, `help("objects")` would pull up the documentation for the function `objects()`.  This document includes a description of what the function does ("Description" section), a list of all the arguments that can be given to the function ("Arguments" section), and examples of how to use the function ("Examples" section) at the bottom.  Only copy the definition or example from the documentation to your flash card if you absolutely understand what it does.  Otherwise, substitute your own.
+
+The help documentation may be a difficult to read at first but keep practicing.  Over time, getting useful information from the documentation will become effortless.  Resist the impulse to do a Google search before you have consulted the documentation.  Google results can be of mixed quality - sometimes you will get a thoughtful, efficient solution, sometimes you will get a byzantine work-around that will teach you bad habits.
+
+|Lists		|Arrays and List-Array Hybrids		| Array Index Functions		|Combining Arrays		|Matrix Calculations
+|:-		|:-		|:-		|:-		|:-
+|`[[]]`					|`array()`				|`aperm()`		|	`cbind()`		|`%*%`
+|`$`						|`as.array()`			|`arr.ind=`		|`merge()`		|`colMeans()`
+|`as.list()`		|`as.data.frame()`|`diag()`			|`rbind()`		|`colSums()`
+|`list()`				|`data.frame()`		|`lower.tri()`							|`outer()`
+|`unlist()`			|`dim()`					|`slice.index()`|						|`rowMeans()`
+|								|`dimnames()`			|`upper.tri()`|							|`rowSums()`
