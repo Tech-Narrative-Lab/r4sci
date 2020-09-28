@@ -544,6 +544,6 @@ The help documentation may be a difficult to read at first but keep practicing. 
 |`[[]]`					|`array()`				|`aperm()`		|	`cbind()`		|`%*%`
 |`$`						|`as.array()`			|`arr.ind=`		|`merge()`		|`colMeans()`
 |`as.list()`		|`as.data.frame()`|`diag()`			|`rbind()`		|`colSums()`
-|`list()`				|`data.frame()`		|`lower.tri()`							|`outer()`
+|`list()`				|`data.frame()`		|`lower.tri()`|							|`outer()`
 |`unlist()`			|`dim()`					|`slice.index()`|						|`rowMeans()`
 |								|`dimnames()`			|`upper.tri()`|							|`rowSums()`
