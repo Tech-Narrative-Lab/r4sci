@@ -1,3 +1,9 @@
+---
+title: ""
+output: 
+  html_document: default
+---
+
 ```{r Environment set-up, include= FALSE}
 remove(list= objects())
 ```
@@ -6,6 +12,7 @@ remove(list= objects())
 knitr::opts_chunk$set(fig.width=6, fig.height=6) 
 knitr::opts_chunk$set(comment= "")
 knitr::opts_chunk$set(prompt= TRUE)
+knitr::opts_chunk$set(fig.align= "center" )
 ```
 ## Lesson Links
 
@@ -17,8 +24,1448 @@ knitr::opts_chunk$set(prompt= TRUE)
 
 ## B4.  Visualization
 
-==========
-==========
+This lesson explores the graphical capabilities of R.  The lesson begins with an overview of the pre-packaged visualization routines but then explores the underlying functions that generate those products - and how you can use R's graphical fundamentals to design customized visualizations.  The lesson also touches on relevant features of human visual perception. The eye and visual cortex are not unbiased instruments and visualization design must accommodate this.
+
+R has strong visualization capabilities.  For visualization, R  follows the same function-centered programming model but the output is polygons on a graphics device instead of expressions.  There are two ways to approach visualizations in basic R - use pre-packaged visualization routines or build visualizations from basic polygons. 
+
+## Pre-Packaged Visualizations: One-Dimensional Data
+
+There are at least four pre-packaged options for depicting one-dimensional statistics in R: bar charts, histograms, boxplots, and stem charts. 
+
+The `barplot()` function in R generates the standard bar chart, i.e., a set of rectangles with heights proportional to statistics.  The `hist()` function generates a special kind of bar chart, in which each bar depicts how many numbers in a sample fell in specific number ranges.  Since a histogram is a type of bar chart, `barplot()` can replicate outputs of `hist()`, given the right inputs.
+
+```{R Bar Charts and Histograms}
+####---- bar charts and histograms
+
+## Create sample data
+
+numeric_vector <-c(
+  "Aaaa"= 16,
+  "Bbbb"= 32,
+  "Cccc"= 32,
+  "Dddd"= 64,
+  "Eeee"= 64,
+  "Ffff"= 64
+)
+
+## Generate a simple bar chart
+barplot(numeric_vector)
+
+## Generate a simple histogram
+
+hist(numeric_vector, breaks= 8, xlim= c(0, 70))
+
+## Generate a histogram using barplot() and some data manipulation
+
+number_ranges <- cut(
+  numeric_vector,
+  breaks= seq(from= 0, to= 70, by= 10),
+  labels= paste(
+    seq(from= 0, to= 60, by= 10),
+    seq(from= 10, to= 70, by= 10),
+    sep = "-"
+  )
+)
+
+number_frequency <- tapply(number_ranges, number_ranges, length)
+
+barplot(number_frequency, cex.names= 0.7)
+
+## Delete demonstration objects
+remove(numeric_vector, number_frequency, number_ranges)
+
+```
+
+A common type of bar chart is the "stacked" bar chart, with each bar segmented into categories.  If you supply a two-dimensional array to `barplot()`, it will generate a stacked chart.  The `mosaicplot()` function  provides a similar, if more polished version of this.  Both functions supply alternatives to the ubiquitous pie chart.  While common, pie charts are not very effective visualizations because humans do not perceive angles accurately.  Avoid pie charts when possible.
+
+```{R Stacked Bar Chart Functions}
+## Generate a matrix of flag color proportions (rough approximation)
+
+cuba  <- c("Red"= 2/8, "Blue"= 3/8, "White"= 3/8)
+haiti <- c("Red"= 24/50, "Blue"= 24/50, "White"= 2/50)
+dr    <- c("Red"= 2/5, "Blue"= 2/5, "White"= 1/5)
+flag_colors <- cbind("Haiti"= haiti, "Dom. Rep."= dr, "Cuba"= cuba)
+
+## Display as stacked barplot
+
+barplot(
+  height= flag_colors,
+  col= rownames(flag_colors) ## R recognizes some color names
+)
+
+legend(x= "topright", ## this creates a legend for the bar colors
+        legend= dimnames(flag_colors)[[1]],
+        fill= dimnames(flag_colors)[[1]],
+        horiz= FALSE, bg= "white"
+        )
+
+## Display as mosaic plot
+
+mosaicplot(
+  x= aperm(flag_colors, perm= 2:1),
+  col= dimnames(flag_colors)[[1]],
+  main= "Flag Color Proportions"
+  )
+
+## Delete demonstration objects
+remove(cuba, haiti, dr, flag_colors)
+```
+
+
+Additionally, note the use of `legend()`, `col=`, and other arguments to adjust the behavior of these functions.  The `legend()` function adds a legend to an existing visualization.  `legend` si one of many functions that layer visual elements on top of existing visualizations that are still active in an R graphical device.  Other visualization functions can operate in this mode with the right arguments (typically `add= TRUE`).  
+
+The `col=` argument enables specifying the color of main plotting elements.  There is an entire section of this chapter devoted to color.  For now, note that R recognizes many color name text strings, so this is one of the simplest methods for specifying colors.  The `col=` argument is also one of a group of arguments will be discussed later in this chapter as we explore `par()`. Speaking more broadly, the behavior of each visualization is customizable, with visualization functions typically supporting a standardized set of at least 72 customization arguments. 
+
+The `boxplot()` function provides another approach for visualizing distributions.  Box plots depict the statistical moments of a set of numbers.  The box itself marks the 25th, 50th and 75th percentiles.  The whiskers depict a cut point at which a value is treated as an outlier (printed as a dot outside the box).  By default, it is 1.5 times the inter-quartile range (75th percentile minus the 25th percentile), which roughly parallels a 99 percent confidence internal for normally distributed data.  For a single distribution of numbers, provide `boxplot()` with an `x=` numeric vector to generate a box.  To compare distributions for different groups, use the `formula=` argument to specify a vector of numbers and a grouping factor to delimiate which numbers are associated with each group. Then, use the `data=` argument to supply a data frame holding both groups and statistics. 
+
+```{R Boxplot}
+## generate height distributions to match US statistics by gender
+
+height_moments  <- data.frame(
+  "Mean"= c(5.357, 5.800),
+  "SD"= c(0.212, 0.234),
+  rownames= c("Female", "Male")
+)
+
+set.seed(2040)
+height_data <- data.frame(
+  "Gender"= sample(
+    rownames(height_moments),
+    size = 2^11,
+    replace= TRUE
+  ),
+  "Height"= NA
+)
+
+set.seed(4200)
+height_data$Height <- rnorm(
+  n= dim(height_data)[1],
+  mean= height_moments[height_data$Gender, "Mean"],
+  sd= height_moments[height_data$Gender, "SD"]
+)
+
+## render boxplot, using the formula= and data= arguments
+
+boxplot(
+  formula= Height~Gender,
+  data= height_data,
+  main= "US Height Ranges by Gender"
+)
+
+## Delete demonstration objects
+remove(height_data, height_moments)
+
+```
+
+A stem plot is a way of depicting a distribution of numbers as text.  It is convenient if you need a quick visual option for understanding the distribution of a group of numbers but do not want to initiate a graphical device.  This is especially relevant if you are logged-in to a remote server via command line.
+
+```{R Stem()}
+## simple stem example
+numeric_vector <-c(
+ "Aaaa" = 16,
+ "Bbbb" = 32,
+ "Cccc" = 32,
+ "Dddd" = 64,
+ "Eeee" = 64,
+ "Ffff" = 64
+)
+
+stem(numeric_vector)
+
+## normal distribution in stem form
+normal_vector <- rnorm(n= 2^8)
+
+stem(normal_vector, scale= 0.75 )
+
+## Delete demonstration objects
+remove(normal_vector, numeric_vector)
+```
+
+## Pre-Packaged Visualizations: Two (or More) Dimensional Data
+
+For depicting the relationship between two numerical variables, R's `plot( )` function is effective and versatile.  This function performs scatter plotting and trend line plotting.  The first example below shows plot with almost entirely default setting, except for supplying a `col= ` argument.  The second example adjusts the behavior of `plot( )` to support trend line plotting, i.e., interpreting the `x=` and `y=` arguments as specifying points on a line.  It uses the `type=`  argument.
+
+```{R Plot()}
+## Generate bimodal, normally distributed data in 2-D
+n <- 2^12
+
+groups_xy <- sample(1:2, size= n, replace= TRUE)
+y_xy <- c(-0.5, 0.5)[groups_xy]
+
+set.seed( 4613 )
+x_xy <- rnorm(n= n, mean= y_xy, sd= 0.4)
+y_xy <- rnorm(n= n, mean= y_xy, sd= 0.4)
+
+plot_data <- data.frame(
+  "X"= x_xy,
+  "Y"= y_xy,
+  "Group"= groups_xy
+)
+
+## Generate a basic scatter plot of the data
+plot(
+  x= plot_data$X,
+  y= plot_data$Y,
+  col= ifelse(plot_data$Group == 1, "Red", "Blue")
+)
+
+## Generate a basic trendline
+plot(x= 1:10, y= {1:10}^2, type= "o")
+
+## Delete demonstration objects
+remove(groups_xy, y_xy, x_xy, plot_data, n)
+```
+
+
+Scatter plotting can be inefficient for rendering large numbers of data points because the plot becomes cluttered to the point of obscuring information.  A point density dataset provides a better alternative. Instead of recording individual point coordinates, a point density dataset counts the number of points that are inside each square of a coordinate grid.  The example below generates point coordinates, simplifies that data to dot density, and then renders it using four functions: `image()`, `contour()`, `filled.contour()` and `persp()`.  These functions use color, topographic notation, and three-dimensional representation to report density information. 
+
+```{R Point Density}
+## Generate scatterplot data
+n <- 2^13
+
+groups_xy <- sample(1:2, size= n, replace= TRUE)
+y_xy <- c(-0.5, 0.5)[groups_xy]
+
+set.seed( 4613)
+x_xy <- rnorm(n= n, mean= y_xy, sd= 0.4)
+y_xy <- rnorm(n= n, mean= y_xy, sd= 0.4)
+
+point_data <- data.frame(
+  "X"= x_xy,
+  "Y"= y_xy,
+  "Group"= groups_xy
+)
+remove(x_xy, y_xy, groups_xy, n)
+
+head(point_data)
+dim(point_data)
+
+## Convert data to dot density
+
+point_density <- rep(1, dim(point_data)[1])
+point_density<- tapply(
+  X= point_density,
+  INDEX= lapply(point_data[, c("X", "Y")], round, digits= 1),
+  FUN= sum
+)
+
+point_density[is.na(point_density)] <- 0
+
+dim(point_density)
+point_density[17:25, 17:25]
+
+## convert object to a three element list that will be easy to use
+## in the dialect of these functions
+
+point_density <- list(
+  "X Coordinate"= as.numeric( dimnames(point_density)[[1]]),
+  "Y Coordinate"= as.numeric( dimnames(point_density)[[2]]),
+  "Density"= point_density
+)
+
+## generate an image plot (represent density as color)
+
+image(
+  x= point_density$"X Coordinate",
+  y= point_density$"Y Coordinate",
+  z= point_density$"Density"
+)
+
+## generate a contour plot (represent density like a topographic map)
+
+contour(
+  x= point_density$"X Coordinate",
+  y= point_density$"Y Coordinate",
+  z= point_density$"Density",
+  nlevels= 4
+)
+
+## generate a filled contour plot (color + topography)
+
+filled.contour(
+  x= point_density$"X Coordinate",
+  y= point_density$"Y Coordinate",
+  z= point_density$"Density",
+  nlevels= 4
+)
+
+## generate a 3-D contour plot (represent density with 3D perspective)
+
+persp(
+  x= point_density$"X Coordinate",
+  y= point_density$"Y Coordinate",
+  z= point_density$"Density",
+  zlim= c(0, max(point_density$"Density") *1.5),
+  phi= 30,
+  theta = 30
+)
+
+## Delete demonstration objects
+remove(point_density, point_data)
+```
+
+There are a few things to note on this demonstration.  First, the coarseness of the density grid will decisively influence the final visualization.  By density grid, I mean that I divided the plotting area into grid squares and counted the number of dots in each square.  This happens in the "Convert data to dot density" section of the demonstration.  For these examples, I rounded X and Y off to one decimal place, creating a 40 by 40 (±2) grid of density squares.  If I made that grid 20 by 20, the resulting figures would be less noisy, but also less precise.  Less "noisy" means that the plot has smoother contours that create the perception of well-defined shapes.  If I made that grid 50 by 50, the resulting figures would be more precise, but noisier.  
+
+Visualizations tend to fall on a spectrum from exploratory to persuasive.   Exploratory visualizations can help you understand data and should be complex enough to be worth staring at a while.  Persuasive visualizations can help you present findings and should be simple enough that the main point is intuitive at a glance.  Finer grids support exploratory visualizations, while coarser grids facilitate argumentative visualizations.  This point also applies to the `nlevels=` argument in the `contour()` and `filled.contour()` functions.  That argument determines how many contour lines are drawn, making increasing fine distinctions among density.
+
+Second, non-interactive three-dimensional figures are eye catching but do not present information as effectively as two-dimensional figures.  The viewer perspective (controlled with `phi=` and `theta=`) will influence the audience's perception of the data, and can obscure data.  However, three dimensional figures can emphasize mathematical differences at magnitudes that are difficult for a popular audience to grasp.  For example, a three-dimensional map of the US population can emphasize how much of the national population lives in its largest cities, and a plot of average wealth accumulation on an XY grid of parental wealth/education can elucidate inter-generational transmission of advantage. 
+
+Third, strategically using the right customization can significantly improve the resulting visualization.  Customization options include adjusting any of the 72+ `par()` settings available on standard visualizations, engineering the color palette, and overlaying additional visualization features on the standard plot.  The rest of this chapter explores these different options for improving visualization quality. 
+
+## Colors: Mathematical and Human Considerations
+
+Colors (along with shapes) are one of the basic components of any visualization.  A deep understanding of color is key to producing effective visuals.  Color itself is a mathematical phenomenon with regular, consistent features.  Color perception is a more idiosyncratic phenomena that depends on the quirks of eye biology.
+
+For digital devices, color is notated as an intermix on red, green, and blue (RGB).  Each "channel" can have a value that ranges from 0 (none of that color is present), to 255 (maximum amount of color is present).  The values are notated as hexadecimal, so a single digit can communicate 15 digits, instead of the 9 digits of decimal notation.  The table below supplies select values between the channel minimum (0) and maximum (FF).
+
+
+|**Decimal**    |**Hexidecimal**|**% of Max.**|
+|--------------:|--------------:|-----------------------------:|
+|||
+|0|0|0%|
+|2|2|0.8%|
+|4|4|1.6%|
+|6|6|2.4%|
+|8|8|3.1%|
+|||
+|10|A|3.9%|
+|12|C|4.7%|
+|14|E|5.5%|
+|16|10|6.3%|
+|18|12|7.1%|
+|||
+|20|14|7.8%|
+|40|28|15.7%|
+|60|3C|23.5%|
+|80|50|31.4%|
+|100|64|39.2%|
+|||
+|128|80|50.2%|
+|160|A0|62.7%|
+|192|C0|75.3%|
+|224|E0|87.8%|
+|255|FF|100%|
+|||
+
+Combined into a single color-mixture string, the color information for all three channels is notated like this: #336699.  The first two digits (33) record the amount of red.  The second pair (66) record the amount of green.  The third pair (99) record the amount of blue.  The table below lists the notation for some basic primary / secondary colors.  For each color, the color channels have either been set to the minimum (00), halfway point (80), or maximum (FF).
+
+|**Color**                        |**Notation** |*Red*|*Green*|*Blue*|
+|--------------------------------:|:------------|:----|:------|:-----|
+|Bright Red                       |#FF0000      |100%|||
+|Bright Oranage                   |#FF8000      |100%|50%||
+|Bright Yellow                    |#FFFF00      |100%|100%||
+|Bright Green                     |#00FF00      ||100%||
+|Bright Sea Green                 |#00FF80      ||100%|50%|
+|Bright Cyan                      |#00FFFF      ||100%|100%|
+|Bright Blue                      |#0000FF      |||100%|
+|Bright Purple                    |#8000FF      |50%||100%|
+|Bright Magenta                   |#FF00FF      |100%||100%|
+|                                 |             ||||
+|White                            |#FFFFFF      |100%|100%|100%|
+|Neutral Gray                     |#808080      |50%|50%|50%|
+|Black                            |#000000      ||||
+|                                 |             ||||
+|Rebecca Purple									   |#663399      |26%|13%|39%|
+
+While color is notated in terms of RGB intermix, color has three analytically distinct features that better capture substantive differences in color.  These features are hue, saturation, and brightness.  Hue is what you might typically associate with the term "color".  Saturation describes whether the color is faded or vibrant.  At the faded end of the spectrum, all colors become shades of gray.  Brightness describes where a color falls on a spectrum of dark to bright.  At the dark end of the spectrum, all colors become black.  This way of describing colors is called HSV or HSL.  The figure below illustrates the three features of colors on the HSV spectrum.
+
+```{R HSV Color Spectrum, echo= FALSE}
+## Create plotting data ==========
+
+# Create hue data
+from_polar <- function(th, r){
+	x= r * cos(th)
+	y= r * sin(th)
+	data.frame("Y"= x, "X"= y) # Flipped to place colors in "clock order"
+	}
+hue_data <- from_polar(
+	th= 2 * pi * seq(from= 0/12, to= 11/12, by= 1/12),
+	r= 1
+	)
+hue_data$Color <- hsv(h= seq( from= 0/12, to= 11/12, by= 1/12), s= 1, v= 1)
+hue_data$Label <- hsv(h= seq( from= 0/12, to= 11/12, by= 1/12), s= 0.5, v= 1)
+
+
+## Create saturation / value data
+sv_data <- data.frame(
+	"S"= rep( seq(from= 0, to= 1, length.out= 5), each= 5),
+	"V"= rep( seq(from= 0, to= 1, length.out= 5), times= 5)
+)
+sv_data$X <- {{sv_data$S * 2} - 1}  + 1 +2
+sv_data$Y <- {sv_data$V * 2} - 1
+sv_data$Color <- hsv(h= 0.5, s= sv_data$S, v= sv_data$V)
+sv_data$Label <- hsv(
+  h= 0.5,
+	s= sv_data$S,
+	v= ifelse(sv_data$V > 0.7, sv_data$V, 0.7)
+)
+
+## Render figure ==========
+plot.new()
+par(mar= rep(0,4))
+plot.window(xlim= c(-1.1, 1.1 + 3), ylim= c(-1.0, 1.2), asp= 1)
+
+hue_data$xStr <- strwidth(hue_data$Color, cex= 0.6)/1.9
+hue_data$yStr <- strheight(hue_data$Color, cex= 0.6)/1.5
+sv_data$xStr <- strwidth(sv_data$Color, cex= 0.6)/1.9
+sv_data$yStr <- strheight(sv_data$Color, cex= 0.6)/1.5
+
+## Hue
+points(hue_data[,LETTERS[24:25]],
+	pch= 16, cex= 6, col= hue_data$Color
+  )
+rect(
+	xleft= hue_data$X - hue_data$xStr, xright= hue_data$X + hue_data$xStr,
+	ybottom= hue_data$Y - hue_data$yStr, ytop= hue_data$Y + hue_data$yStr,
+	col= hue_data$Label, border= "transparent"
+  )
+text(x= hue_data$X, y= hue_data$Y, labels= hue_data$Color, cex= 0.6)
+
+text(x= 0, y= 1.4, labels= "Spectrum of Hues", cex= 0.8, font= 2)
+
+## Saturation / value
+points(
+	sv_data$X, sv_data$Y,
+	pch= 16, cex= 6,
+	col= sv_data$Color
+	)
+points(x= min(sv_data$X), y= max(sv_data$Y), cex= 6, col= "gray80")
+rect(
+	xleft= sv_data$X - sv_data$xStr, xright= sv_data$X + sv_data$xStr,
+	ybottom= sv_data$Y - sv_data$yStr, ytop= sv_data$Y + sv_data$yStr,
+	col= sv_data$Label, border= "transparent"
+  )
+text(x= sv_data$X, y= sv_data$Y, labels= sv_data$Color, cex= 0.6)
+
+text(x= mean(sv_data$X),
+	y= 1.4,
+  labels= "Saturation (X-Axis) and Brightness (Y-Axis)",
+  cex= 0.8,
+  font= 2
+  )
+
+## Delete demonstration objects
+remove(sv_data, hue_data, from_polar)
+
+```
+
+Examine the hue figure once more.  The colors on that figure were generated using R's `hsv()` color mixing function.  They have identical saturation, identical brightness, and identically spaced hues.  Notice something wrong?
+
+This is where the mathematics of color collide with the biology of color perception.  For most people, the red and blue parts of the circle look noticeably darker than the green portion and the circles on either side of #00CC00 green look nearly identical to it.  While the colors on the figure are evenly spaced, the three color receptors ("cone cells") in the human eye are not.  Visible light has a wavelength between 400 and 700 nanometers.  The three cone cells in the human eye are most sensitive to light at approximately 430 (purplish-blue), 545 (green), and 570 (goldish-green) nanometers respectively.  Colors appear brighter when they simulate two cones, rather than just one at the same level of stimulation.  Consequently, leafy greens appear bright because they fall  between the peak sensitivities of the closely spaced 545 nm cones and the 570nm cones.  This is also why a full quarter of the hue wheel appears green - the human eye over-responds to foliage colors.
+
+The figure below dipicts the sensitivity of each receptor to light of different wavelengths.  Each histogram denotes the sensitivity of a type of receptor to light at a particular wavelength.  The spectrum bar below the histograms displays the perceived color of light at that wavelength, varying brightness to indicate the eye's sensitivity to that wavelength with all receptor types combined.
+
+
+```{R Spectrum Sensitivity, echo= FALSE}
+
+#####
+x <- read.csv( "A_Inputs/linss2_10e_fine.csv", header= FALSE )
+x <- apply( x, 2, function(a){ a[is.na(a)] <- 0; a } )
+x <- x[ x[,1] < 720, ]
+
+color_spectrum <- data.frame(
+	"Wavelength"= x[,1], #
+	"Hue"= NA,
+	"Value"= NA,
+	"Color"= NA
+)
+f <- function( x ){ { x * -0.004094   } + 2.543458 }
+
+
+color_spectrum$Hue <- f( color_spectrum$Wavelength )
+
+color_spectrum$Value <- rowSums( x[,-1] )
+color_spectrum$Value <-color_spectrum$Value / max( color_spectrum$Value )
+color_spectrum$Value <- 0.5 + {color_spectrum$Value * 0.5}
+
+index <- {color_spectrum$Hue < 0}
+color_spectrum$Value[ index ] <- seq(
+	from= color_spectrum$Value[ !index ][ length(color_spectrum$Value[ !index ]) ],
+	to= 0,
+	length.out= sum( index ) )
+color_spectrum$Hue <- pmin( pmax( color_spectrum$Hue, 0 ), 0.8 )
+
+index <- {color_spectrum$Hue > 0.8}
+color_spectrum$Value[ index ] <- seq(
+	to= color_spectrum$Value[ !index ][ 1 ],
+	from= color_spectrum$Value[ !index ][ 1 ] * 0.5,
+	length.out= sum( index ) )
+
+
+
+plot.new()
+par( mar= rep( 0, 4 ) )
+plot.window( xlim= range( x[,1] ), ylim= c( -0.2, 1 ) )
+polygon( x= x[,1], y= x[,2],
+	border= hsv( h= 0.1856209, s= 1, v= 0.5 ),
+	col= hsv( h= 0, s= 0, v= 0, alpha= 0.1 )
+	)
+polygon( x= x[,1], y= x[,3],
+	border= hsv( h= 0.2424837, s= 1, v= 0.5 ),
+	col= hsv( h= 0, s= 0, v= 0, alpha= 0.1 )
+	)
+polygon( x= x[,1], y= x[,4],
+	border= hsv( h= 0.6535948, s= 1, v= 0.5 ),
+	col= hsv( h= 0, s= 0, v= 0, alpha= 0.1 )
+	)
+rect(
+	ytop= 0.005, ybottom= -0.2,
+	xleft= color_spectrum$Wavelength - 0.5,
+	xright= color_spectrum$Wavelength + 0.5,
+	col= hsv( h= color_spectrum$Hue, s= 1, v= color_spectrum$Value  ),
+	border= "transparent"
+	)
+text( x= 700, y= 0.9, labels= "Wavelength\nSensitivity",
+	adj= c( 1, 0.5 )
+	)
+
+## Delete demonstration objects
+remove(color_spectrum, index, f, x)
+
+```
+
+To correct for this, the HCL (Hue-Chroma-Luminance) color system rescales color coordinate space to perceptually regular units.  Here are side by side comparisons of colors evenly spaced within HSV and HCL color coordinate systems.  To make the colors appear equal in intensity, the HCL system saturation changes in the orange through blue range to moderate the perceptually bright yellows, greens, and cyans.  HCL elevates brightness in the cyan to purple range to compensate for the perceptual darkness of blues. These variations in saturation and brightness create the perception of colors that are equally intense.  In addition, HCL hue space is distorted to match the unevenness of human color perception.  For example, orange occupies more of the color wheel, and green occupies less.
+
+```{R HCL, echo= FALSE}
+##### ----- create plotting data
+
+from_polar <- function( th, r ){
+	x= r * cos( th )
+	y= r * sin( th )
+	data.frame( "Y"= x, "X"= y )
+	}
+
+##### create hcl data
+hue_data <- from_polar(
+	th= 2 * pi * seq( from= 0/12, to= 11/12, by= 1/12 ),
+	r= 1
+	)
+
+hue_data$hcl <- seq( from= 0/12, to= 11/12, by= 1/12 )
+
+hue_data$hcl <- hcl( h= hue_data$hcl * 360,
+	c= 45, l= 75, fixup= FALSE )
+
+
+##### create matching hsv data
+temp <- col2rgb( hue_data$hcl )
+temp <- rgb2hsv( temp )
+temp <- rowMeans( temp )
+
+hue_data$hsv <- hsv( h= seq( from= 0/12, to= 11/12, by= 1/12 ), s= 1, v= temp["v"] )
+hue_data$Label <- hsv( s= 0, v= 1, alpha= 0.5 )
+
+##### ----- render visualizations
+
+plot.new()
+par( mar= rep(0,4) )
+plot.window( xlim= c( -1.2, 1.2 + 3 ), ylim= c( -1.1, 1.3 ), asp= 1 )
+hue_data$xStr <- strwidth( hue_data$hsv, cex= 0.6 )/1.9
+hue_data$yStr <- strheight( hue_data$hsv, cex= 0.6 )/1.5
+
+##### hsv wheel
+points( hue_data[,LETTERS[24:25]],
+	pch= 16, cex= 6, col= hue_data$hsv
+ )
+rect(
+	xleft= hue_data$X - hue_data$xStr, xright= hue_data$X + hue_data$xStr,
+	ybottom= hue_data$Y - hue_data$yStr, ytop= hue_data$Y + hue_data$yStr,
+	col= hue_data$Label, border= "transparent"
+)
+text( x= hue_data$X, y= hue_data$Y, labels= hue_data$hsv, cex= 0.6 )
+
+text( x= 0, y= 1.4, labels= "HSV Color Wheel", cex= 0.8, font= 2 )
+
+
+##### hcl wheel
+points( hue_data$X + 3, hue_data$Y,
+	pch= 16, cex= 6, col= hue_data$hcl
+ )
+rect(
+	xleft= hue_data$X - hue_data$xStr + 3, xright= hue_data$X + hue_data$xStr + 3,
+	ybottom= hue_data$Y - hue_data$yStr, ytop= hue_data$Y + hue_data$yStr,
+	col= hue_data$Label, border= "transparent"
+)
+text( x= hue_data$X + 3, y= hue_data$Y, labels= hue_data$hcl, cex= 0.6 )
+
+text( x= 0 + 3, y= 1.4, labels= "HCL Color Wheel", cex= 0.8, font= 2 )
+
+## Delete demonstration objects
+remove(hue_data, temp, from_polar)
+```
+
+The color mixing functions for each of the color coordinate systems discussed above are `rgb()`, `hsv()`, and `hcl()` respectively.  Regardless of system, the expressed output will be character strings with the hexadecimal RGB color mixture describing that color.
+
+```{R Color mixing functions}
+#### ---- Color Functions
+
+## Generate Rebecca Purple three colors system
+
+rgb( ## Red-Green-Blue color system
+  red= 0.4,
+  green= 0.2,
+  blue= 0.6
+  )
+
+hsv( ## Hue-Saturation-Value color system
+  h= 0.75,
+  s= 2/3,
+  v = 0.60
+  )
+
+hcl( ## Hue-Chromata-Luminance color system
+  h= 281,
+  c= 69,
+  l= 33
+  )
+```
+
+When generating visualizations, making a color palette is a useful first step.  The color palette defines specific colors for your visualization.  Any of the color functions are suitable for this.  However, `rainbow()` provides a convenient function for generating `n=` colors with adjustable HSV parameters.  Here is a basic example of palette generation and use.
+
+```{R rainbow()}
+color_palette <- data.frame(
+  "Borders"= rainbow(n= 6, v= 0.6),
+  "Areas"=   rainbow(n= 6, s= 0.2),
+	"X"= rep(3:1, each= 2),
+	"Y"= rep(3:1, times= 2)
+  )
+
+plot(
+  x= color_palette$X,
+  y= color_palette$Y,
+  pch= 21, cex= 10, lwd= 4, asp= 1,
+  bg= color_palette$Areas,
+  col= color_palette$Borders,
+	xlim= c(min(color_palette$X) - 0.5, max(color_palette$X) + 0.5)
+  )
+
+## Delete demonstration object
+remove(color_palette)
+```
+
+When formulating color palettes, never let hue carry meaning that is not also apparent from the saturation or brightness.  There are two reasons for this.  First, less than 10 percent of the light sensitive cells in the eye are color-sensitive cone cells.  The rest are rod cells, which only distinguish light from dark.  A visualization that relies entirely on color does not use over 90 percent of the potential information capacity of the eye.  Second, about four percent of the population have one of the variants of color blindness.  A simple solution is to generate palettes in grayscale using the `gray()` function. However, a more sophisticated approach is to use saturation, brightness, and color-channel awareness to generate palettes that work for both color-sensitive and insensitive audiences. 
+
+The figure below compares a color palette that uses only hue to carry information to one engineered to work across differing color sensitivities.  For each palette, the left-most columns (columns 1 and 4) present the color palette as someone sensitive to RGB color would perceive it.  The next columns (columns 2 and 5) approximate how that palette might look to someone that has difficulty distinguishing reds from greens, which includes the most common forms of color blindness ("RG insensitive").  The final columns (columns 3 and 6) approximate how that palette might look to someone that has difficulty distinguishing golds from blues ("GB insensitive").  The color-blind simulation palettes are approximate representations, made by blending two of the three RGB color channels together.
+
+The color palette on the left only uses hue to carry information.  For an RGB sensitive viewer, the colors appear distinct, even if the red and blue appear noticeably darker than the others.  For an RG insensitive viewer, the colors appear to fall on a gold to blue spectrum, with the erstwhile red and green boxes notably darker than the others.  For an GB insensitive viewer, the colors appear to fall on a red to turquoise spectrum, with the erstwhile gold and blue boxes coming out notably darker than the others.
+
+The color palette on the right is accessible to all three viewers (columns 4-6).  First, it starts from a color (cyan) that stimulates two different cone cells (gold-green and blue) and ends in a color that only strongly stimulates one (blue).  Second, the colors become less bright and less faded as one progresses down the spectrum.  Faded colors are brighter than their vibrant counterparts.  Third, the colors become darker as one progresses down the spectrum.  While an RGB sensitive, RG insensitive, and GB insensitive viewer would all perceive the palette differently, each would be able to understand the ordinal information carried in them.
+
+
+
+```{R Simulated Color-Blindness, echo=FALSE}
+## Create container object to hold visualization data
+dat <- data.frame(
+	x= rep(1:7, each= 6),
+	yindex= rep(1:6, times= 7),
+	y= rep({1:6} / 2, times= 7),
+	col= "transparent"
+)
+
+#### Generate two color palettes - one that relies on H that other on SV
+dat$col[dat$x == 1] <- rev( rainbow(n= 6, v= 0.9, s= 0.9))
+dat$col[dat$x == 5] <- rev( hsv(
+	h= seq(from= 3/6, to= 4/6, length.out= 6),
+	s= seq(from= 0.6, to= 0.8, length.out= 6),
+	v= seq(from= 1.0, to= 0.4, length.out= 6)
+  ))
+
+## Make functions that simulate two forms of color blindness by channel blending
+RG <- function( x ){
+	x <- col2rgb( x )
+	x["red", ] <- { x["red", ] + x["green", ] } / 2
+	x["green", ] <- x["red", ]
+	x <- x/ 255
+	rgb( x["red", ], x["green", ], x["blue", ] )
+}
+GB <- function( x ){
+	x <- col2rgb( x )
+	x["blue", ] <- {x["blue", ] + x["green", ]} / 2
+	x["green", ] <- x["blue", ]
+	x <- x / 255
+	rgb(x["red", ], x["green", ], x["blue", ])
+}
+
+## Modify left-palette to simulate two forms of color-blindness
+dat$col[dat$x == 2] <- RG( dat$col[dat$x == 1])
+dat$col[dat$x == 3] <- GB( dat$col[dat$x == 1])
+
+## Modify right-palette to simulate two forms of color blindness
+
+dat$col[dat$x == 6] <- RG( dat$col[dat$x == 5])
+dat$col[dat$x == 7] <- GB( dat$col[dat$x == 5])
+
+## Render palettes
+plot.new()
+par(mar= rep(0, 4))
+plot.window(xlim= c(0, 8), ylim= c(0, 7), asp= 1)
+points(
+	dat$x,
+	dat$y,
+	pch= 15,
+	cex= 4.6,
+	col= dat$col
+)
+
+## Label palettes
+text(
+	x= unique(dat$x),
+	y= max(dat$y) + 0.5,
+	labels= c(
+		"Hue Palette", "RG Insensitive", "GB Insensitive", "",
+		"SV Palette", "RG Insensitive", "GB Insensitive"
+		),
+	srt= 45,
+	font= 2,
+	adj= c(0, 0.5)
+	)
+
+## Delete demonstration objects
+remove(dat, RG, GB)
+```
+
+Treating this way of creating color palettes as a "paint-by-numbers" formula, there are six color spectra that you can keep in mind when you need an effective palette quickly.  The table below lists them, along with notes on their use.
+
+|Spectrum		|H range		|Author's Impression		|Author's Experience
+|:-		|:-		|:-		|:-		
+|Yellow-Orange-Red		|1/6 to 0/6		|Fire		|People are not used to thinking of red as the dark, muted color in a spectrum, so this will not be intuitive for your audience.  However, this distinctive palette evokes fire in a way that can reinforce a narrative.
+|Yellow-Chartreuse-Green		|1/6 to 2/6		|Foliage and nature		|If you tone down the vibrancy of the yellow (i.e., tone down the S in HSV), this palette turns into the pale yellow to green spectrum of leaf colors. This is both calming and moderately intuitive.
+|Cyan-Spring-Green		|3/6 to 2/6		|Snorkeling in a lake		|This palette is very calming.  It is unusual enough to stick in the minds of your audience but will be less intuitive for audiences for the same reason.  In particular, a non-trivial portion of your audience will not be used to thinking about the difference between the spring greens towards the middle and the pure greens towards the bottom.
+|Cyan-Azure-Blue		|3/6 to 4/6		|Glaciers and ice		| Produces very harmonious visualization color schemes and outstanding contrast ratios.  However, a non-trivial portion of your audience think of all of the colors in this palette as shades of blue, so this palette is harder to describe with color names.  For reference, this spectrum goes Cyan, Azure, Blue.
+|Magenta-Violet-Blue		|5/6 to 4/6		|Heat Map		|Tends to be intuitive for audiences as they are already primed to think in red to blue temperature terms.  Easy to document as audiences will recognize the color names and be able to place them in the visualization. A reliable choice.
+|Magenta-Rose-Red		|5/6 to 6/6		|Valentine's Day		|This palette has similar challenges to the Yellow-Red palette. However, if you need to put a pair of visualizations side-by-side for audience comparison, putting Magenta-Red next to Cyan-Blue is effective.
+
+```{R Accessible Color Palettes, echo= FALSE}
+
+##### generate point grid
+PerceptualHue <- function(x){
+  x <- x * 360
+  y <- hcl(h= x, fixup= T, l= 35, c= 80)
+  y <- rgb2hsv(col2rgb(y))
+  y["h",]+0.02
+}
+PerceptualHue <- function(x){ identity( x ) }
+
+point_hue <- replicate(
+	exp= seq( from= 0, to = 1/6, length.out= 5 ),
+	n= 6
+)
+point_hue <- point_hue + {{0:5}/6}[ col( point_hue ) ]
+point_hue[ , c( 2, 4, 6 ) ] <- apply( point_hue[ , c( 2, 4, 6 ) ], 2, rev )
+
+
+point_color <- data.frame(
+	"Y"= as.vector( slice.index( point_hue, 1 ) ),
+	"X"= {as.vector( slice.index( point_hue, 2 ) ) * 1.5},
+	"H"= PerceptualHue( as.vector( point_hue ) ),
+	"S"= 1,
+	"V"= 1,
+	"Color"= NA
+)
+
+point_color$S <- seq( from= 0.8, to= 0.6, length.out= nrow( point_hue )
+	)[ point_color$Y ]
+
+point_color$V <- seq( from= 1/3, to= 1.0, length.out= nrow( point_hue )
+	)[ point_color$Y ]
+
+index <- sort( unique( point_color$X ) )
+
+point_color$V[ point_color$X %in% index[c(5,6)] ] <- 1/6 + {
+	point_color$V[ point_color$X %in% index[c(5,6)] ] * {5/6}
+}
+point_color$S[ point_color$X %in% index[c(5,6)] ] <- 0/6 + {
+	point_color$S[ point_color$X %in% index[c(5,6)] ] * {5/6}
+}
+# point_color$V[ point_color$X %in% index[c(2,3)] ] <- 0/6 + {
+# 	point_color$V[ point_color$X %in% index[c(2,3)] ] * {5/6}
+# }
+point_color$S[ point_color$X %in% index[c(2,3)] ] <- 0/6 + {
+	point_color$S[ point_color$X %in% index[c(2,3)] ] * {5/6}
+}
+
+point_color$Color <- hsv( point_color$H, point_color$S, point_color$V )
+
+plot.new()
+par( mar= rep( 0, 4 ) )
+plot.window(
+	xlim= c( 0, {6*1.5} +0.5 ),
+	ylim= c( 0, 6 + 0.5 ),
+	asp= 1
+)
+
+
+
+text(
+	x= unique( point_color$X ),
+	y= 5.7,
+	col= "black",
+	labels= c( "Fire", "Leaf", "Lake", "Ice", "Heat", "Heart"  ),
+	font= 2,  cex= 1.5, adj= c( 0.5, 0 )
+)
+points(
+	x= point_color$X,
+	y= point_color$Y,
+	col= point_color$Color,
+	pch= 15, cex= 7.9
+)
+
+## Delete demonstration objects
+remove(point_color, point_hue, PerceptualHue, index)
+```
+
+As you formulate colors, it can be advantageous to convert back and forth between color notation, and color values in the HSV and RGB scales.  The `col2rgb()` and `rgb2hsv()` functions make this possible.
+
+```{R Color Conversions}
+## Define a starting color for example purposes
+
+sample_colors <- c(
+  "Rebecca Purple"= "#663399",
+  "Cobalt Blue"= "#0047AB",
+  "Maroon Red"= "#800000"
+  )
+
+## Convert color to rgb - note that it is in a 0-255 scale
+
+sample_rgb <- col2rgb(sample_colors)
+sample_rgb
+
+## Convert rgb array to hsv - note that it can either accept
+  ## separate r=, g=, and b= arguments, or an r= argument
+  ## containing an rgb matrix.
+
+sample_hsv <- rgb2hsv(sample_rgb)
+sample_hsv
+
+## The rgb2hsv() function can also support color scales that
+  ## are not 0-255. Just set maxColorValue= to the right
+  ## value.
+
+rgb2hsv(
+  r= 0.5, g= 0, b= 0, ## this is Maroon Red
+  maxColorValue= 1
+  )
+
+## Convert hsv to color. Note that this function does not
+  ## support supplying an hsv matrix as the argument.
+
+hsv(
+  h= sample_hsv["h", ],
+  s= sample_hsv["s", ],
+  v= sample_hsv["v", ]
+  )
+
+## Delete demonstration objects
+remove(sample_hsv, sample_rgb, sample_colors)
+```
+
+Another feature to note is the Alpha channel.  R can understand colors with a fourth pair of digits.  For example, Rebecca purple is #663399, but it can also be specified as #663399FF.  This fourth pair specifies the transparency of the color, with FF indicating a fully opaque color and 00 indicating a completely transparent color.  Here is an example of transparency in action.  The X-axis is proportional to the transparency of the squares, ranging from the fully transparent square on the left to the fully opaque square on the right.
+
+```{R Tranparency}
+## define objects
+set.seed(1324)
+point_x <- seq(from= 0, to= 1, length.out= 11)
+point_y <- rep( c(-0.02, 0.02), length(point_x))[1:length( point_x )]
+
+## define colors, with transparency proportional to x
+point_color <- hsv(h= 0.6, s= 1.0, v= 0.7, alpha= point_x)
+
+## render squares of progressive opacity
+
+plot(
+  x= point_x, 
+  y= point_y, 
+  bg= point_color,
+  col = "#800000",
+  pch= 22, cex= 10, asp= 1,
+  xlim= c( -0.05, 1.05 )
+  )
+
+## Delete demonstration objects
+remove(point_x, point_y, point_color)
+```
+
+## Pre-Packaged Visualizations: Customization with par()
+
+The `par()` function is the graphical equivalent of `options()`.  It supplies access to a set of 72 standard options for adjusting the behavior of visualizations.  Here is a demonstration of the difference that `par()` can make:
+
+```{R The Difference par() can make}
+## Generate plotting data ==========
+
+## create reference parameters
+point_number <-2^13
+truncation.threshold <- 2
+
+## generate points by random normal draw
+set.seed( 3049 )
+x_xy <- rnorm(n= point_number, sd = 1)
+y_xy <- rnorm(n= point_number, mean= x_xy, sd= 1)
+xy <- data.frame("x"= x_xy, "y"= y_xy)
+
+## drop points outside {-2,2} and delete extra objects
+index <- {abs(x_xy) <= truncation.threshold} & {
+  abs(y_xy) <= truncation.threshold}
+xy <- xy[index, ]
+
+## Generate a standard scatter plot ==========
+
+plot(xy)
+
+## Use color to improve plot ==========
+
+## create a score for placing points on a color scale
+point_colors <- rowSums(xy) / {2 * truncation.threshold}
+point_colors <- {point_colors + 1} / 2
+
+## add a little noise into color scores for aesthetics
+point_colors <- point_colors + rnorm(
+  n= length(point_colors),
+  sd= 0.1
+  )
+point_colors <- pmax( pmin(point_colors, 1), 0)
+
+## generate colors
+point_colors <- data.frame(
+  "Score"= point_colors,
+  "H"= {4 / 6} - {point_colors * {1 / 6}},
+  "S"= 0.8 - {point_colors * 0.2},
+  "V"= {2 / 3} + {point_colors * {1 / 3}}
+  )
+point_colors$Color <- hsv(
+  h= point_colors$H,
+  s= point_colors$S,
+  v= point_colors$V
+)
+
+## plot with colors
+plot(xy, col= point_colors$Color)
+
+#### ---- use par() parameters to improve the plotted points
+
+## create a container for parameters
+point_par <- data.frame("col"= point_colors$Color)
+
+## adjust plotting character to filled in circle
+point_par$pch <- 16
+
+## adjust the point sizes so that dot density is clearer
+dot_density <- paste0( round(xy$x, 1), round(xy$y, 1))
+dot_density <- tapply(dot_density, dot_density,
+  length)[ dot_density ]
+dot_density <- log(dot_density)
+dot_density <- {max(dot_density) - dot_density} + 1
+dot_density <- dot_density / max(dot_density)
+point_par$cex <- pmin(dot_density * 1.2, 0.7)
+
+## plot with adjusted dot density
+plot(
+  x= xy,
+  col= point_par$col,
+  pch= point_par$pch,
+  cex= point_par$cex
+)
+
+## manipulate the axes by passing arguments through plot()
+ 	## to the axis() function that generates plot axes.
+ 	## This will throw warnings, but will work. There is a better
+ 	## way to do this, which we will discuss in the next section
+ plot(
+ 	x= xy,
+ 	col= point_par$col,
+ 	pch= point_par$pch,
+ 	cex= point_par$cex,
+ 	font= 2,
+ 	font.lab= 2,
+ 	bty= "n",
+ 	xlab = "Factor X",
+ 	ylab= "Factor Y",
+ 	main= "Factor X and Factor Y are Related",
+ 	fg= "transparent", ## make the axis invisible by setting
+ 							## the default plot color to
+ 							## #FFFFFF00
+ 	col.ticks= "black", ## override the transparent default
+ 							## color for the tick marks
+ 	lwd.ticks= 2	, ## make the tick mark lines thicker
+ 	)
+
+## Delete demonstration objects
+# Carried over into the next chunk
+```
+
+Here are the first and last visualizations on the same page.  The `par()` arguments have completely changed aesthetic of the figure, compared to its default settings.
+
+```{R Using par() to improve visualizations}
+suppressWarnings( plot(xy) )
+suppressWarnings( plot(
+ 	x= xy,
+ 	col= point_par$col,
+ 	pch= point_par$pch,
+ 	cex= point_par$cex,
+ 	font= 2,
+ 	font.lab= 2,
+ 	bty= "n",
+ 	xlab = "Factor X",
+ 	ylab= "Factor Y",
+ 	main= "Factor X and Factor Y are Related",
+ 	fg= "transparent", ## make the axis invisible by setting
+ 							## the default plot color to
+ 							## #FFFFFF00
+ 	col.ticks= "black", ## override the transparent default
+ 							## color for the tick marks
+ 	lwd.ticks= 2	, ## make the tick mark lines thicker
+ 	) )
+
+## Delete demonstration object
+remove(point_par, dot_density, index, x_xy, y_xy, point_number,
+  truncation.threshold, point_colors, xy)
+```
+
+Here is a list of select `par()` parameters to consider when adjust your plot aesthetics:
+
+**Adjusting Plot Points:**
+
+* **cex**= Adjusts the size of the points for each plotted point.  Many plot elements have their own color arguments, which have the form `col.__=`  .  This is a regularity in R plotting arguments, with a scattering of important arguments all having the standard `.axis`, `.lab`, and `.main` variants:
+    + `col.axis=` Color of the axes
+    + `col.lab=` Color of the axis labels
+    + `col.main=` Color of the plot title
+* **col**= Changes the color for each plotted point.  For `pch=` arguments that support border colors, the `bg=` argument specifies that color of the interior.   Without a specified color, R plot functions use the `fg=` argument to determine colors.  It stands for "foreground" and is set to black by default.  There are `.axis`, `.lab`, `.main` variants of this argument.
+* **pch**= Changes the shape plotted for each point.  The default (1) is a ring.  15-20 are solid shapes.  21-25 are solid shapes where the border of the shape can be specified in a different color than the interior of the shape.  In addition, you can specify any textual character for this argument.  
+
+**Adjusting Plot Text:**
+
+* **family**= This controls the type of font used.  Typical specifications are "serif", "sans", and "mono" which specify a font with serifs (like Times New Roman, Palantino or Garamond), without serifs (like Helvetica, Arial, or Verdana), or with fixed-width spacing (like Courier, Monaco or Consolas). 
+* **font**= This controls whether the type is bold, italicized, etc.  I recommend setting this to `font= 2`, which will make all text bold.  Many plot elements have their own `font=`  arguments, including the standard `.axis`, `.lab`, and `.main` variants.
+* **srt**= Stands for string rotation.  It is not supported in all places, but where supported, it will rotate text to something other than horizontal.  The argument is specified in terms of 0 to 360, which indicates the degree of rotation.
+
+**Adjusting Plot Lines:**
+
+* **lty**= Specifies the type of line to be used for lines: 1 for solid, 2 for dashed, 3 for dotted, etc.
+* **lwd**= Specifies line thickness, with higher numbers corresponding to thicker lines.
+
+**Adjust Plot Axes:**
+
+* **bty**= Determines whether and how to draw a border box around the plottable area of the graphical device.  Among other settings, this argument will accept "o", "l", and "n".  The default is "o", indicating that the box should be drawn on all four sides.  The "l" setting (that is a lower-case "L") only draws the box on the left and bottom sides. The "n" draws no box at all.
+* **las**=  Specifies text rotation relative to the axis.  Be default, text is rendered parallel, using the `las=` 0 argument.  However, text can be rendered always horizontal (1), always perpendicular to the axis (2), or always vertical (3).
+* **xaxp**= , **yaxp**= Specify the extreme points of the axis tick marks and the number of tick marks to draw.
+* **xaxt**=, **yaxt**= Control how the plot axes will be drawn for the X and Y axes respectively.  The important thing here is an "n" argument, which will suppress axis plotting altogether.  Since there is an `axis()` function, it is often advantageous to use "n", and then specify `axis()` as the next line of code, providing more direct access to `axis()` arguments.
+
+**Adjust Plot Area**
+
+* **bg**= Specifies the background color for the plot.  This defaults to white.  A useful alternative is to set this to "transparent", so that you can overlay the plot on a textured PowerPoint background.
+* **fg** = Specifies the default color for elements rendered on the plot.  This defaults to "black".
+* **mar**= Specifies how much of the graphical device area to set aside as margins.  The default is `c(4, 4, 4, 4)`, which pads in four units worth of margin space on each side of the plottable area.
+* **xpd**= Determines how polygons written to the graphical device will be clipped.  The default `FALSE` clips anything that would be displayed outside the plottable area, while `TRUE` permits anything in the figure area, which includes the margins.
+
+In R, more complex functions are just collections of simpler functions used in sequence to generate complex results.  Visualization functions are no different.  You can build any visualization for which you can design a consistent set of transformation rules for turning data into geometries and colors.  We have already discussed color palette engineering, which is one aspect of visualization building.  The other components are generating plotting devices, rendering polygons, and labeling plots.
+
+## Building Visuals from Basics: Plotting Devices
+
+A plot "device" is the canvas on which you render a visualization.  When you use a pre-packaged routine, R uses the graphical user interface (GUI) for your R interpreter program to generate a pop-up window or tab holding the device.  However, relying on your GUI for visualization is bad practice.  Instead, you should design your code to output a graphical file, such as an image or PDF.
+
+Graphical devices must be initiated and then terminated.  The function `graphics.off()` terminates a device.  Functions like `pdf()`, `jpeg()`, `png()`, and `svg()` initialize graphical devices.  All of the visualization code between the initializing function and `graphics.off()` line is written to the graphical device.  When `graphics.off()` terminates the device, the visualization is saved to the file system location specified in the `filename=` argument of the initiating function.
+
+```{R Plotting Devices}
+## Here are the files in the current working directory
+list.files("C_Outputs")
+
+## Initialize device - this one creates a jpeg image
+jpeg(filenam = "C_Outputs/Visual.jpeg")
+
+## Create visualization(s)
+plot(x= 1, y= 1)
+
+## Terminate device, writing image to file
+graphics.off()
+
+## The new visualization appears in the file directory
+list.files("C_Outputs")
+
+## Delete demonstration files
+file.remove("C_Outputs/Visual.jpeg")
+```
+
+Different file formats have different advantages, and this should be the deciding factor in selecting one device over another.  Key considerations are the size of the file, support for color transparency, and whether is file format is vector or raster based. 
+
+A raster graphic, sometimes called a "bitmap" graphic, is a visual dataset with two pieces of information: coordinates and color.  Each element ("row") in the dataset describes where to draw one pixel (X and Y coordinate), and in what color.  When you view the image, your image viewer application renders each pixel in the specified location and color. The JPEG, PNG, and GIF file formats are all raster-based.
+
+A vector-based graphic is a visual dataset of shapes, instead of points. Each element is a collection of coordinate points that define the boundaries of that shape, as well as color information.  The PDF and SVG file formats are vector based.  Vector graphics tend to be more versatile than roster graphics.  Since the shapes are specified mathematically, the image can be resized as needed without any loss of information. Moreover, vector graphic files tend to produce higher quality visualizations at smaller file sizes, because vector graphics more precisely define edges and only specify outline coordinates to define polygons that would otherwise consist of many pixels.  However, raster graphics can generate smaller file sizes on images with many small overlapping polygons.  They also have more consistent file sizes since the image itself can influence the size of a vector-graphic (depends on the number of polygons), but not the raster-graphic (where the number of pixels depends on the area of the image).   In addition, raster-graphic images are more universally supported in web browsers, Microsoft Office files, and image viewing applications.
+
+Below is analysis of each data visualization format:
+
+**JPEG** -- JPEG is a raster-image format.  The jpeg standard includes methods for compressing images, simplifying some of the data to achieve file size gains.  Because data precision is lost during this compression, the jpeg standard is considered "lossy".  However, jpeg files can achieve decent good results at low file sizes because of this simplification process.  This can make jpeg a good choice for documents that need to present many images without becoming too large.  However, a significant limitation of jpeg is lack of support for transparency.  While jpeg has slots for the RGB color channels, it does not have a slot for the alpha channel.  
+
+In R, the `jpeg()` function initiates a jpeg graphical device.  The `height=` and `width=` specify the size of the file, with the units= argument specifying whether the size is in units of pixels, inches, etc.  The `res=` argument specifies the number of pixels per inch.  I recommend specifying the dimensions in inches (a 6in width by 4in height fits well between paragraphs in a typical word document), and then setting `res=` to at least 200 pixels per inch.  The `quality=` argument controls how much data quality the algorithm is willing to sacrifice on a 0 to 100 scale.
+
+**PNG** -- PNG is a raster-image format.  The png standard supports "lossless" data compression, and transparency.  Unless file size is a severe issue, PNG is preferable to JPEG for data visualization.  In R, `png()` initializes this kind of graphical device.  The function does not need a `quality=` argument, since PNG is a lossless compression standard.  Otherwise, its arguments are near identical to `jpeg()`.  Since PNG supports transparency, the `bg=` argument can be particularly useful.  This argument sets the background color of the image.  When set to be fully transparent, you will be able to layer the image over backgrounds or other images in PowerPoint presentations to produce striking visuals.  As with JPEG, a 6in wide by 4in tall image rendered at 200 pixels per inch slots easily into a Word document and will be of fairly sharp quality. For a PowerPoint, 8in by 6in and 8in by 4.5in will mirror the proportions of a typical slide and widescreen slide respectively.  For the typical "Two Content" slide, which has space to place an image in one panel and bullets about the image in another, a 4.5in by 5in makes effective use of the space.
+
+**PDF** -- PDF is a vector-graphic format, which (as discussed above) offers many advantages over raster-graphic.  Also, since the format was designed to store entire documents, it can bundle multiple visualizations together as separate pages in a single file.  In my experience, it is usually most efficient to save images as PDF and then export them to a PNG with the right dimensions for the Microsoft Office file at hand.  In R, the `pdf()` function initializes graphical devices of this type. It uses a `file=` file location, instead of `filename=` argument, and does not have a `res=` argument, as resolution is not relevant for a vector-graphic.  The `useDingbats=` argument is important when working with PDF.  In order to make file sizes smaller, `pdf()` substitutes text characters from the Dingbats font for their equivalent polygons. However, this can cause shapes to render incorrectly on PDF readers that do not fully support the official PDF document standard.  Setting this argument to `FALSE` will ensure that this does not happen.
+
+**SVG** -- SVG is the vector-graphic language used to describe polygons in web pages.  R is capable of outputting visualizations to svg format.  I suggest outputting such visualizations with an `.html` extension and viewing them with a web browser - a web browser can open a web page (i.e., HTML) file on your computer just as easily as it can open one on a server.  Only output to SVG if you are specifically working in an HTML (i.e., web pages and browser-based tools) context.  SVG is not well-used outside of the web and many image viewing applications cannot render them.
+
+Once you have initiated a graphical device, the next step in building a visualization is to define the characteristics of the plotting space ("canvas").  The function `plot.new()` creates a completely blank canvas.  The function `plot.window()` specifies the mathematical dimensions of the space, with `xlim=` denoting the x-coordinate dimensions, and `ylim=` denoting the y-coordinate dimensions.  Without `plot.window()`, `plot.new()` defaults to create a plotting space that spans from 0 to 1 on the x and y axes.  The `par()` function (discussed in the previous section) can set various rendering defaults for the canvas.  To do this, use `par()` immediately after `plot.new()`.  The example below initiates a completely blank canvas and then writes it to file without layering anything on it.
+
+```{R Setting up a plot canvas}
+######## -------- setting up a plotting canvas
+
+## initialize device
+pdf("C_Outputs/Visual.pdf")
+
+## initialize a blank canvas
+plot.new()
+
+## set default parameters for canvas
+par(
+	mar= rep(3, 4), ## shrink the margins
+	font= 2 ## make all text (that heed the defaults) bold
+  )
+ 
+## set up the coordinate space of the canvas
+plot.window(xlim= c(-1, 1), ylim= c(-1, 1))
+
+## terminate device, writing image to file
+graphics.off()
+
+## Delete demonstration files
+file.remove("C_Outputs/Visual.pdf")
+```
+
+## Building Visuals from Basics: Rendering Polygons
+
+To build the visualization itself, render basic polygons on the canvas in layers to produce the envisioned plot elements.  The order of the polygons matters, as functions executed last will generate polygons that appear "on top" of any polygon rendered in a previous lines of code. The example below shows 7 basic polygon functions and 3 plot labeling functions used in tandem to generate a demonstration visualization.
+
+```{R Building visualizations from basic polygons}
+## Initialize plotting device ==========
+
+## Initialize device (uncomment this to save visual to file system)
+# pdf(file= "C_Outputs/Shapes.pdf", useDingbats= FALSE, width= 6, height= 6)
+
+## Initialize canvas
+plot.new()
+
+## Set default parameters for device
+par(lwd= 2)
+
+## set up the coordinate space of the canvas
+plot.window(xlim= c(-1, 1), ylim= c(-1, 1))
+
+## Generate a spacing grid for placing polygons at intervals ==========
+col_temp <- seq( from= 0, to= 5/6, length.out= 6 )
+
+poly_internal <- data.frame(
+ 	x= rep( seq( from= -0.7, to= 0.7, length.out= 3 ), times= 2 ),
+ 	y= rep( c( 0.65, -0.35 ), each= 3 ),
+ 	dark= hsv( h= col_temp, s= 0.8, v= 0.5 ),
+ 	light= hsv( h= col_temp, s= 0.1, v= 1.0 )
+ 	)
+
+## Add polygons to plot ==========
+
+## Use abline() to create a coordinate grid out of lines
+abline(
+ 	v= seq( from= -1, to= 1, by= 0.2 ),
+ 	h= seq( from= -1, to= 1, by= 0.2 ),
+ 	lty= 3, lwd= 1, col= hsv( s= 0, v= 0.8 )
+ 	)
+text(
+ 	x= 0, y= 0.95, col= hsv( s= 0, v= 0.8 ),
+ 	labels= "Grid rendered with abline()"
+ 	)
+
+## Use axis() to add plot axes in the margin
+	## Note the use of mtext() to write text in the margins
+
+axis(
+  side= 1,
+  col= "#00000000",
+  col.ticks= "#000000",
+  xaxp= c(-1, 1, 5),
+  las= 2
+  )
+axis(
+  side= 2,
+  col= "#00000000",
+  col.ticks= "#000000",
+  yaxp= c(-1, 1, 5),
+  las= 2
+  )
+mtext( side= 1, padj= 2.5,
+ text= "Axes rendered with axis()\n Margin labels rendered with mtext()")
+
+## Use text() to rendered text on the plot
+text(x= 0, y= -0.05, labels= "Text rendered\nwith text()")
+
+## Use polygon() to create polygons with arbitrary shapes
+polygon(
+ 	x= c(-0, 0.1, 0.05, -0.05, -0.1) + poly_internal[1, "x"],
+ 	y= c(0,  -0.1,  -0.2,  -0.2, -0.1) + poly_internal[1, "y"],
+ 	col= hsv(h= 0/9, s= 0.1, v= 1),
+ 	border= poly_internal[1, "dark"]
+ 	)
+text(
+ 	x= poly_internal[1, "x"],
+  y= poly_internal[1, "y"] - 0.35,
+ 	labels= "Polygon rendered\nwith polygon()",
+ 	col= poly_internal[1, "dark"]
+ 	)
+
+
+## use rect() to create rectangles using a simplified input interface
+rect(
+ 	xleft= poly_internal[2, "x"] - 0.1,
+ 	xright= poly_internal[2, "x"] + 0.1,
+ 	ybottom= poly_internal[2, "y"] - 0.2,
+ 	ytop= poly_internal[2, "y"],
+ 	col= poly_internal[2, "light"],
+ 	border= poly_internal[2, "dark"]
+ 	)
+text(
+ 	x= poly_internal[2, "x"],
+ 	y= poly_internal[2, "y"] - 0.35,
+ 	labels= "Rectangle rendered\nwith rect()",
+ 	col= poly_internal[2, "dark"]
+ 	)
+
+
+## Use points() to generate dots
+set.seed(3640)
+points(
+ 	x= poly_internal[ 3, "x" ] + rnorm( n= 10, sd= 0.05 ),
+ 	y= poly_internal[ 3, "y" ] + rnorm( n= 10, sd= 0.05, mean= -0.1 ),
+ 	bg= poly_internal[ 3, "light" ],
+	col= poly_internal[ 3, "dark" ],
+ 	pch= 21
+ 	)
+text(
+ 	x= poly_internal[ 3, "x" ],
+ 	y= poly_internal[ 3, "y" ] - 0.35,
+ 	labels= "Dots rendered\nwith points()",
+ 	col= poly_internal[ 3, "dark" ]
+ 	)
+
+
+## Continuous spline rendered with lines()
+lines(
+ 	x= poly_internal[4, "x"] -seq(from= -0.1, to= 0.1, by= 0.05),
+ 	y= poly_internal[4, "y"] -seq(from= 0, to= 0.2, by= 0.05)^1.5,
+ 	col= poly_internal[4, "dark"]
+ 	)
+text(
+ 	x= poly_internal[4, "x"],
+ 	y= poly_internal[4, "y"] - 0.3,
+ 	labels= "Spline rendered\nwith lines()",
+ 	col= poly_internal[4, "dark"]
+	)
+
+## Discrete line segments rendered with segments()
+segments(
+ 	x0= poly_internal[5, "x"] - 0.1,
+ 	x1= poly_internal[5, "x"] + 0.1,
+ 	y0= poly_internal[5, "y"] - seq(from= 0, to= 0.15, by= 0.05),
+ 	col= poly_internal[5, "dark"]
+ 	)
+text(
+ 	x= poly_internal[5, "x"],
+ 	y= poly_internal[5, "y"] - 0.35,
+ 	labels= "Lines segments\nrendered with\nsegments()",
+ 	col= poly_internal[5, "dark"]
+ 	)
+
+
+## Lines with arrow points rendered with arrows()
+arrows(
+ 	x0= poly_internal[6, "x"] - 0.1,
+ 	x1= poly_internal[6, "x"] + 0.1,
+ 	y0= poly_internal[6, "y"] - seq(from= 0, to= 0.15, by= 0.15/3),
+ 	col= poly_internal[6, "dark"],
+ 	code= 2,
+  length= 0.05
+ 	)
+text(
+ 	x= poly_internal[6, "x"],
+	y= poly_internal[6, "y"] - 0.3,
+	labels= "Arrows rendered\nwith arrows()",
+	col= poly_internal[6, "dark"]
+	)
+
+## Terminate graphical device (uncomment to save visual to file system)
+# graphics.off()
+
+## Delete demonstration objects
+remove(poly_internal, col_temp)
+```
+
+
+## Building Visuals from Basics: Plot Labeling
+
+Visualizations can be a tool for reporting data, supporting arguments, and/or identifying avenues for deeper data investigation. Strategic use of text in visualizations can support any of these uses.  For reporting data, labels can supply insight on outliers, clusters, and other patterns in the data.  For argument support, labels can direct audience attention to the key features of the visualization and provide important context.  For deeper investigation, labels provide a straightforward way to link visual elements to a part of a large dataset.
+
+The `text()` function adds text to a graphical device.  However, judicious use of `text()` involves thinking through how the addition of text will change the plot. For example, imagine we have a dataset with two categories.  These categories correlate strongly with X and Y coordinates, plus or minus randomly distributed error. The figure below demonstrates what would happen if we superimposed category labels over every point.  The result is cluttered and does not provide insight.
+
+```{R Plot labeling with text()}
+## Create a dataset of points where coordinates correspond to categories
+xy_data <- data.frame(
+	"Category1"= rep(c("A", "B", "C"), each= 200),
+	"Category2"= rep(c("X", "Y", "Z"), times= 200),
+	"X"= NA,
+	"Y"= NA
+)
+
+Correspond <- function(x) {
+	y <- c("A"= 1, "B"= 2, "C"= 3, "X"= 1, "Y"= 2, "Z"= 3)
+	y <- round(y/4, 2)
+	y <- y[x]
+	y <- y + rnorm(n= length( y ), sd= 0.15)
+	y <- pmin( pmax(y, 0), 1)
+	return(y)
+  }
+
+set.seed( 5903 )
+xy_data$X <- Correspond(xy_data$Category1)
+set.seed( 9350 )
+xy_data$Y <- Correspond(xy_data$Category2)
+
+## Add color and category combination data
+xy_data$Label <- paste(xy_data$Category1, xy_data$Category2, sep= "")
+xy_data$Color <- rainbow(
+	n= length( unique(xy_data$Label)),
+	s= 0.7,
+	v= 0.7,
+	alpha= 1
+	)[as.numeric( as.factor(xy_data$Label))]
+
+## Adjust XY slightly so categories aren't so uniformly on a grid
+temp <- rbind("AY"= c(-1, 0), "BZ"= c(0, 1), "CY"= c(1, 0), "BX"= c(0, -1))
+set.seed(2441)
+temp <- temp + rnorm(n= length(temp), sd= 0.3)
+temp <- temp[match(xy_data$Label, rownames(temp)), ]
+temp[is.na(temp)] <- 0
+xy_data[ , c("X", "Y")] <- xy_data[ , c("X","Y")] + {temp * 0.2}
+
+## Superimpose labels inside points
+plot(
+	x= xy_data$X,
+	y= xy_data$Y,
+	col= xy_data$Color,
+	cex= 2,
+	asp= 1
+	)
+text(
+	x= xy_data$X,
+	y= xy_data$Y,
+	labels= xy_data$Label,
+	col= xy_data$Color,
+	cex= 0.5
+	)
+
+## Delete demonstration objects (carrying xy_data over to the next chunk)
+remove(Correspond, temp)
+```
+
+An alternative is to superimpose labels at the mean position of each category's points.  To do this, use `rect()` to create an appropriate background for each label and then apply `text()` to place labels on those backgrounds. The `strwidth()` and `strheight()` functions return the size of the text within the plotting region, creating a way to precisely size the contrast rectangles to fit around the text.  Combined with simpler, smaller points, the result is legible labels and less plot cluster.
+
+```{R Fitting Rectangles Under Text}
+## Create database to store labels
+xy_labels <- data.frame(
+	"Label"= tapply(xy_data$Label, xy_data$Label, unique),
+	"X"= tapply(xy_data$X, xy_data$Label, mean),
+	"Y"= tapply(xy_data$Y, xy_data$Label, mean),
+	"Color"= tapply(xy_data$Color, xy_data$Label, unique)
+  )
+
+## Plot points less obtrusively.
+plot(
+  x= xy_data$X,
+  y= xy_data$Y,
+	col= gsub("FF$", "FF", xy_data$Color),
+	cex= 1,
+  asp= 1,
+  pch= 16
+	)
+
+## Generate contrast boxes for labels
+rect(
+	ytop= xy_labels$Y + 0.012 + {strheight(xy_labels$Label, cex= 1) * 0.5},
+	ybottom= xy_labels$Y - 0.012 - {strheight(xy_labels$Label, cex= 1) * 0.5},
+	xright= xy_labels$X + 0.012 + {strwidth(xy_labels$Label, cex= 1) * 0.5},
+	xleft= xy_labels$X - 0.012 - {strwidth(xy_labels$Label, cex= 1) * 0.5},
+	border= hsv(s= 0, v= 1, alpha= 0.7),
+  col= hsv(alpha= 0),
+  lwd= 2
+)
+rect(
+	ytop= xy_labels$Y + 0.01 + {strheight(xy_labels$Label, cex= 1) * 0.5},
+	ybottom= xy_labels$Y - 0.01 - {strheight(xy_labels$Label, cex= 1) * 0.5},
+	xright= xy_labels$X + 0.01 + {strwidth(xy_labels$Label, cex= 1) * 0.5},
+	xleft= xy_labels$X - 0.01 - {strwidth(xy_labels$Label, cex= 1) * 0.5},
+	border= xy_labels$Color, col= hsv(s= 0, v= 1)
+)
+
+## Add labels
+text(
+	xy_labels$X,
+	xy_labels$Y,
+	label= xy_labels$Label,
+	col= xy_labels$Color,
+	cex= 1
+)
+
+## Delete demonstration objects
+remove(xy_labels, xy_data)
+```
+
+
+In any graphical device, R renders visualizations in the "plot region".  Surrounding the plot region is an area called the margins.  Unless you change the `xpd=` argument in `par()`, R will not render the parts of polygons that fall outside the plot region.  However, there are functions that are specifically designed to render text in the margins, such as `axis()` and `mtext()`.  The `axis()` function renders figure axes.  The `mtext()` function is similar in purpose to `text()` but renders text in the margins.
+
+For margin functions, positioning works differently.
+
+* There are four margins, which are numbered 1-4.  These correspond to the bottom (1), left (2), top (3), and right (4) margins respectively. Use `side=` to specify the margin in which to render text.
+
+* Within each margin, the distance between the edge of the plot region and the edge of the device is divided into "lines".  Line 0 renders text at the edge of the plot region and the last line (typically 3 on default settings) renders text at the edge of the graphical device. Use `line=` to specify the line on which to render text.
+
+* You can move text perpendicular to the plot region's edge using `at=`, where the coordinate system of the plot region is the same as the coordinate system for this argument.
+
+```{R mtext()}
+## Generate plotting device
+plot.new()
+plot.window(xlim= c(0, 1), ylim= c(0, 1), asp= 1)
+rect(ytop= 1, ybottom= 0, xleft= 0, xright= 1, col= hsv(h= 0.5, s= 0.1, v= 1))
+
+## Add text in the margins on top and right
+mtext(side= 4, line=1, text= "Side 4")
+mtext(side= 3, line=1, text= "Side 3")
+
+## Move margin text left and right (relative to margin side)
+mtext(side= 2, line=1, text= "Side 2, At 0.25", at= 0.25)
+mtext(side= 2, line=1, text= "Side 2, At 0.75", at= 0.75)
+
+## Move margin text up and down (relative to margin side)
+mtext(side= 1, line=0, text= "Side 1, Line 0")
+
+mtext(side= 1, line=1, text= "Side 1, Line 1")
+mtext(side= 1, line=2, text= "Side 1, Line 2")
+mtext(side= 1, line=3, text= "Side 1, Line 3")
+```
+
+Below is an example of the `axis()` function, using both default and customized parameters.
+
+```{R axis()}
+## Generate plotting device
+plot.new()
+plot.window(xlim= c(0, 1), ylim= c(0, 1), asp= 1)
+rect(ytop= 1, ybottom= 0, xleft= 0, xright= 1, col= hsv(h= 0.5, s= 0.1, v= 1))
+
+## Add axes to plot
+axis(side= 1)
+
+axis(
+	side= 2,
+	at= c(0.25, 0.5, 0.75),
+	labels= c("1/4", "1/2", "3/4"),
+	line= -1,
+	col= "transparent",
+	col.ticks= "black"
+	)
+```
 
 ### Vocabulary Table for Lesson B4
 
