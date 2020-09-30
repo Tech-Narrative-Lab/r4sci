@@ -42,11 +42,11 @@ The exact number of functions in each packages changes over time but here is the
 package_list <- search()
 package_list <- package_list[grep("package", package_list)]
 names(package_list) <- gsub( "package[:]", "", package_list )
-package_list <- as.list( package_list )
+package_list <- as.list(package_list)
 
 ## Count functions in packages
 CountFunctions <- function(pack_list= package_list){
-	function_count <- lapply( package_list, ls.str )
+	function_count <- lapply(package_list, ls.str)
 	function_count <- sort( sapply(function_count, length), decreasing= TRUE)
 	print( noquote("Functions in each package currently loaded:"))
 	print( noquote(function_count))
@@ -65,11 +65,11 @@ The function `search()` reveals all the environments currently loaded.  By defau
 search()    
 
 ## load a new package
-library( "parallel" )
+library("parallel")
 search()   
 
 ## unload package
-detach( "package:parallel" )
+detach("package:parallel")
 search()
 ```
 
@@ -152,7 +152,7 @@ apply(X= census_data, MARGIN= 3, FUN= median)
 
 ## Calculate the median for each width x depth, in effect
 	## summarizing across lengths
-apply(X= census_data, MARGIN= c( "Width", "Depth" ), FUN= median)
+apply(X= census_data, MARGIN= c("Width", "Depth"), FUN= median)
 
 ## Do equivalent segmentation with apply() and tapply()
 apply(X= census_data, MARGIN= "Depth", FUN= median)

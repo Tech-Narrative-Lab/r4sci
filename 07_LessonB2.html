@@ -427,14 +427,14 @@ summary {
 [4] &quot;package:grDevices&quot; &quot;package:utils&quot;     &quot;package:datasets&quot; 
 [7] &quot;package:methods&quot;   &quot;Autoloads&quot;         &quot;package:base&quot;     </code></pre>
 <pre class="r"><code>&gt; ## load a new package
-&gt; library( &quot;parallel&quot; )
+&gt; library(&quot;parallel&quot;)
 &gt; search()   </code></pre>
 <pre><code> [1] &quot;.GlobalEnv&quot;        &quot;package:parallel&quot;  &quot;package:stats&quot;    
  [4] &quot;package:graphics&quot;  &quot;package:grDevices&quot; &quot;package:utils&quot;    
  [7] &quot;package:datasets&quot;  &quot;package:methods&quot;   &quot;Autoloads&quot;        
 [10] &quot;package:base&quot;     </code></pre>
 <pre class="r"><code>&gt; ## unload package
-&gt; detach( &quot;package:parallel&quot; )
+&gt; detach(&quot;package:parallel&quot;)
 &gt; search()</code></pre>
 <pre><code>[1] &quot;.GlobalEnv&quot;        &quot;package:stats&quot;     &quot;package:graphics&quot; 
 [4] &quot;package:grDevices&quot; &quot;package:utils&quot;     &quot;package:datasets&quot; 
@@ -530,7 +530,7 @@ Length x  y  z
 4 8 </code></pre>
 <pre class="r"><code>&gt; ## Calculate the median for each width x depth, in effect
 &gt;   ## summarizing across lengths
-&gt; apply(X= census_data, MARGIN= c( &quot;Width&quot;, &quot;Depth&quot; ), FUN= median)</code></pre>
+&gt; apply(X= census_data, MARGIN= c(&quot;Width&quot;, &quot;Depth&quot;), FUN= median)</code></pre>
 <pre><code>     Depth
 Width   l  m
     x 2.5  5
@@ -1180,31 +1180,31 @@ WilliamsA Williams, Anthony         L    NY</code></pre>
 &gt;   ## operating system&#39;s process manager application.
 &gt; unclass(core_cluster)</code></pre>
 <pre><code>[[1]]
-node of a socket cluster on host &#39;localhost&#39; with pid 12648
+node of a socket cluster on host &#39;localhost&#39; with pid 12827
 
 [[2]]
-node of a socket cluster on host &#39;localhost&#39; with pid 12645
+node of a socket cluster on host &#39;localhost&#39; with pid 12824
 
 [[3]]
-node of a socket cluster on host &#39;localhost&#39; with pid 12649
+node of a socket cluster on host &#39;localhost&#39; with pid 12826
 
 [[4]]
-node of a socket cluster on host &#39;localhost&#39; with pid 12652
+node of a socket cluster on host &#39;localhost&#39; with pid 12831
 
 [[5]]
-node of a socket cluster on host &#39;localhost&#39; with pid 12651
+node of a socket cluster on host &#39;localhost&#39; with pid 12825
 
 [[6]]
-node of a socket cluster on host &#39;localhost&#39; with pid 12646
+node of a socket cluster on host &#39;localhost&#39; with pid 12832
 
 [[7]]
-node of a socket cluster on host &#39;localhost&#39; with pid 12647
+node of a socket cluster on host &#39;localhost&#39; with pid 12829
 
 [[8]]
-node of a socket cluster on host &#39;localhost&#39; with pid 12650
+node of a socket cluster on host &#39;localhost&#39; with pid 12830
 
 [[9]]
-node of a socket cluster on host &#39;localhost&#39; with pid 12644</code></pre>
+node of a socket cluster on host &#39;localhost&#39; with pid 12828</code></pre>
 <pre class="r"><code>&gt; ## Create test data and a test function to run in parallel
 &gt; SampleAndSummary &lt;- function(lambda) {
 +   sample_data &lt;- rpois(n= 10^7, lambda= lambda)
