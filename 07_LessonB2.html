@@ -373,9 +373,933 @@ summary {
 </div>
 <div id="b2.-segmentation" class="section level2">
 <h2>B2. Segmentation</h2>
+<p>As discussed in Lesson A1, functions are objects. They do not show up in the output of <code>objects()</code> because they are stored in environments other than the global environment. The ability to hold multiple environments makes R modular. At start-up, a small number of “packages” load automatically to supply a range of versatile core functions. The user can load additional packages to make more functions available for use. In total, basic R loads approximately 2,400 functions in seven packages at start-up, of which about 300 are covered in this class:</p>
+<table>
+<colgroup>
+<col width="50%"></col>
+<col width="50%"></col>
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">Package</th>
+<th align="left">Description Quote From The <code>help()</code> Page</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">base</td>
+<td align="left">“The basic functions which let R function as a language: arithmetic, input/output, basic programming support, etc.”</td>
+</tr>
+<tr class="even">
+<td align="left">stats</td>
+<td align="left">“…functions for statistical calculations and random number generation”</td>
+</tr>
+<tr class="odd">
+<td align="left">utils</td>
+<td align="left">“…collection of utility functions”</td>
+</tr>
+<tr class="even">
+<td align="left">methods</td>
+<td align="left">“Formally defined methods and classes for R objects, plus other programming tools”</td>
+</tr>
+<tr class="odd">
+<td align="left">grDevices</td>
+<td align="left">“Graphics devices and support”</td>
+</tr>
+<tr class="even">
+<td align="left">datasets</td>
+<td align="left">“…a variety of datasets”</td>
+</tr>
+<tr class="odd">
+<td align="left">graphics</td>
+<td align="left">“…functions for ‘base’ graphics”</td>
+</tr>
+</tbody>
+</table>
+<p>The exact number of functions in each packages changes over time but here is the current count.</p>
+<pre><code>[1] Functions in each package currently loaded:
+     base     stats     utils   methods grDevices  datasets  graphics 
+     1243       449       215       203       112       104        87 </code></pre>
+<p>The function <code>search()</code> reveals all the environments currently loaded. By default, this includes the seven packages discussed above, the global environment (<code>.GlobalEnv</code>), and the R’s user interface (<code>tools:RGUI</code>). The <code>library()</code> and <code>detach()</code> functions load a new package and unload it respectively. In this lesson, we will discuss the package parallel, which contains functions for doing parallel processing in R. Here is a demonstration of loading and unloading this package.</p>
+<pre class="r"><code>&gt; ## view packages currently loaded
+&gt; search()    </code></pre>
+<pre><code>[1] &quot;.GlobalEnv&quot;        &quot;package:stats&quot;     &quot;package:graphics&quot; 
+[4] &quot;package:grDevices&quot; &quot;package:utils&quot;     &quot;package:datasets&quot; 
+[7] &quot;package:methods&quot;   &quot;Autoloads&quot;         &quot;package:base&quot;     </code></pre>
+<pre class="r"><code>&gt; ## load a new package
+&gt; library( &quot;parallel&quot; )
+&gt; search()   </code></pre>
+<pre><code> [1] &quot;.GlobalEnv&quot;        &quot;package:parallel&quot;  &quot;package:stats&quot;    
+ [4] &quot;package:graphics&quot;  &quot;package:grDevices&quot; &quot;package:utils&quot;    
+ [7] &quot;package:datasets&quot;  &quot;package:methods&quot;   &quot;Autoloads&quot;        
+[10] &quot;package:base&quot;     </code></pre>
+<pre class="r"><code>&gt; ## unload package
+&gt; detach( &quot;package:parallel&quot; )
+&gt; search()</code></pre>
+<pre><code>[1] &quot;.GlobalEnv&quot;        &quot;package:stats&quot;     &quot;package:graphics&quot; 
+[4] &quot;package:grDevices&quot; &quot;package:utils&quot;     &quot;package:datasets&quot; 
+[7] &quot;package:methods&quot;   &quot;Autoloads&quot;         &quot;package:base&quot;     </code></pre>
+<p>Through <code>package:datasets</code>, R comes with several datasets pre-installed. These datasets can be useful for learning and testing purposes. The function <code>data()</code> will load datasets into the global environment from <code>datasets</code>. It can also load datasets from other packages that come with built-in sample data.</p>
+<p>R is an open-source collaborative endeavor. Teams around the world publish and maintain packages on their particular computational specialty. At the time of this writing, there are nearly 14,000 packages available on the CRAN package repository, of which only a handful come pre-installed in the way that <code>parallel</code> is pre-installed. The <code>install.packages()</code> function installs packages from the repository. You will need to specify a <code>repos=</code> repository from which to download the code, such as <code>install.packages(repos= https://mirrors.nics.utk.edu/cran)</code> and can specify where to put the installed package using <code>lib=</code> if the default location is not viable. The <code>update.packages()</code> function will retrieve the updated version of all installed packages that have gone out of date. Setting <code>ask=</code> to <code>FALSE</code> will prevent R from confirming for each package that you wish to install it.</p>
+<div id="the-apply-family-of-functions" class="section level3">
+<h3>The Apply Family of Functions</h3>
+<p>To do analytic computation, you will need to break data into parts and perform computation on each of those parts. This could happen because:</p>
+<ul>
+<li><p>You want to compare sub-populations to each other, so you need to do comparable analysis separately on each</p></li>
+<li><p>Your data is too large to process all at once, so you need to process it in chunks</p></li>
+<li><p>Your data takes too long to process, so you want to process chunks of it simultaneously</p></li>
+<li><p>You are running a simulation that has some element of randomness to it, so you want to run it multiple times to measure the variability in results</p></li>
+</ul>
+<p>The apply family of functions are R’s premier tools for segmented / batch processing. Each function takes an <code>X=</code> data object, divides it up into chunks with an <code>INDEX=</code>, <code>MARGIN=</code>, or implied chunking schema, and applies a <code>FUN=</code> function to that chunk.</p>
+<p>The tapply() function accepts an <code>X=</code> data vector and divides into chunks according to an <code>INDEX=</code> vector. It can also accept an <code>INDEX=</code> list containing multiple vectors, in which case <code>tapply()</code> will apply the function to separately each cross-tabulation of <code>INDEX=</code> vectors.</p>
+<pre class="r"><code>&gt; ## Create a mock dataset
+&gt; 
+&gt; set.seed( 2657 )
+&gt; survey_data &lt;- data.frame(
++   &quot;Color&quot;= sample( c(&quot;Red&quot;, &quot;Blue&quot;), size= 2^4, replace= TRUE),
++   &quot;Type&quot;= sample( c(&quot;A&quot;, &quot;B&quot;), size= 2^4, replace= TRUE),
++   &quot;Score&quot;= rpois(n= 2^4, lambda= 100)
++   )
+&gt; 
+&gt; head(survey_data, 2)</code></pre>
+<pre><code>  Color Type Score
+1   Red    B   104
+2   Red    A    98</code></pre>
+<pre class="r"><code>&gt; ## Create difference between the scores of different groups
+&gt; survey_data$Score &lt;- survey_data$Score + {survey_data$Type == &quot;A&quot;}
+&gt; survey_data$Score &lt;- survey_data$Score + {survey_data$Color == &quot;Red&quot;}
+&gt; 
+&gt; 
+&gt; ## Calculate the median separately for each color using tapply()
+&gt; tapply(
++   X= survey_data$Score,
++   INDEX= survey_data$Color,
++   FUN= median
++   )</code></pre>
+<pre><code>Blue  Red 
+ 111  104 </code></pre>
+<pre class="r"><code>&gt; ## Calculate the mean separately for each color using tapply
+&gt; tapply(
++   X= survey_data$Score,
++   INDEX= survey_data[ , c(&quot;Color&quot;, &quot;Type&quot;)],
++   FUN= median
++   )</code></pre>
+<pre><code>      Type
+Color    A     B
+  Blue 111 109.5
+  Red  104 104.0</code></pre>
+<pre class="r"><code>&gt; ## Delete demonstration object
+&gt; remove(survey_data)</code></pre>
+<p>The <code>apply()</code> function accepts an <code>X=</code> data array and divides it into chunks according to <code>MARGIN=</code> dimensions. It is equivalent to doing <code>tapply()</code> with <code>INDEX=</code> argument set to the <code>slice.index()</code> for that dimension. The <code>apply()</code> family will accept a <code>MARGIN=</code> vector with multiple elements, in which case <code>tapply()</code> applies the <code>fun=</code> to each intersection of the specified dimensions.</p>
+<pre class="r"><code>&gt; ## Create a mock dataset
+&gt; census_data &lt;- array( NA,
++   dim= 4:2,
++   dimnames=  list(
++       &quot;Length&quot;= letters[1:4],
++       &quot;Width&quot;= letters[24:26],
++       &quot;Depth&quot;= letters[12:13]
++       )
++   )
+&gt; census_data[ , , 1]  &lt;- outer(1:4, 1:3)
+&gt; census_data[ , , 2 ] &lt;- outer(1:4, 1:3) * 2
+&gt; census_data</code></pre>
+<pre><code>, , Depth = l
+
+      Width
+Length x y  z
+     a 1 2  3
+     b 2 4  6
+     c 3 6  9
+     d 4 8 12
+
+, , Depth = m
+
+      Width
+Length x  y  z
+     a 2  4  6
+     b 4  8 12
+     c 6 12 18
+     d 8 16 24</code></pre>
+<pre class="r"><code>&gt; ## Calculate the median for each depth, identifying MARGIN=
+&gt;   ## either by the dimension name or the dimension position
+&gt; apply(X= census_data, MARGIN= &quot;Depth&quot;, FUN= median)</code></pre>
+<pre><code>l m 
+4 8 </code></pre>
+<pre class="r"><code>&gt; apply(X= census_data, MARGIN= 3, FUN= median)</code></pre>
+<pre><code>l m 
+4 8 </code></pre>
+<pre class="r"><code>&gt; ## Calculate the median for each width x depth, in effect
+&gt;   ## summarizing across lengths
+&gt; apply(X= census_data, MARGIN= c( &quot;Width&quot;, &quot;Depth&quot; ), FUN= median)</code></pre>
+<pre><code>     Depth
+Width   l  m
+    x 2.5  5
+    y 5.0 10
+    z 7.5 15</code></pre>
+<pre class="r"><code>&gt; ## Do equivalent segmentation with apply() and tapply()
+&gt; apply(X= census_data, MARGIN= &quot;Depth&quot;, FUN= median)</code></pre>
+<pre><code>l m 
+4 8 </code></pre>
+<pre class="r"><code>&gt; index &lt;- slice.index(census_data, MARGIN= 3)
+&gt; index &lt;- dimnames(census_data)[[3]][index]
+&gt; tapply(X= census_data, INDEX= index, FUN= median)</code></pre>
+<pre><code>l m 
+4 8 </code></pre>
+<pre class="r"><code>&gt; ## Delete demonstration objects
+&gt; remove(census_data, index)</code></pre>
+<p>The <code>lapply()</code> function applies a <code>FUN=</code> function to the object in each element of an <code>X=</code> list. In addition to <code>lapply()</code> itself, this function has three variants that perform different forms on this operation: <code>sapply()</code>, <code>mapply()</code>, <code>rapply()</code>. The <code>sapply()</code> function executes <code>lapply()</code> and then passes the result to <code>simplify2array()</code>, which attempts to restructure the output as a simpler array object.</p>
+<pre class="r"><code>&gt; ## Generate an example list object
+&gt; list_object &lt;- list(&quot;A&quot;= 1:4, &quot;B&quot;= 5:16)
+&gt; 
+&gt; 
+&gt; ## Execute this function separately on each element of a list
+&gt; lapply(X= list_object, FUN= quantile)</code></pre>
+<pre><code>$A
+  0%  25%  50%  75% 100% 
+1.00 1.75 2.50 3.25 4.00 
+
+$B
+   0%   25%   50%   75%  100% 
+ 5.00  7.75 10.50 13.25 16.00 </code></pre>
+<pre class="r"><code>&gt; ## Execute a lapply(), but then attempt to restructure the outputs
+&gt;   ## as a simpler array object
+&gt; sapply(X= list_object, FUN= quantile)</code></pre>
+<pre><code>        A     B
+0%   1.00  5.00
+25%  1.75  7.75
+50%  2.50 10.50
+75%  3.25 13.25
+100% 4.00 16.00</code></pre>
+<pre class="r"><code>&gt; ## sapply() is the same as lapply() + simplify2array()
+&gt; simplify2array( lapply(X= list_object, FUN= quantile))</code></pre>
+<pre><code>        A     B
+0%   1.00  5.00
+25%  1.75  7.75
+50%  2.50 10.50
+75%  3.25 13.25
+100% 4.00 16.00</code></pre>
+<pre class="r"><code>&gt; ## Delete demonstration objects
+&gt; remove(list_object)</code></pre>
+<p>The <code>simplify2array()</code> function is an example of a segmented processing function that is able to analyze objects and/or the environment and then adapt its behavior accordingly. The “Environmentally Aware Batch Processing” section will explore these kinds of functions in greater detail.</p>
+<p>The <code>mapply()</code> function also works like <code>lapply()</code> but it enables you to specify different arguments to the function for each element of the list. This enables <code>mapply()</code> to execute different variations on the same functional procedure for different elements.</p>
+<pre class="r"><code>&gt; ## create sample lists
+&gt; sample_population &lt;- list(
++   &quot;Circle&quot;= c(&quot;C&quot;, &quot;G&quot;, &quot;O&quot;),
++   &quot;Points&quot;= c(&quot;A&quot;, &quot;M&quot;, &quot;W&quot;),
++   &quot;Ladder&quot;= c(&quot;B&quot;, &quot;E&quot;, &quot;F&quot;)
++   )
+&gt; sample_population &lt;- lapply(X= sample_population, FUN= as.factor)
+&gt; 
+&gt; sample_probability &lt;- list(
++   &quot;Circle&quot; = c(0.25, 0.25, 0.50),
++   &quot;Arrow&quot; =  c(0.50, 0.25, 0.25),
++   &quot;Ladder&quot; = c(0.25, 0.50, 0.25)
++ )
+&gt; 
+&gt; ## Declare a function to generate a random sample and summarize the results
+&gt; SampleSummary &lt;- function(pop, prob) {
++   pop &lt;- sample( pop, size= 1000, replace= TRUE, prob= prob)
++   summary(pop)
++   }
+&gt; 
+&gt; ## apply this sample/summarize function to each pair of sampling
+&gt;   ## elements and sampling probabilities. Note the use of SIMPLIFY=
+&gt;   ## to disable the default behavior of passing the result through
+&gt;   ## simplify2array().
+&gt; 
+&gt; mapply(
++   FUN= SampleSummary,
++   pop= sample_population,
++   prob= sample_probability,
++   SIMPLIFY= FALSE
++   )</code></pre>
+<pre><code>$Circle
+  C   G   O 
+280 249 471 
+
+$Points
+  A   M   W 
+507 255 238 
+
+$Ladder
+  B   E   F 
+251 495 254 </code></pre>
+<pre class="r"><code>&gt; ## Delete demonstration objects
+&gt; remove(SampleSummary, sample_population, sample_probability)
+&gt; objects()</code></pre>
+<pre><code>character(0)</code></pre>
 </div>
-<div id="section" class="section level1">
-<h1>==========</h1>
+<div id="adaptive-segmented-functions" class="section level3">
+<h3>Adaptive Segmented Functions</h3>
+<p>In the last section, we touched on <code>simplify2array()</code>, a function that analyses a list object and tries to re-package it as a simpler array object. This exemplifies how functions can be designed to analyze their target objects and respond adaptively to them.</p>
+<pre class="r"><code>&gt; ## list of vectors -&gt; 2D array
+&gt; vector_list &lt;- list(&quot;A&quot;= 1:4, &quot;B&quot;= 5:8, &quot;C&quot;= 9:12)
+&gt; simplify2array(vector_list)</code></pre>
+<pre><code>     A B  C
+[1,] 1 5  9
+[2,] 2 6 10
+[3,] 3 7 11
+[4,] 4 8 12</code></pre>
+<pre class="r"><code>&gt; ## List of 2D arrays -&gt; 3D array
+&gt; array_list &lt;- array( 1:4,
++   dim= c(2, 2),
++   dimnames= list(&quot;Rows&quot;= c(&quot;a&quot;, &quot;b&quot;), &quot;Cols&quot;= c(&quot;A&quot;, &quot;B&quot;))
++   )
+&gt; array_list &lt;- list(&quot;A1&quot;= array_list, &quot;A2&quot;= array_list, &quot;A3&quot;= array_list)
+&gt; simplify2array(array_list)</code></pre>
+<pre><code>, ,  = A1
+
+    Cols
+Rows A B
+   a 1 3
+   b 2 4
+
+, ,  = A2
+
+    Cols
+Rows A B
+   a 1 3
+   b 2 4
+
+, ,  = A3
+
+    Cols
+Rows A B
+   a 1 3
+   b 2 4</code></pre>
+<pre class="r"><code>&gt; ## list of lists -&gt; 3D array
+&gt; list.list &lt;- list(&quot;A&quot;= 1:4, &quot;B&quot;= 5:8, &quot;C&quot;= 9:12)
+&gt; list.list &lt;- list(&quot;a&quot;= list.list, &quot;b&quot;= list.list)
+&gt; simplify2array(list.list)</code></pre>
+<pre><code>  a         b        
+A Integer,4 Integer,4
+B Integer,4 Integer,4
+C Integer,4 Integer,4</code></pre>
+<pre class="r"><code>&gt; ## Delete demonstration objects
+&gt; remove(array_list, vector_list)</code></pre>
+<p>The basic three apply functions – <code>tapply()</code>, <code>apply()</code>, <code>lapply()</code> – are not adaptive. The <code>mapply()</code> and <code>sapply()</code> functions are marginally adaptive because they call <code>simplify2array()</code>. This section discusses segmented processing functions that have more sophisticated analytic and adaptive capabilities.</p>
+<p>Much like <code>lapply()</code>, the <code>rapply()</code> function accepts a <code>X=</code> list, and executes a <code>FUN=</code> function on its components. However, <code>rapply()</code> performs a depth-first search to find all the non-list objects embedded in the list and then performs the function on those objects. With the <code>how=</code> argument set to “list”, the output will be a list with structure identical to the <code>X=</code> list.</p>
+<pre class="r"><code>&gt; ## Generate a multi-level list object
+&gt; list_object &lt;- list(
++   &quot;A&quot;= 1:4,
++   &quot;B&quot;= list(
++       &quot;B1&quot;= 5:8,
++       &quot;B2&quot;= list(
++           &quot;B2a&quot;= 9:16,
++           &quot;B2b&quot;= 17:32
++           )
++       ),
++   &quot;C&quot;= 33:64
++   )
+&gt; 
+&gt; ## Use rapply() to execute the function on each vector in the list
+&gt; rapply(object= list_object, f= max, how= &quot;list&quot;)</code></pre>
+<pre><code>$A
+[1] 4
+
+$B
+$B$B1
+[1] 8
+
+$B$B2
+$B$B2$B2a
+[1] 16
+
+$B$B2$B2b
+[1] 32
+
+
+
+$C
+[1] 64</code></pre>
+<pre class="r"><code>&gt; ## Delete demonstration objects
+&gt; remove(list_object)</code></pre>
+<p>The eapply() function surveys all the objects in a specified environment and applies a function to each of them individually. One of its major uses is gathering up objects inside a function, since each instance of a function generates its own temporary environment and performs operations inside it. For this purpose, <code>eapply()</code> can be used in conjunction with <code>environment()</code>. That function finds which environment contains a <code>fun=</code> function or contains (if given no argument) the current instance of <code>environment()</code>.</p>
+<pre class="r"><code>&gt; ## set up example environment
+&gt; remove(list= objects())
+&gt; lambda4 &lt;- rpois(n= 64, lambda= 4)
+&gt; lambda12 &lt;- rpois(n= 64, lambda= 12)
+&gt; lambda8 &lt;- rpois(n= 64, lambda= 8)
+&gt; 
+&gt; ## generate summaries for each object
+&gt; eapply(env= environment(), FUN= summary)</code></pre>
+<pre><code>$lambda12
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+   5.00   10.00   12.00   12.09   14.00   19.00 
+
+$lambda4
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  1.000   2.000   4.000   4.125   5.000   9.000 
+
+$lambda8
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  2.000   6.000   7.000   7.625  10.000  13.000 </code></pre>
+<pre class="r"><code>&gt; ## use eapply() to explore the contents of a function&#39;s environment.
+&gt; ZScore &lt;- function(x) {
++   ## calculate z.score
++   centered_x &lt;- x - mean( x )
++   z_score &lt;- centered_x / sd( x )
++   z_score &lt;- round( z_score, 3 )
++ 
++   ## Express objects in the environment
++   eapply(env= environment(), FUN= identity)
++   }
+&gt; 
+&gt; ZScore(1:8)</code></pre>
+<pre><code>$z_score
+[1] -1.429 -1.021 -0.612 -0.204  0.204  0.612  1.021  1.429
+
+$centered_x
+[1] -3.5 -2.5 -1.5 -0.5  0.5  1.5  2.5  3.5
+
+$x
+[1] 1 2 3 4 5 6 7 8</code></pre>
+<pre class="r"><code>&gt; ## Delete demonstration objects
+&gt; remove(ZScore, lambda4, lambda8, lambda12)</code></pre>
+<p>The <code>do.call()</code> function accepts a list of objects and then simultaneously passes each list element as a separate object to a function, matching up list names to arguments when applicable. A common use for <code>do.call()</code> is collecting parts of a dataset processed in parallel and compiling them with <code>rbind()</code> back to a single dataset. Because <code>do.call()</code> can accept arguments in list form and pass them as objects to a function, it is useful in a variety of circumstances.</p>
+<pre class="r"><code>&gt; ## create a list containing multiple datasets
+&gt; parallel_data &lt;- list(
++   &quot;15m+&quot;= data.frame(
++       &quot;State&quot;= c(&quot;CA&quot;, &quot;TX&quot;, &quot;FL&quot;, &quot;NY&quot;),
++       &quot;Pop&quot;= c(40, 29, 21, 20),
++       &quot;Region&quot;= c(&quot;W&quot;, &quot;S&quot;, &quot;S&quot;, &quot;NE&quot;)
++       ),
++   &quot;10m-15m&quot;= data.frame(
++       &quot;State&quot;= c(&quot;PA&quot;, &quot;IL&quot;, &quot;OH&quot;, &quot;GA&quot;, &quot;NC&quot;, &quot;MI&quot;),
++       &quot;Pop&quot;= c(13, 13, 12, 11, 10, 10),
++       &quot;Region&quot;= c(&quot;NE&quot;, &quot;MW&quot;, &quot;MW&quot;, &quot;S&quot;, &quot;S&quot;, &quot;MW&quot;)
++       )
++   )
+&gt; 
+&gt; ## use do.call() to compile to single dataset
+&gt; do.call(what= rbind, args= parallel_data)</code></pre>
+<pre><code>          State Pop Region
+15m+.1       CA  40      W
+15m+.2       TX  29      S
+15m+.3       FL  21      S
+15m+.4       NY  20     NE
+10m-15m.1    PA  13     NE
+10m-15m.2    IL  13     MW
+10m-15m.3    OH  12     MW
+10m-15m.4    GA  11      S
+10m-15m.5    NC  10      S
+10m-15m.6    MI  10     MW</code></pre>
+<pre class="r"><code>&gt; ## use do.call() to supply arguments to a function
+&gt; do.call(what= rpois, args= list(n= 5, lambda= 3))</code></pre>
+<pre><code>[1] 2 3 0 1 0</code></pre>
+<pre class="r"><code>&gt; ## Delete demonstration objects
+&gt; remove(parallel_data)</code></pre>
+</div>
+<div id="efficient-computation" class="section level3">
+<h3>Efficient Computation</h3>
+<p>Segmenting computations into manageable chunks can significantly improve code performance, especially when working with large datasets or complex modeling tasks. However, you will need a firm conceptual grasp of how your machine works to fully realize that potential.</p>
+<p>Frankly, efficient computing is about enabling a computer to do dumb things quickly. This involves two things</p>
+<ol style="list-style-type: decimal">
+<li><p>Operationalizing a complex operation as a sequence of simple computations (“dumb things”)</p></li>
+<li><p>Bringing all your computer’s resources to bear on the computation (“quickly”).</p></li>
+</ol>
+<p>This section will introduce you to the basic computational resources at your disposal and how trade-offs in resource utilization can enhance your code. The condensed version is this: your coding style should shift to maximize processor (“CPU”), random access memory (“RAM”), or storage memory (“storage”) efficiency, depending on which one is most strained during the operation. We will brush on CPU and RAM in this section.</p>
+<p>Note: CPU, RAM and storage are common to all computers, but some advice in this section assumes you will be working primarily from a laptop computer.</p>
+<div id="processor" class="section level4">
+<h4>Processor</h4>
+<p>The processor (“CPU”) is the part of your computer that does computations. In most computers, your CPU consists of multiple CPU cores stacked on top of each other. This enables your computer to run multiple processes at the same time.</p>
+<p><em>Parallel processing</em>– The most powerful way to use a CPU is engaging all its cores at the same time. To do this, you divide up a computation in chunks that can be processed independently. If it helps, think of <code>lapply()</code>. Since a function is applied separately to the elements of the list, each element might as well be on its own core. Splitting a task among multiple cores is called “parallel processing.” This less will focus on parallel processing using a single machine. However, you can use the same techniques and functions to perform parallel processing across multiple machines.</p>
+<p><em>Core Resource Management</em>– On a high performance computation, aim to keep about 80 percent of your cores engaged. If you are working on a server, be courteous to other users and your system administrator (“sys admin”). Do not use more than half of the cores during work hours. Better yet, schedule your heavy computations for nights/weekends when high-core use is less likely to inconvenience. Check in with your admin as well. Servers can send a “distress” message to the admin if their resources are put too far under strain.</p>
+<p><em>Listening to your machine </em>– When you run your processor at full capacity, it will generate a significant amount of heat. Paying attention to heat is one way that you can “listen to your hardware,” allowing it to guide you in programming effectively. When your CPU is generating significant heat, you will be able to feel it in two places on a laptop: at the heat vents and on the underside directly below your processor. As heat builds up during heavy computation, your fan will eventually activate, as your computer switches from passive heat dissipation to active dissipation. Your computer can “run hot” for a long time. However, over extended computation heat built up may cause the internal temperature to exceed operational thresholds. With these thresholds exceeded, your machine will automatically begin throttling down processor speed to protect itself from damage. Next time your fan activates, take a moment to feel for the heat vents and the hottest point on the underside. For best results, do this exercise while your laptop is plugged-in and after the battery has already been fully charged for a while – a charging battery also emits heat.</p>
+<p><em>Heat dissipation</em>– To get the best performance out of your CPU during heavy computation, do what you can to improve its heat dissipation:</p>
+<ul>
+<li><p>Make sure the heat vents are unobstructed.</p></li>
+<li><p>Do not perform heavy computations with your laptop’s screen closed (i.e., “clamshell mode”)</p></li>
+<li><p>Shut down all other CPU-intensive applications.</p></li>
+<li><p>Finish battery charging at least 30 minutes before you start.</p></li>
+<li><p>Do not leave your computer in direct window sunshine.</p></li>
+<li><p>Give your laptop as much airflow as possible. A low-tech option is propping your machine between two stacks of books so that most of the underside has abundant airflow. Laptop cooling pads are the higher-tech solution.</p></li>
+</ul>
+<p><em>Graphical Processing Unit (GPU)</em> – You have two kinds of processors in your machine, the CPU and GPU. The GPU is an independent processor that renders the polygons underlying your screen’s display. It is like a CPU, except that it has many more cores than a CPU and each individual core is much less powerful. This allows it to layer many tiny polygons on your screen to create complex visual displays. If you have a task that involves doing many small calculations (such as an agent-based simulation with many simplistic actors), it might be helpful to route it through your GPU, instead of your CPU. GPU tasking is out of scope for this class, but worth pursuing if your computations have the right parameters for it.</p>
+</div>
+<div id="random-access-memory-ram" class="section level4">
+<h4>Random Access Memory (RAM)</h4>
+<p>RAM is chip-based memory on your computer. The CPU stores data temporarily in RAM so that it can retrieve it easily. CPU and RAM can conduct information transfer at high speeds and volumes. However, you have significantly less RAM than standard storage memory. By default, R stores everything in the R environment in RAM. This makes data easy to retrieve and makes vector operations faster. However, this also means that every object you store in the R environment takes up RAM that the processor could use to store intermediate computations needed to execute functions.</p>
+<p><em>Swap Memory</em>– If you need more processing power, increase the number of cores and store everything they need at their fingertips (i.e., in RAM). However, this can result in R needing more RAM than you have. If this happens, your machine will shift data to “swap”. Swap (or “virtual memory”) is when your machine starts storing RAM data to regular storage memory. Since storage memory loads slowly (compared to RAM), this slows down processor cores as they wait for their turn to access storage. A computer that runs out of swap may lock up entirely, terminate processes, freeze processes, or engage in other self-protective mechanisms. If you have gotten to the point where swap engages, you have already missed the mark for efficient computation.</p>
+<p><em>Minimizing Footprint</em>– To get the best performance out of RAM, minimize how much RAM is in use and how often it gets reallocated:</p>
+<ul>
+<li><p>Delete objects from the environment once they have served their purpose in the code.</p></li>
+<li><p>Determine whether long or wide format has a smaller resource footprint for your data.</p></li>
+<li><p>Load only the parts of large datasets that you need.</p></li>
+<li><p>Shut down all other RAM intensive applications during intensive processing.</p></li>
+<li><p>Engage fewer cores if each core requires a large chunk of RAM.</p></li>
+</ul>
+<p><em>Monitoring resource use</em>– All operating systems have utilities that you can use to monitor resource use on your machine. These monitors reveal information about “processes”, which are basic chunks of computation. An application can have more than one process, if multiple instances of it are running at the same time, or if the application is engaging in parallel processing.</p>
+<ul>
+<li><p>Mac– The resource monitoring application is “Activity Monitor”. Each tab with show you the processes that your machine is running, with an emphasis on a different feature of resource use. Typically, the first tab will report CPU burden and the second tab will report Memory burden.</p></li>
+<li><p>PC– The resource monitoring application is “Task Manager”. The “Performance” tab charts the current resource footprint, with separate tabs for CPU, RAM (“memory”), storage (“disk”), and GPU. The “Details” tab will show you the processes that your machine is running. Resource monitoring applications are beyond the scope of this class. However, I encourage you to spend time learning how your monitor works before you begin practicing the segmented processing techniques in this lesson, especially the parallel processing techniques in the next section.</p></li>
+</ul>
+</div>
+</div>
+<div id="long-and-wide-data-formatting" class="section level3">
+<h3>Long and Wide Data Formatting</h3>
+<p>When managing resource footprint, leveraging the unique strengths of different data formats can be an effective strategy. For tabular data, this entails understanding the difference between “long” and “wide” data. Wide data is the format to which you are probably most accustomed. In a simple wide data format, each row is a “case” and each column is a “variable”. The dataset will be N cases long and M variables wide for a total of N x M cells. Here is an example of a wide-format dataset.</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Name</th>
+<th align="left">Age</th>
+<th align="left">State</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Smith, James</td>
+<td align="left">20</td>
+<td align="left">CA</td>
+</tr>
+<tr class="even">
+<td align="left">Garcia, Mary</td>
+<td align="left">28</td>
+<td align="left">TX</td>
+</tr>
+<tr class="odd">
+<td align="left">Williams, Anthony</td>
+<td align="left">36</td>
+<td align="left">NY</td>
+</tr>
+<tr class="even">
+<td align="left">Lee, Patricia</td>
+<td align="left">44</td>
+<td align="left">FL</td>
+</tr>
+<tr class="odd">
+<td align="left">Martinez, Linda</td>
+<td align="left">52</td>
+<td align="left">IL</td>
+</tr>
+</tbody>
+</table>
+<p>In a simple long data format, the first column contains the case ID, the second column contains the variable name, and the third column contains the data for that particular case on that particular variable. The dataset will be N cases x M variables long x three columns wide for a total of 3 x N x M cells. Here is an example of a long-format dataset.</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Name</th>
+<th align="left">Variable</th>
+<th align="left">Data</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Smith, James</td>
+<td align="left">Age</td>
+<td align="left">20</td>
+</tr>
+<tr class="even">
+<td align="left">Garcia, Mary</td>
+<td align="left">Age</td>
+<td align="left">28</td>
+</tr>
+<tr class="odd">
+<td align="left">Williams, Anthony</td>
+<td align="left">Age</td>
+<td align="left">36</td>
+</tr>
+<tr class="even">
+<td align="left">Lee, Patricia</td>
+<td align="left">Age</td>
+<td align="left">44</td>
+</tr>
+<tr class="odd">
+<td align="left">Martinez, Linda</td>
+<td align="left">Age</td>
+<td align="left">52</td>
+</tr>
+<tr class="even">
+<td align="left">Smith, James</td>
+<td align="left">State</td>
+<td align="left">CA</td>
+</tr>
+<tr class="odd">
+<td align="left">Garcia, Mary</td>
+<td align="left">State</td>
+<td align="left">TX</td>
+</tr>
+<tr class="even">
+<td align="left">Williams, Anthony</td>
+<td align="left">State</td>
+<td align="left">NY</td>
+</tr>
+<tr class="odd">
+<td align="left">Lee, Patricia</td>
+<td align="left">State</td>
+<td align="left">FL</td>
+</tr>
+<tr class="even">
+<td align="left">Martinez, Linda</td>
+<td align="left">State</td>
+<td align="left">IL</td>
+</tr>
+</tbody>
+</table>
+<p>These formats are the ends of a spectrum of formatting. For example, a wide dataset might hold census datasets for multiple years, with the first column denoting the year of the census. The year column supplies long-format data about datasets that are otherwise in wide-format.</p>
+<p>Wide format is popular because it is easy to visually inspect, makes analysis of specific variables easy to do with column-wise operations, and it more resource efficient for storing a single dense dataset. Long format is a useful counterpart because it can stack multiple datasets, even if each of the datasets has different variables. Moreover, long format allows for sparse storage. Sparse storage only stores non-empty data, with empty cells implied by absence. For variables with many empty cells, sparse storage can have a much smaller resource footprint. The tables below shows a sparse dataset in long and wide formats to illustrate the difference.</p>
+<p><strong>Total size as a wide-format dataset: 54 cells</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Name</th>
+<th align="left">CA</th>
+<th align="left">TX</th>
+<th align="left">FL</th>
+<th align="left">NY</th>
+<th align="left">PA</th>
+<th align="left">IL</th>
+<th align="left">OH</th>
+<th align="left">GA</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Smith, James</td>
+<td align="left">Born</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left">Resides</td>
+</tr>
+<tr class="even">
+<td align="left">Garcia, Mary</td>
+<td align="left"></td>
+<td align="left">Born + Resides</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">Williams, Anthony</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left">Born + Resides</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left">Lee, Patricia</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left">Born</td>
+<td align="left"></td>
+<td align="left">Resides</td>
+<td align="left"></td>
+<td align="left"></td>
+</tr>
+<tr class="odd">
+<td align="left">Martinez, Linda</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left">Resides</td>
+<td align="left"></td>
+<td align="left">Born</td>
+<td align="left"></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Total size as a long-format dataset: 27 cells</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Name</th>
+<th align="left">State</th>
+<th align="left">Relationship</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Smith, James</td>
+<td align="left">CA</td>
+<td align="left">Born</td>
+</tr>
+<tr class="even">
+<td align="left">Smith, James</td>
+<td align="left">GA</td>
+<td align="left">Resides</td>
+</tr>
+<tr class="odd">
+<td align="left">Garcia, Mary</td>
+<td align="left">TX</td>
+<td align="left">Born + Resides</td>
+</tr>
+<tr class="even">
+<td align="left">Williams, Anthony</td>
+<td align="left">FL</td>
+<td align="left">Born + Resides</td>
+</tr>
+<tr class="odd">
+<td align="left">Lee, Patricia</td>
+<td align="left">NY</td>
+<td align="left">Born</td>
+</tr>
+<tr class="even">
+<td align="left">Lee, Patricia</td>
+<td align="left">IL</td>
+<td align="left">Resides</td>
+</tr>
+<tr class="odd">
+<td align="left">Martinez, Linda</td>
+<td align="left">OH</td>
+<td align="left">Born</td>
+</tr>
+<tr class="even">
+<td align="left">Martinez, Linda</td>
+<td align="left">PA</td>
+<td align="left">Resides</td>
+</tr>
+</tbody>
+</table>
+<p>There are functions in basic R that aim to do long/wide conversion. However, you will benefit from being able to construct your data shaping functions to match the particular needs of your project. Study the data transformations below to get a sense for how to reshape your data as needed.</p>
+<pre class="r"><code>&gt; ## Generate dataset ==========
+&gt; 
+&gt; survey_data &lt;- data.frame(
++       &quot;Name&quot;= c(&quot;Smith, James&quot;, &quot;Garcia, Mary&quot;, &quot;Williams, Anthony&quot;,
++            &quot;Lee, Patricia&quot;, &quot;Martinez, Linda&quot;),
++       &quot;ShirtSize&quot;= c(&quot;S&quot;, &quot;M&quot;, &quot;L&quot;, &quot;M&quot;, &quot;L&quot;),
++       &quot;State&quot;= c(&quot;CA&quot;, &quot;TX&quot;, &quot;NY&quot;, &quot;FL&quot;, &quot;IL&quot;)
++       )
+&gt; 
+&gt; dimnames(survey_data)[[1]] &lt;- paste(
++   gsub(pattern = &quot;,.*&quot;, replacement= &quot;&quot;, survey_data$Name),
++   gsub(pattern = &quot;.*, ([A-Z]).*&quot;, replacement= &quot;\\1&quot;, survey_data$Name),
++   sep= &quot;&quot;
++ )
+&gt; 
+&gt; ## Here is the result
+&gt; survey_data</code></pre>
+<pre><code>                       Name ShirtSize State
+SmithJ         Smith, James         S    CA
+GarciaM        Garcia, Mary         M    TX
+WilliamsA Williams, Anthony         L    NY
+LeeP          Lee, Patricia         M    FL
+MartinezL   Martinez, Linda         L    IL</code></pre>
+<pre class="r"><code>&gt; ## Convert wide -&gt; long ==========
+&gt; 
+&gt; ## Create an empty data.frame to hold different products
+&gt; long_data &lt;- data.frame(
++   array(dim= c(prod(dim(survey_data)), 3))
++   )
+&gt; dimnames(long_data)[[2]] &lt;- c(&quot;Case&quot;, &quot;Variable&quot;, &quot;Data&quot;)
+&gt; 
+&gt; ## set each column to the relevant long-format variable
+&gt; IndexFunction &lt;- function(x= survey_data, i) {
++       dimnames(x)[[i]][slice.index(x, MARGIN= i)]
++       }
+&gt; 
+&gt; long_data[ , c(&quot;Case&quot;, &quot;Variable&quot;)] &lt;- mapply(
++   i= 1:2,
++   FUN= IndexFunction,
++   SIMPLIFY= FALSE
++   )
+&gt; long_data$Data &lt;- unlist(survey_data, use.names= FALSE)
+&gt; 
+&gt; ## Here is the result
+&gt; long_data</code></pre>
+<pre><code>        Case  Variable              Data
+1     SmithJ      Name      Smith, James
+2    GarciaM      Name      Garcia, Mary
+3  WilliamsA      Name Williams, Anthony
+4       LeeP      Name     Lee, Patricia
+5  MartinezL      Name   Martinez, Linda
+6     SmithJ ShirtSize                 S
+7    GarciaM ShirtSize                 M
+8  WilliamsA ShirtSize                 L
+9       LeeP ShirtSize                 M
+10 MartinezL ShirtSize                 L
+11    SmithJ     State                CA
+12   GarciaM     State                TX
+13 WilliamsA     State                NY
+14      LeeP     State                FL
+15 MartinezL     State                IL</code></pre>
+<pre class="r"><code>&gt; ## Covert long -&gt; wide ==========
+&gt; 
+&gt; ## Use tapply to covert back to wide
+&gt;   ## Note the declaration of a function directly into the FUN=
+&gt;   ## argument of tapply().  This is called declaring an &quot;anonymous
+&gt;   ## function&quot; and can be convenient if the function is fairly
+&gt;   ## trivial. Incidentally, identity() would have done the same thing.
+&gt; 
+&gt; wide_data &lt;- tapply(
++   X= long_data$Data,
++   INDEX= long_data[ , c(&quot;Case&quot;, &quot;Variable&quot;)],
++   FUN= function(x) {x}
++ )
+&gt; wide_data &lt;- data.frame(wide_data)
+&gt; 
+&gt; ## Here is the result
+&gt; wide_data</code></pre>
+<pre><code>                       Name ShirtSize State
+GarciaM        Garcia, Mary         M    TX
+LeeP          Lee, Patricia         M    FL
+MartinezL   Martinez, Linda         L    IL
+SmithJ         Smith, James         S    CA
+WilliamsA Williams, Anthony         L    NY</code></pre>
+<pre class="r"><code>&gt; ## Delete demonstration objects
+&gt; remove(wide_data, long_data, survey_data)</code></pre>
+</div>
+<div id="parallel-processing-with-the-parallel-package" class="section level3">
+<h3>Parallel Processing (With the <code>parallel</code> Package)</h3>
+<p>One of the most important benefits of segmented processing is that it lends itself to parallel processing. As discussed earlier in this chapter, modern computers have multiple CPU cores that are able do calculations independently. If a calculation lends itself to segmented processing, it will also lend itself to having those segments processed in parallel. This leads to faster results.</p>
+<p>The R parallel package supports multiple methods for parallel processing. This section will focus on the <code>par_()</code> functions instead of the <code>mc_()</code> functions, because the <code>mc_()</code> functions rely on a UNIX-specific forking approach. However, the <code>mc_()</code> functions can be more efficient than the <code>par_()</code> functions and are worth exploring if you typically work on a UNIX-like system (includes MAC).</p>
+<p>There are three basic steps to parallel processing.</p>
+<ol style="list-style-type: decimal">
+<li><p>Create a cluster of processes that will carry out parallel computation, using the <code>makeCluster()</code> function. Use <code>detectCores()</code> to determine how many cores you have, and therefore how many processes you can run simultaneously. Aim to have no more than 80 percent of your cores engaged at a time.</p></li>
+<li><p>Use a parallel apply-family function, such as <code>parLapply()</code> or <code>parApply()</code>, to execute the computation.</p></li>
+<li><p>Terminate your cluster of processes with <code>stopCluster()</code> when the task is complete.</p></li>
+</ol>
+<pre class="r"><code>&gt; ## Load the parallel package, which contains R&#39;s parallel processing
+&gt;   ## functions. The parallel package comes installed with basic R,
+&gt;   ## but is not automatically loaded on start-up.
+&gt; library(parallel)
+&gt; 
+&gt; ## Determine how many cores are available.
+&gt; usable_cores &lt;- detectCores()
+&gt; usable_cores &lt;- floor(usable_cores * 0.8)
+&gt; 
+&gt; ## Create a cluster of processes available for parallel processing,
+&gt;   ## including the object that will be used to access that cluster.
+&gt; core_cluster &lt;- makeCluster(usable_cores)
+&gt; 
+&gt; ## Using unclass, find the process ID for each process. This
+&gt;   ## information can be used to locate the processes within your
+&gt;   ## operating system&#39;s process manager application.
+&gt; unclass(core_cluster)</code></pre>
+<pre><code>[[1]]
+node of a socket cluster on host &#39;localhost&#39; with pid 12648
+
+[[2]]
+node of a socket cluster on host &#39;localhost&#39; with pid 12645
+
+[[3]]
+node of a socket cluster on host &#39;localhost&#39; with pid 12649
+
+[[4]]
+node of a socket cluster on host &#39;localhost&#39; with pid 12652
+
+[[5]]
+node of a socket cluster on host &#39;localhost&#39; with pid 12651
+
+[[6]]
+node of a socket cluster on host &#39;localhost&#39; with pid 12646
+
+[[7]]
+node of a socket cluster on host &#39;localhost&#39; with pid 12647
+
+[[8]]
+node of a socket cluster on host &#39;localhost&#39; with pid 12650
+
+[[9]]
+node of a socket cluster on host &#39;localhost&#39; with pid 12644</code></pre>
+<pre class="r"><code>&gt; ## Create test data and a test function to run in parallel
+&gt; SampleAndSummary &lt;- function(lambda) {
++   sample_data &lt;- rpois(n= 10^7, lambda= lambda)
++   summary(sample_data)
++ }
+&gt; parameter_object &lt;- as.list(1:20)
+&gt; 
+&gt; ## Run function in parallel and simplify outputs
+&gt; results_object &lt;- parLapply(
++   cl= core_cluster,
++   X= parameter_object,
++   fun= SampleAndSummary
++   )
+&gt; results_object &lt;- simplify2array(results_object)
+&gt; 
+&gt; ## Terminate process cluster.  This step is important, as &quot;zombie&quot;
+&gt;   ## processes can build up if you do not terminate them. Confirm that
+&gt;   ## the processes are gone using your process manager.
+&gt; stopCluster(core_cluster)
+&gt; 
+&gt; ## Delete demonstration objects
+&gt; remove(results_object, core_cluster, parameter_object, SampleAndSummary,
++   usable_cores, IndexFunction)</code></pre>
+<p>Parallel processing is not always the most efficient option, because R must expend additional resources to manage the process cluster. However, it can dramatically accelerate large calculations, making up for those resources in the right circumstances.</p>
+<table>
+<colgroup>
+<col width="25%"></col>
+<col width="25%"></col>
+<col width="25%"></col>
+<col width="25%"></col>
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">Function</th>
+<th align="left">Parallel Processing Version</th>
+<th align="left">Object Acted Upon</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>apply()</code></td>
+<td align="left"><code>parApply()</code></td>
+<td align="left">Array</td>
+<td align="left">Chunks an <code>X=</code> array according to a <code>MARGIN=</code> dimension or set of dimensions</td>
+</tr>
+<tr class="even">
+<td align="left"><code>do.call()</code></td>
+<td align="left"></td>
+<td align="left">List</td>
+<td align="left">Passes all elements of an <code>args=</code> list to a <code>what=</code> function. Commonly used to collect and aggregate the results of list-wise apply functions.</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>eapply()</code></td>
+<td align="left"></td>
+<td align="left">All objects in an environment</td>
+<td align="left">Applies a <code>FUN=</code> function to every object in an <code>env=</code> environment. Commonly used to collect objects inside a function, which performs calculations in a separate, temporary environment.</td>
+</tr>
+<tr class="even">
+<td align="left"><code>lapply()</code></td>
+<td align="left"><code>parLapply()</code></td>
+<td align="left">List</td>
+<td align="left">Applies a <code>FUN=</code> function to each element of an <code>X=</code> list.</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>mapply()</code></td>
+<td align="left"></td>
+<td align="left">List and/or vector</td>
+<td align="left">Applies a <code>FUN=</code> function to each element of a given list, but also passes lists containing the function’s arguments to the function. This enables different parameters to be applied to different elements of the list.</td>
+</tr>
+<tr class="even">
+<td align="left"><code>rapply()</code></td>
+<td align="left"><code>parRapply()</code></td>
+<td align="left">List</td>
+<td align="left">Does a depth-first search to find the non-list objects contained within a multi-level <code>object=</code> list, and applies an <code>f=</code> function to each. The <code>how=</code> argument specifies how the results should be packaged in the output expression.</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>sapply()</code></td>
+<td align="left"><code>parSapply()</code></td>
+<td align="left">List</td>
+<td align="left">Applies a <code>FUN=</code> function to each element of a <code>X=</code> list, and then calls <code>simplify2array()</code> to attempt to turn the results into an array.</td>
+</tr>
+<tr class="even">
+<td align="left"><code>tapply()</code></td>
+<td align="left"></td>
+<td align="left">Vector</td>
+<td align="left">Chunks an <code>X=</code> vector according to an <code>INDEX=</code> grouping vector</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="exercise---applying-the-apply-family" class="section level3">
+<h3>Exercise - Applying the Apply Family</h3>
+<p>The apply family of functions open new avenues for performing computation. Go through the A2-A5 vocabulary and try to build a function that performs the same task as each function, using at least one function from the apply family in each. Use multiple test cases to confirm that the two functions behave identically.</p>
+</div>
 <div id="vocabulary-table-for-lesson-b2" class="section level3">
 <h3>Vocabulary Table for Lesson B2</h3>
 <p>In order to program effectively, you will need to memorize basic functions, operators, and constants. Write each of the functions/operators/constants below on a flash card. On the back of each card, write a succinct definition of what it does and a example of a line code you could enter into console that uses it. Drill with these cards until you have memorized them. Then drill again, coming up with a fresh example for each and testing that example in the console.</p>

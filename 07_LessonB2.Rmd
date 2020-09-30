@@ -17,8 +17,582 @@ knitr::opts_chunk$set(prompt= TRUE)
 
 ## B2.  Segmentation
 
-==========
-==========
+As discussed in Lesson A1, functions are objects.  They do not show up in the output of `objects()` because they are stored in environments other than the global environment.  The ability to hold multiple environments makes R modular.  At start-up, a small number of "packages" load automatically to supply a range of versatile core functions.  The user can load additional packages to make more functions available for use.  In total, basic R loads approximately 2,400 functions in seven packages at start-up, of which about 300 are covered in this class:
+
+|Package		|Description Quote From The `help()` Page
+|:-		|:-
+|base		|"The basic functions which let R function as a language: arithmetic, input/output, basic programming support, etc."
+|stats		|"...functions for statistical calculations and random number generation"
+|utils		|"...collection of utility functions"
+|methods		|"Formally defined methods and classes for R objects, plus other programming tools"
+|grDevices		|"Graphics devices and support"
+|datasets		|"...a variety of datasets"
+|graphics		|"...functions for 'base' graphics"
+
+
+The exact number of functions in each packages changes over time but here is the current count.
+
+```{R Count Functions in Default Packages, echo= FALSE}
+
+## Count functions in R's currently loaded packages ==========
+  ## If you have not loaded any additional packages before running, this will
+  ## count the functions in the default packages that load in R at start-up.
+
+## Find packages
+package_list <- search()
+package_list <- package_list[grep("package", package_list)]
+names(package_list) <- gsub( "package[:]", "", package_list )
+package_list <- as.list( package_list )
+
+## Count functions in packages
+CountFunctions <- function(pack_list= package_list){
+	function_count <- lapply( package_list, ls.str )
+	function_count <- sort( sapply(function_count, length), decreasing= TRUE)
+	print( noquote("Functions in each package currently loaded:"))
+	print( noquote(function_count))
+	}
+
+CountFunctions()
+
+## Delete demonstration objects
+remove(package_list, CountFunctions)
+```
+
+The function `search()` reveals all the environments currently loaded.  By default, this includes the seven packages discussed above, the global environment (`.GlobalEnv`), and the R's user interface (`tools:RGUI`).  The `library()` and `detach()` functions load a new package and unload it respectively.  In this lesson, we will discuss the package parallel, which contains functions for doing parallel processing in R.  Here is a demonstration of loading and unloading this package.
+
+```{R Packages}
+## view packages currently loaded
+search()    
+
+## load a new package
+library( "parallel" )
+search()   
+
+## unload package
+detach( "package:parallel" )
+search()
+```
+
+Through `package:datasets`, R comes with several datasets pre-installed.  These datasets can be useful for learning and testing purposes.  The function `data()` will load datasets into the global environment from `datasets`.  It can also load datasets from other packages that come with built-in sample data.
+
+R is an open-source collaborative endeavor.  Teams around the world publish and maintain packages on their particular computational specialty.  At the time of this writing, there are nearly 14,000 packages available on the CRAN package repository, of which only a handful come pre-installed in the way that `parallel` is pre-installed.  The `install.packages()` function installs packages from the repository.  You will need to specify a `repos=` repository from which to download the code, such as `install.packages(repos= https://mirrors.nics.utk.edu/cran)` and can specify where to put the installed package using `lib=` if the default location is not viable. The `update.packages()` function will retrieve the updated version of all installed packages that have gone out of date.  Setting `ask=` to `FALSE` will prevent R from confirming for each package that you wish to install it.
+
+### The Apply Family of Functions
+
+To do analytic computation, you will need to break data into parts and perform computation on each of those parts.  This could happen because:
+
+*	You want to compare sub-populations to each other, so you need to do comparable analysis separately on each
+
+*	Your data is too large to process all at once, so you need to process it in chunks
+
+*	Your data takes too long to process, so you want to process chunks of it simultaneously
+
+*	You are running a simulation that has some element of randomness to it, so you want to run it multiple times to measure the variability in results
+
+The apply family of functions are R's premier tools for segmented / batch processing.  Each function takes an `X=` data object, divides it up into chunks with an `INDEX=`, `MARGIN=`, or implied chunking schema, and applies a `FUN=` function to that chunk.
+
+The tapply() function accepts an `X=` data vector and divides into chunks according to an `INDEX=` vector.  It can also accept an `INDEX=` list containing multiple vectors, in which case `tapply()` will apply the function to separately each cross-tabulation of `INDEX=` vectors.
+
+```{R tapply()}
+## Create a mock dataset
+
+set.seed( 2657 )
+survey_data <- data.frame(
+	"Color"= sample( c("Red", "Blue"), size= 2^4, replace= TRUE),
+	"Type"= sample( c("A", "B"), size= 2^4, replace= TRUE),
+	"Score"= rpois(n= 2^4, lambda= 100)
+	)
+
+head(survey_data, 2)
+
+
+## Create difference between the scores of different groups
+survey_data$Score <- survey_data$Score + {survey_data$Type == "A"}
+survey_data$Score <- survey_data$Score + {survey_data$Color == "Red"}
+
+
+## Calculate the median separately for each color using tapply()
+tapply(
+	X= survey_data$Score,
+	INDEX= survey_data$Color,
+	FUN= median
+	)
+
+## Calculate the mean separately for each color using tapply
+tapply(
+	X= survey_data$Score,
+	INDEX= survey_data[ , c("Color", "Type")],
+	FUN= median
+	)
+
+## Delete demonstration object
+remove(survey_data)
+```
+
+The `apply()` function accepts an `X=` data array and divides it into chunks according to `MARGIN=` dimensions.  It is equivalent to doing `tapply()` with `INDEX=` argument set to the `slice.index()` for that dimension.  The `apply()` family will accept a `MARGIN=` vector with multiple elements, in which case `tapply()` applies the `fun=` to each intersection of the specified dimensions.
+
+```{R apply()}
+## Create a mock dataset
+census_data <- array( NA,
+	dim= 4:2,
+	dimnames=  list(
+		"Length"= letters[1:4],
+		"Width"= letters[24:26],
+		"Depth"= letters[12:13]
+		)
+	)
+census_data[ , , 1]  <- outer(1:4, 1:3)
+census_data[ , , 2 ] <- outer(1:4, 1:3) * 2
+census_data
+
+## Calculate the median for each depth, identifying MARGIN=
+	## either by the dimension name or the dimension position
+apply(X= census_data, MARGIN= "Depth", FUN= median)
+apply(X= census_data, MARGIN= 3, FUN= median)
+
+## Calculate the median for each width x depth, in effect
+	## summarizing across lengths
+apply(X= census_data, MARGIN= c( "Width", "Depth" ), FUN= median)
+
+## Do equivalent segmentation with apply() and tapply()
+apply(X= census_data, MARGIN= "Depth", FUN= median)
+
+index <- slice.index(census_data, MARGIN= 3)
+index <- dimnames(census_data)[[3]][index]
+tapply(X= census_data, INDEX= index, FUN= median)
+
+## Delete demonstration objects
+remove(census_data, index)
+```
+
+The `lapply()` function applies a `FUN=` function to the object in each element of an `X=` list.  In addition to `lapply()` itself, this function has three variants that perform different forms on this operation: `sapply()`, `mapply()`, `rapply()`.  The `sapply()` function executes `lapply()` and then passes the result to `simplify2array()`, which attempts to restructure the output as a simpler array object.
+
+```{R lapply() and sapply()}
+## Generate an example list object
+list_object <- list("A"= 1:4, "B"= 5:16)
+
+
+## Execute this function separately on each element of a list
+lapply(X= list_object, FUN= quantile)
+
+## Execute a lapply(), but then attempt to restructure the outputs
+	## as a simpler array object
+sapply(X= list_object, FUN= quantile)
+
+## sapply() is the same as lapply() + simplify2array()
+simplify2array( lapply(X= list_object, FUN= quantile))
+
+## Delete demonstration objects
+remove(list_object)
+```
+
+The `simplify2array()` function is an example of a segmented processing function that is able to analyze objects and/or the environment and then adapt its behavior accordingly.  The "Environmentally Aware Batch Processing" section will explore these kinds of functions in greater detail.
+
+The `mapply()` function also works like `lapply()` but it enables you to specify different arguments to the function for each element of the list.  This enables `mapply()` to execute different variations on the same functional procedure for different elements.
+
+```{R mapply()}
+## create sample lists
+sample_population <- list(
+	"Circle"= c("C", "G", "O"),
+	"Points"= c("A", "M", "W"),
+	"Ladder"= c("B", "E", "F")
+	)
+sample_population <- lapply(X= sample_population, FUN= as.factor)
+
+sample_probability <- list(
+	"Circle" = c(0.25, 0.25, 0.50),
+	"Arrow" =  c(0.50, 0.25, 0.25),
+	"Ladder" = c(0.25, 0.50, 0.25)
+)
+
+## Declare a function to generate a random sample and summarize the results
+SampleSummary <- function(pop, prob) {
+	pop <- sample( pop, size= 1000, replace= TRUE, prob= prob)
+	summary(pop)
+	}
+
+## apply this sample/summarize function to each pair of sampling
+	## elements and sampling probabilities. Note the use of SIMPLIFY=
+	## to disable the default behavior of passing the result through
+	## simplify2array().
+
+mapply(
+	FUN= SampleSummary,
+	pop= sample_population,
+	prob= sample_probability,
+	SIMPLIFY= FALSE
+	)
+
+## Delete demonstration objects
+remove(SampleSummary, sample_population, sample_probability)
+objects()
+```
+
+### Adaptive Segmented Functions
+
+In the last section, we touched on `simplify2array()`, a function that analyses a list object and tries to re-package it as a simpler array object.  This exemplifies how functions can be designed to analyze their target objects and respond adaptively to them. 
+
+```{R simplify2array()}
+## list of vectors -> 2D array
+vector_list <- list("A"= 1:4, "B"= 5:8, "C"= 9:12)
+simplify2array(vector_list)
+
+## List of 2D arrays -> 3D array
+array_list <- array( 1:4,
+	dim= c(2, 2),
+	dimnames= list("Rows"= c("a", "b"), "Cols"= c("A", "B"))
+	)
+array_list <- list("A1"= array_list, "A2"= array_list, "A3"= array_list)
+simplify2array(array_list)
+
+## list of lists -> 3D array
+list.list <- list("A"= 1:4, "B"= 5:8, "C"= 9:12)
+list.list <- list("a"= list.list, "b"= list.list)
+simplify2array(list.list)
+
+## Delete demonstration objects
+remove(array_list, vector_list)
+```
+
+The basic three apply functions – `tapply()`, `apply()`, `lapply()` – are not adaptive.  The `mapply()` and `sapply()` functions are marginally adaptive because they call `simplify2array()`.  This section discusses segmented processing functions that have more sophisticated analytic and adaptive capabilities.
+
+
+Much like `lapply()`, the `rapply()` function accepts a `X=` list, and executes a `FUN=` function on its components.  However, `rapply()` performs a depth-first search to find all the non-list objects embedded in the list and then performs the function on those objects.  With the `how=` argument set to "list", the output will be a list with structure identical to the `X=` list.
+
+```{R rapply()}
+## Generate a multi-level list object
+list_object <- list(
+	"A"= 1:4,
+	"B"= list(
+		"B1"= 5:8,
+		"B2"= list(
+			"B2a"= 9:16,
+			"B2b"= 17:32
+			)
+		),
+	"C"= 33:64
+	)
+
+## Use rapply() to execute the function on each vector in the list
+rapply(object= list_object, f= max, how= "list")
+
+## Delete demonstration objects
+remove(list_object)
+```
+
+The eapply() function surveys all the objects in a specified environment and applies a function to each of them individually.  One of its major uses is gathering up objects inside a function, since each instance of a function generates its own temporary environment and performs operations inside it.  For this purpose, `eapply()` can be used in conjunction with `environment()`. That function finds which environment contains a `fun=` function or contains (if given no argument) the current instance of `environment()`.
+
+```{R eapply()}
+## set up example environment
+remove(list= objects())
+lambda4 <- rpois(n= 64, lambda= 4)
+lambda12 <- rpois(n= 64, lambda= 12)
+lambda8 <- rpois(n= 64, lambda= 8)
+
+## generate summaries for each object
+eapply(env= environment(), FUN= summary)
+
+## use eapply() to explore the contents of a function's environment.
+ZScore <- function(x) {
+	## calculate z.score
+	centered_x <- x - mean( x )
+	z_score <- centered_x / sd( x )
+	z_score <- round( z_score, 3 )
+
+	## Express objects in the environment
+	eapply(env= environment(), FUN= identity)
+	}
+
+ZScore(1:8)
+
+## Delete demonstration objects
+remove(ZScore, lambda4, lambda8, lambda12)
+```
+
+The `do.call()` function accepts a list of objects and then simultaneously passes each list element as a separate object to a function, matching up list names to arguments when applicable.  A common use for `do.call()` is collecting parts of a dataset processed in parallel and compiling them with `rbind()` back to a single dataset.  Because `do.call()` can accept arguments in list form and pass them as objects to a function, it is useful in a variety of circumstances.
+
+```{R do.call()}
+## create a list containing multiple datasets
+parallel_data <- list(
+	"15m+"= data.frame(
+		"State"= c("CA", "TX", "FL", "NY"),
+		"Pop"= c(40, 29, 21, 20),
+		"Region"= c("W", "S", "S", "NE")
+		),
+	"10m-15m"= data.frame(
+		"State"= c("PA", "IL", "OH", "GA", "NC", "MI"),
+		"Pop"= c(13, 13, 12, 11, 10, 10),
+		"Region"= c("NE", "MW", "MW", "S", "S", "MW")
+		)
+	)
+
+## use do.call() to compile to single dataset
+do.call(what= rbind, args= parallel_data)
+
+## use do.call() to supply arguments to a function
+do.call(what= rpois, args= list(n= 5, lambda= 3))
+
+## Delete demonstration objects
+remove(parallel_data)
+```
+
+### Efficient Computation
+Segmenting computations into manageable chunks can significantly improve code performance, especially when working with large datasets or complex modeling tasks.  However, you will need a firm conceptual grasp of how your machine works to fully realize that potential.
+
+Frankly, efficient computing is about enabling a computer to do dumb things quickly.  This involves two things
+
+1.  Operationalizing a complex operation as a sequence of simple computations ("dumb things")
+
+2.  Bringing all your computer's resources to bear on the computation ("quickly").  
+
+This section will introduce you to the basic computational resources at your disposal and how trade-offs in resource utilization can enhance your code.  The condensed version is this: your coding style should shift to maximize processor ("CPU"), random access memory ("RAM"), or storage memory ("storage") efficiency, depending on which one is most strained during the operation.  We will brush on CPU and RAM in this section.  
+
+Note: CPU, RAM and storage are common to all computers, but some advice in this section assumes you will be working primarily from a laptop computer.
+
+#### Processor
+
+The processor ("CPU") is the part of your computer that does computations.  In most computers, your CPU consists of multiple CPU cores stacked on top of each other.  This enables your computer to run multiple processes at the same time.
+
+_Parallel processing_– The most powerful way to use a CPU is engaging all its cores at the same time.  To do this, you divide up a computation in chunks that can be processed independently.  If it helps, think of `lapply()`.  Since a function is applied separately to the elements of the list, each element might as well be on its own core.  Splitting a task among multiple cores is called "parallel processing."  This less will focus on parallel processing using a single machine.  However, you can use the same techniques and functions to perform parallel processing across multiple machines.
+
+_Core Resource Management_– On a high performance computation, aim to keep about 80 percent of your cores engaged.  If you are working on a server, be courteous to other users and your system administrator ("sys admin").  Do not use more than half of the cores during work hours.  Better yet, schedule your heavy computations for nights/weekends when high-core use is less likely to inconvenience.  Check in with your admin as well.  Servers can send a "distress" message to the admin if their resources are put too far under strain.
+
+_Listening to your machine _– When you run your processor at full capacity, it will generate a significant amount of heat.  Paying attention to heat is one way that you can "listen to your hardware," allowing it to guide you in programming effectively.  When your CPU is generating significant heat, you will be able to feel it in two places on a laptop: at the heat vents and on the underside directly below your processor.  As heat builds up during heavy computation, your fan will eventually activate, as your computer switches from passive heat dissipation to active dissipation.  Your computer can "run hot" for a long time.  However, over extended computation heat built up may cause the internal temperature to exceed operational thresholds.  With these thresholds exceeded, your machine will automatically begin throttling down processor speed to protect itself from damage.  Next time your fan activates, take a moment to feel for the heat vents and the hottest point on the underside.  For best results, do this exercise while your laptop is plugged-in and after the battery has already been fully charged for a while – a charging battery also emits heat.
+
+_Heat dissipation_– To get the best performance out of your CPU during heavy computation, do what you can to improve its heat dissipation:
+
+*	Make sure the heat vents are unobstructed. 
+
+*	Do not perform heavy computations with your laptop's screen closed (i.e., "clamshell mode")
+
+*	Shut down all other CPU-intensive applications. 
+
+*	Finish battery charging at least 30 minutes before you start.  
+
+*	Do not leave your computer in direct window sunshine.
+
+*	Give your laptop as much airflow as possible.  A low-tech option is propping your machine between two stacks of books so that most of the underside has abundant airflow.  Laptop cooling pads are the higher-tech solution.
+
+_Graphical Processing Unit (GPU)_ – You have two kinds of processors in your machine, the CPU and GPU.  The GPU is an independent processor that renders the polygons underlying your screen's display.  It is like a CPU, except that it has many more cores than a CPU and each individual core is much less powerful.  This allows it to layer many tiny polygons on your screen to create complex visual displays.  If you have a task that involves doing many small calculations (such as an agent-based simulation with many simplistic actors), it might be helpful to route it through your GPU, instead of your CPU.  GPU tasking is out of scope for this class, but worth pursuing if your computations have the right parameters for it.
+
+#### Random Access Memory (RAM)
+
+RAM is chip-based memory on your computer.  The CPU stores data temporarily in RAM so that it can retrieve it easily.  CPU and RAM can conduct information transfer at high speeds and volumes.  However, you have significantly less RAM than standard storage memory.  By default, R stores everything in the R environment in RAM.  This makes data easy to retrieve and makes vector operations faster.  However, this also means that every object you store in the R environment takes up RAM that the processor could use to store intermediate computations needed to execute functions.
+
+_Swap Memory_– If you need more processing power, increase the number of cores and store everything they need at their fingertips (i.e., in RAM).  However, this can result in R needing more RAM than you have.  If this happens, your machine will shift data to "swap".  Swap (or "virtual memory") is when your machine starts storing RAM data to regular storage memory.  Since storage memory loads slowly (compared to RAM), this slows down processor cores as they wait for their turn to access storage.  A computer that runs out of swap may lock up entirely, terminate processes, freeze processes, or engage in other self-protective mechanisms. If you have gotten to the point where swap engages, you have already missed the mark for efficient computation.
+
+_Minimizing Footprint_– To get the best performance out of RAM, minimize how much RAM is in use and how often it gets reallocated:
+
+*	Delete objects from the environment once they have served their purpose in the code.
+
+*	Determine whether long or wide format has a smaller resource footprint for your data.
+
+*	Load only the parts of large datasets that you need.
+
+*	Shut down all other RAM intensive applications during intensive processing.
+
+*	Engage fewer cores if each core requires a large chunk of RAM.
+
+_Monitoring resource use_– All operating systems have utilities that you can use to monitor resource use on your machine. These monitors reveal information about "processes", which are basic chunks of computation.  An application can have more than one process, if multiple instances of it are running at the same time, or if the application is engaging in parallel processing.  
+
+* Mac– The resource monitoring application is "Activity Monitor".  Each tab with show you the processes that your machine is running, with an emphasis on a different feature of resource use.  Typically, the first tab will report CPU burden and the second tab will report Memory burden.
+
+* PC– The resource monitoring application is "Task Manager".  The "Performance" tab charts the current resource footprint, with separate tabs for CPU, RAM ("memory"), storage ("disk"), and GPU.  The "Details" tab will show you the processes that your machine is running.  Resource monitoring applications are beyond the scope of this class.  However, I encourage you to spend time learning how your monitor works before you begin practicing the segmented processing techniques in this lesson, especially the parallel processing techniques in the next section.
+
+### Long and Wide Data Formatting
+
+When managing resource footprint, leveraging the unique strengths of different data formats can be an effective strategy.  For tabular data, this entails understanding the difference between "long" and "wide" data.  Wide data is the format to which you are probably most accustomed.  In a simple wide data format, each row is a "case" and each column is a "variable". The dataset will be N cases long and M variables wide for a total of N x M cells.  Here is an example of a wide-format dataset.
+
+|Name		|Age		|State
+|:-|:-|:-
+|Smith, James		|20		|CA
+|Garcia, Mary		|28		|TX
+|Williams, Anthony		|36		|NY
+|Lee, Patricia		|44		|FL
+|Martinez, Linda		|52		|IL
+
+In a simple long data format, the first column contains the case ID, the second column contains the variable name, and the third column contains the data for that particular case on that particular variable. The dataset will be N cases x M variables long x three columns wide for a total of 3 x N x M cells.  Here is an example of a long-format dataset.
+
+|Name		|Variable		|Data
+|:-|:-|:-
+|Smith, James		|Age		|20
+|Garcia, Mary		|Age		|28
+|Williams, Anthony		|Age		|36
+|Lee, Patricia		|Age		|44
+|Martinez, Linda		|Age		|52
+|Smith, James		|State		|CA
+|Garcia, Mary		|State		|TX
+|Williams, Anthony		|State		|NY
+|Lee, Patricia		|State		|FL
+|Martinez, Linda		|State		|IL
+
+These formats are the ends of a spectrum of formatting.  For example, a wide dataset might hold census datasets for multiple years, with the first column denoting the year of the census.  The year column supplies long-format data about datasets that are otherwise in wide-format.
+
+Wide format is popular because it is easy to visually inspect, makes analysis of specific variables easy to do with column-wise operations, and it more resource efficient for storing a single dense dataset.  Long format is a useful counterpart because it can stack multiple datasets, even if each of the datasets has different variables.  Moreover, long format allows for sparse storage.  Sparse storage only stores non-empty data, with empty cells implied by absence.  For variables with many empty cells, sparse storage can have a much smaller resource footprint.  The tables below shows a sparse dataset in long and wide formats to illustrate the difference.
+
+**Total size as a wide-format dataset: 54 cells**
+
+Name|CA|TX|FL|NY|PA|IL|OH|GA
+|:-|:-|:-|:-|:-|:-|:-|:-|:-
+|Smith, James|Born|||||||Resides
+|Garcia, Mary||Born + Resides||||||
+|Williams, Anthony|||Born + Resides|||||
+|Lee, Patricia||||Born||Resides||
+|Martinez, Linda|||||Resides||Born|
+
+**Total size as a long-format dataset: 27 cells**
+
+|Name	|State	|Relationship
+|:-|:-|:-
+|Smith, James	|CA	|Born
+|Smith, James	|GA	|Resides
+|Garcia, Mary	|TX	|Born + Resides
+|Williams, Anthony	|FL	|Born + Resides
+|Lee, Patricia	|NY	|Born
+|Lee, Patricia	|IL	|Resides
+|Martinez, Linda	|OH	|Born
+|Martinez, Linda	|PA	|Resides
+
+There are functions in basic R that aim to do long/wide conversion.  However, you will benefit from being able to construct your data shaping functions to match the particular needs of your project.  Study the data transformations below to get a sense for how to reshape your data as needed.
+
+```{R Long/Wide Conversion}
+## Generate dataset ==========
+
+survey_data <- data.frame(
+		"Name"= c("Smith, James", "Garcia, Mary", "Williams, Anthony",
+			 "Lee, Patricia", "Martinez, Linda"),
+		"ShirtSize"= c("S", "M", "L", "M", "L"),
+		"State"= c("CA", "TX", "NY", "FL", "IL")
+		)
+
+dimnames(survey_data)[[1]] <- paste(
+	gsub(pattern = ",.*", replacement= "", survey_data$Name),
+	gsub(pattern = ".*, ([A-Z]).*", replacement= "\\1", survey_data$Name),
+	sep= ""
+)
+
+## Here is the result
+survey_data
+
+## Convert wide -> long ==========
+
+## Create an empty data.frame to hold different products
+long_data <- data.frame(
+  array(dim= c(prod(dim(survey_data)), 3))
+	)
+dimnames(long_data)[[2]] <- c("Case", "Variable", "Data")
+
+## set each column to the relevant long-format variable
+IndexFunction <- function(x= survey_data, i) {
+		dimnames(x)[[i]][slice.index(x, MARGIN= i)]
+		}
+
+long_data[ , c("Case", "Variable")] <- mapply(
+	i= 1:2,
+	FUN= IndexFunction,
+	SIMPLIFY= FALSE
+	)
+long_data$Data <- unlist(survey_data, use.names= FALSE)
+
+## Here is the result
+long_data
+
+## Covert long -> wide ==========
+
+## Use tapply to covert back to wide
+	## Note the declaration of a function directly into the FUN=
+	## argument of tapply().  This is called declaring an "anonymous
+	## function" and can be convenient if the function is fairly
+	## trivial. Incidentally, identity() would have done the same thing.
+
+wide_data <- tapply(
+	X= long_data$Data,
+	INDEX= long_data[ , c("Case", "Variable")],
+	FUN= function(x) {x}
+)
+wide_data <- data.frame(wide_data)
+
+## Here is the result
+wide_data
+
+## Delete demonstration objects
+remove(wide_data, long_data, survey_data)
+```
+
+### Parallel Processing (With the `parallel` Package)
+
+One of the most important benefits of segmented processing is that it lends itself to parallel processing.  As discussed earlier in this chapter, modern computers have multiple CPU cores that are able do calculations independently.  If a calculation lends itself to segmented processing, it will also lend itself to having those segments processed in parallel.  This leads to faster results.
+
+The R parallel package supports multiple methods for parallel processing.  This section will focus on the `par_()` functions instead of the `mc_()` functions, because the `mc_()` functions rely on a UNIX-specific forking approach.  However, the `mc_()` functions can be more efficient than the `par_()` functions and are worth exploring if you typically work on a UNIX-like system (includes MAC).
+
+There are three basic steps to parallel processing.
+
+1.  Create a cluster of processes that will carry out parallel computation, using the `makeCluster()` function.  Use `detectCores()` to determine how many cores you have, and therefore how many processes you can run simultaneously.  Aim to have no more than 80 percent of your cores engaged at a time.  
+
+2.  Use a parallel apply-family function, such as `parLapply()` or `parApply()`, to execute the computation.
+
+3.  Terminate your cluster of processes with `stopCluster()` when the task is complete.  
+
+```{R Parallel Processing}
+## Load the parallel package, which contains R's parallel processing
+	## functions. The parallel package comes installed with basic R,
+	## but is not automatically loaded on start-up.
+library(parallel)
+
+## Determine how many cores are available.
+usable_cores <- detectCores()
+usable_cores <- floor(usable_cores * 0.8)
+
+## Create a cluster of processes available for parallel processing,
+	## including the object that will be used to access that cluster.
+core_cluster <- makeCluster(usable_cores)
+
+## Using unclass, find the process ID for each process. This
+	## information can be used to locate the processes within your
+	## operating system's process manager application.
+unclass(core_cluster)
+
+## Create test data and a test function to run in parallel
+SampleAndSummary <- function(lambda) {
+	sample_data <- rpois(n= 10^7, lambda= lambda)
+	summary(sample_data)
+}
+parameter_object <- as.list(1:20)
+
+## Run function in parallel and simplify outputs
+results_object <- parLapply(
+	cl= core_cluster,
+	X= parameter_object,
+	fun= SampleAndSummary
+	)
+results_object <- simplify2array(results_object)
+
+## Terminate process cluster.  This step is important, as "zombie"
+	## processes can build up if you do not terminate them. Confirm that
+	## the processes are gone using your process manager.
+stopCluster(core_cluster)
+
+## Delete demonstration objects
+remove(results_object, core_cluster, parameter_object, SampleAndSummary,
+  usable_cores, IndexFunction)
+```
+
+Parallel processing is not always the most efficient option, because R must expend additional resources to manage the process cluster.  However, it can dramatically accelerate large calculations, making up for those resources in the right circumstances.
+
+|Function	|Parallel Processing Version		|Object Acted Upon	|Description
+|:-|:-|:-|:-
+|`apply()`	|`parApply()`		|Array	|Chunks an `X=` array according to a `MARGIN=` dimension or set of dimensions
+|`do.call()`	||List	|Passes all elements of an `args=` list to a `what=` function.  Commonly used to collect and aggregate the results of list-wise apply functions.
+|`eapply()`	||All objects in an environment	| Applies a `FUN=` function to every object in an `env=` environment.  Commonly used to collect objects inside a function, which performs calculations in a separate, temporary environment. 
+|`lapply()`	|`parLapply()`		|List	|Applies a `FUN=` function to each element of an `X=` list.
+|`mapply()`	||List and/or vector	|Applies a `FUN=` function to each element of a given list, but also passes lists containing the function's arguments to the function.  This enables different parameters to be applied to different elements of the list.
+|`rapply()`	|`parRapply()`|List	|Does a depth-first search to find the non-list objects contained within a multi-level `object=` list, and applies an `f=` function to each.  The `how=` argument specifies how the results should be packaged in the output expression.
+|`sapply()`	|`parSapply()`|List	|Applies a `FUN=` function to each element of a `X=` list, and then calls `simplify2array()` to attempt to turn the results into an array.
+|`tapply()`	||Vector	|Chunks an `X=` vector according to an `INDEX=` grouping vector
+
+### Exercise - Applying the Apply Family
+
+The apply family of functions open new avenues for performing computation.  Go through the A2-A5 vocabulary and try to build a function that performs the same task as each function, using at least one function from the apply family in each.  Use multiple test cases to confirm that the two functions behave identically.
 
 ### Vocabulary Table for Lesson B2
 
