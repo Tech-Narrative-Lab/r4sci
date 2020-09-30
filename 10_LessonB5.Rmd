@@ -15,6 +15,8 @@ knitr::opts_chunk$set(prompt= TRUE)
 
 ## B5.  Control Language
 
+CONTENT PENDING - LESSON UPDATE IN PROGRESS
+
 ==========
 ==========
 
@@ -31,9 +33,9 @@ Conditionals and Loops  |Error Handling |Expression |Object Dissection  |Functio
 |`if(){}`				|`gc()`					|`cat()`							|`attr()`				|`expression()`
 |`else{}`				|`proc.time()`	|`capture.output()`		|`attributes()`	|`eval()`
 |`&&`						|`::`						|`invisible()`				|`slot()`				|`formals()`
-|`\|\|`					|`stop()`				|`print()`						|`slotNames()`	|`body()`
+|`||`					|`stop()`				|`print()`						|`slotNames()`	|`body()`
 |`for(){}`			|`Sys.sleep()`	|`suppressWarnings()`	|`@`						|`methods()`
-|`while(){}`		|`try()`				|`\\u0007`						|`str()`				|`showMethods()`
+|`while(){}`		|`try()`				|`\u0007`						|`str()`				|`showMethods()`
 |`optim()`			|`unclass()`		|											|								|`getS3method()`
 |`break`				|`warning()`		|											|								|`getAnywhere()`
 |`return()`			|								|											|								|

@@ -623,7 +623,7 @@ The help documentation may be a difficult to read at first but keep practicing. 
 |:-				|:-				|:-				|:-		|:-
 |`""`				|`-`				|`!`				|`<=`		|`:`
 |`#`				|`*`				|`&`				|`!=`		|`()`
-|`<-`				|`/`				|`\|`				|`==`		|`[]`
+|`<-`				|`/`				|`|`				|`==`		|`[]`
 |`help()`		|`%/%`			|`FALSE`		|`>=`		|`{}`
 |`remove()`	|`^`				|					|			|
 |						|`+	`				|					|			|

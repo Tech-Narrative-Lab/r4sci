@@ -17,6 +17,8 @@ knitr::opts_chunk$set(prompt= TRUE)
 
 ## B3.  Environment
 
+CONTENT PENDING - LESSON UPDATE IN PROGRESS
+
 ==========
 ==========
 

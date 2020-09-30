@@ -770,6 +770,6 @@ The help documentation may be a difficult to read at first but keep practicing. 
 |`iconv()`	|`substring()`|`[^]`		|`^`			|`grepl()`
 |`noquote()`|							|`gsub()`	|`+`			|`regexpr()`
 |`tolower()`|							|`sub()`	|`|`			|`strptime()`
-|`toupper`	|							|					|`$`			|
+|`toupper()`	|							|					|`$`			|
 
 
