@@ -1,3 +1,7 @@
+---
+  title: A3.  Classes, Constants, and Comparison Operators
+---
+
 ```{r Environment set-up, include= FALSE}
 remove( list= objects() )
 ```
@@ -7,15 +11,12 @@ knitr::opts_chunk$set(fig.width=6, fig.height=6)
 knitr::opts_chunk$set(comment= "")
 knitr::opts_chunk$set(prompt= TRUE)
 ```
-## Lesson Links
 
 [Go to the Table of Contents](00_TableOfContents.html)
 
 [Return to Last Lesson (A2: Basic Vector Mathematics)](02_LessonA2.html)
 
 [Proceed to Next Lesson (A4: Factor and Chronological Classes, Advanced Ordering)](04_LessonA4.html)
-
-## A3.  Classes, Constants, and Comparison Operations
 
 This lesson will explore R's object classes and special constants.  It will also explore functions for performing set theory and logical comparison operations on vectors.
 
@@ -410,11 +411,11 @@ The help documentation may be a difficult to read at first but keep practicing. 
 
 |Object Class		|Indefinite Quantities		|Built-In Objects		|Set Theory		|Logical Switches
 |:-							|:-					|:-							|:-							|:-		
-|as.character()	|Inf				|letters				|%in%						|all()
-|as.logical()		|is.infinite()|LETTERS			|duplicated()		|any()
-|as.numeric()		|is.na()		|month.abb			|intersect()		|identical()
-|class()				|is.nan()		|month.name			|setdiff()			|ifelse()
-|as.__()				|is.null()	|pi							|union()				|pmax()
-|is.__()				|NA					|								|unique()				|pmin()
-|mode()					|NaN				|								|								|xor()
-|								|NULL				|								|								|
+|`as.character()`	|`Inf`				|`letters`				|`%in%`						|`all()`
+|`as.logical()`		|`is.infinite()`|`LETTERS`			|`duplicated()`		|`any()`
+|`as.numeric()`		|`is.na()`		|`month.abb`			|`intersect()`		|`identical()`
+|`class()`				|`is.nan()`		|`month.name`			|`setdiff()`			|`ifelse()`
+|`as.__()`				|`is.null()`	|`pi`							|`union()`				|`pmax()`
+|`is.__()`				|`NA`					|								|`unique()`				|`pmin()`
+|`mode()`					|`NaN`				|								|								|`xor()`
+|								|`NULL`				|								|								|

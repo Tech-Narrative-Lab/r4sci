@@ -1,3 +1,7 @@
+---
+  title: A2.  Basic Vector Mathematics
+---
+
 ```{r Environment set-up, include= FALSE}
 remove( list= objects() )
 ```
@@ -7,15 +11,12 @@ knitr::opts_chunk$set(fig.width=6, fig.height=6)
 knitr::opts_chunk$set(comment= "")
 knitr::opts_chunk$set(prompt= TRUE)
 ```
-## Lesson Links
 
 [Go to the Table of Contents](00_TableOfContents.html)
 
 [Return to Last Lesson (A1: Object Orientation and Operators)](01_LessonA1.html)
 
 [Proceed to Next Lesson (A3: Classes, Constants, and Comparison Operators)](03_LessonA3.html)
-
-## Lesson A2.  Basic Vector Mathematics
 
 This lesson will introduce you to many of the basic mathematical functions for constructing numeric vectors and manipulating them.
 

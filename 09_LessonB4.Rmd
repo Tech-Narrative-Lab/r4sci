@@ -1,7 +1,5 @@
 ---
-title: ""
-output: 
-  html_document: default
+title: "B4.  Visualization"
 ---
 
 ```{r Environment set-up, include= FALSE}
@@ -14,15 +12,12 @@ knitr::opts_chunk$set(comment= "")
 knitr::opts_chunk$set(prompt= TRUE)
 knitr::opts_chunk$set(fig.align= "center" )
 ```
-## Lesson Links
 
 [Go to the Table of Contents](00_TableOfContents.html)
 
 [Return to Last Lesson (B3: Environment)](08_LessonB3.html)
 
 [Proceed to Next Lesson (B5: Control Language)](10_LessonB5.html)
-
-## B4.  Visualization
 
 This lesson explores the graphical capabilities of R.  The lesson begins with an overview of the pre-packaged visualization routines but then explores the underlying functions that generate those products - and how you can use R's graphical fundamentals to design customized visualizations.  The lesson also touches on relevant features of human visual perception. The eye and visual cortex are not unbiased instruments and visualization design must accommodate this.
 

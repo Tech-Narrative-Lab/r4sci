@@ -1,3 +1,7 @@
+---
+  title: B5.  Control Language
+---
+
 ```{r Environment set-up, include= FALSE}
 remove(list= objects())
 ```
@@ -7,13 +11,10 @@ knitr::opts_chunk$set(fig.width=6, fig.height=6)
 knitr::opts_chunk$set(comment= "")
 knitr::opts_chunk$set(prompt= TRUE)
 ```
-## Lesson Links
 
 [Go to the Table of Contents](00_TableOfContents.html)
 
 [Return to Last Lesson (B4: Visualization)](09_LessonB4.html)
-
-## B5.  Control Language
 
 CONTENT PENDING - LESSON UPDATE IN PROGRESS
 

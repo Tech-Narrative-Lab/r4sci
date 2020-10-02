@@ -1,3 +1,7 @@
+---
+  title: B1.  Array and List Objects
+---
+
 ```{r Environment set-up, include= FALSE}
 remove(list= objects())
 ```
@@ -7,7 +11,6 @@ knitr::opts_chunk$set(fig.width=6, fig.height=6)
 knitr::opts_chunk$set(comment= "")
 knitr::opts_chunk$set(prompt= TRUE)
 ```
-## Lesson Links
 
 [Go to the Table of Contents](00_TableOfContents.html)
 
@@ -15,9 +18,10 @@ knitr::opts_chunk$set(prompt= TRUE)
 
 [Proceed to Next Lesson (B2: Segmentation)](07_LessonB2.html)
 
-## B1.  Array and List Objects
+This lesson will introduce you to lists, arrays, and data frames, which are core object classes used to organize vectors and store data.
 
 ### Lists and Hierarchical Vector Storage
+
 Vectors are the basic building blocks of R data structures.  All complex R objects that store data consist of vectors embedded in various forms of higher organizational structures.  The list class object is perhaps the most important and versatile of these structures.  A list is like a vector, except that each element of a list can hold a vector, or another list.  Using lists embedded as elements of other lists, list class objects enable organization of vectors into arbitrary hierarchies of data.  To illustrate the basic mechanics of a list, let us return to `substring()`, a text parsing function from Lesson A5.  The `strsplit()` function divides a text string into a vector of elements, splitting it up everywhere that a specific character appears.  Packaging those vectors into a list, `strsplit()` can split multiple strings at the same time.
 
 ```{R List Objects}

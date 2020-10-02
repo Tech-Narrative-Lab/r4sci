@@ -8,9 +8,9 @@ knitr::opts_chunk$set(comment= "")
 knitr::opts_chunk$set(prompt= TRUE)
 ```
 # Table of Contents
-|Unit A: Vectors and Vector Operations				|Unit B: Higher-Order Programming Fundamentals
-|:-						|:-
-|[Lesson A1: Object Orientation and Operators](01_LessonA1.html)		|[Lesson B1: Array and List Objects](06_LessonB1.html)
+|Unit A: Vector Operations				|Unit B: Programming Fundamentals		|Appendices
+|:-						|:-						|:-
+|[Lesson A1: Object Orientation and Operators](01_LessonA1.html)		|[Lesson B1: Array and List Objects](06_LessonB1.html)		|[Vocabulary Tables Appendix](11_VocabularyTables.html)
 |[Lesson A2: Basic Vector Mathematics](02_LessonA2.html)		|[Lesson B2: Segmentation](07_LessonB2.html)
 |[Lesson A3: Classes, Constants, and Comparison Operators](03_LessonA3.html)		|[Lesson B3: Environment](08_LessonB3.html)
 |[Lesson A4: Factor and Chronological Classes, Advanced Ordering](04_LessonA4.html)		|[Lesson B4: Visualization](09_LessonB4.html)

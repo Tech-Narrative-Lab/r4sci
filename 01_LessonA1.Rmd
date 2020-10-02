@@ -1,3 +1,8 @@
+---
+  title: Lesson A1.  Object Orientation and Operators
+---
+
+
 ```{r Environment set-up, include= FALSE}
 remove( list= objects() )
 ```
@@ -7,17 +12,16 @@ knitr::opts_chunk$set(fig.width=6, fig.height=6)
 knitr::opts_chunk$set(comment= "")
 knitr::opts_chunk$set(prompt= TRUE)
 ```
-## Lesson Links
 
 [Return to the Table of Contents](00_TableOfContents.html)
 
 [Proceed to Next Lesson (A2: Basic Vector Mathematics)](02_LessonA2.html)
 
-## Lesson A1.  Object Orientation and Operators
+This lesson will introduce you to the basics of programming in R.  
 
 ### Configuring Your System
 
-This lesson will introduce you to the basics of programming in R.  To begin programming, you will need to install the programming language.  You will also need an interface, which is a program or pair of programs that enable you to write programming code (an editor) and execute the code you have written (an interpreter).  Go to any one of the r-project.org data repositories [like this one]( https://mirrors.nics.utk.edu/cran/) to download the language, as well as the R Core Team's interface.  Both products are open source and cost nothing.
+To begin programming, you will need to install the programming language.  You will also need an interface, which is a program or pair of programs that enable you to write programming code (an editor) and execute the code you have written (an interpreter).  Go to any one of the r-project.org data repositories [like this one]( https://mirrors.nics.utk.edu/cran/) to download the language, as well as the R Core Team's interface.  Both products are open source and cost nothing.
 
 RStudio is a popular interface.  You can download it [here]( https://www.rstudio.com/products/rstudio/download/#download).  RStudio is an Integrated Development Environment (IDE), which is a program that has many tools to help you program.  However, we encourage you to not to become over-reliant on RStudio because it can prevent you from mastering key aspects of R.  Please strive to write R code to do things rather than clicking buttons in RStudio.
 

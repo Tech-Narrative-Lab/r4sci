@@ -1,3 +1,7 @@
+---
+  title: B2.  Segmentation
+---
+
 ```{r Environment set-up, include= FALSE}
 remove(list= objects())
 ```
@@ -7,15 +11,12 @@ knitr::opts_chunk$set(fig.width=6, fig.height=6)
 knitr::opts_chunk$set(comment= "")
 knitr::opts_chunk$set(prompt= TRUE)
 ```
-## Lesson Links
 
 [Go to the Table of Contents](00_TableOfContents.html)
 
 [Return to Last Lesson (B1: Array and List Objects)](06_LessonB1.html)
 
 [Proceed to Next Lesson (B3: Environment)](08_LessonB3.html)
-
-## B2.  Segmentation
 
 As discussed in Lesson A1, functions are objects.  They do not show up in the output of `objects()` because they are stored in environments other than the global environment.  The ability to hold multiple environments makes R modular.  At start-up, a small number of "packages" load automatically to supply a range of versatile core functions.  The user can load additional packages to make more functions available for use.  In total, basic R loads approximately 2,400 functions in seven packages at start-up, of which about 300 are covered in this class:
 
