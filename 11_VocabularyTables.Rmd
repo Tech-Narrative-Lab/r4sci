@@ -1,0 +1,136 @@
+---
+  title: Vocabulary Tables Appendix
+---
+
+[Go to the Table of Contents](00_TableOfContents.html)
+
+Below are the vocabulary tables for all lessons.
+
+### Vocabulary Table for Lesson A1
+
+|Environment Manipulation		|Arithmetic Operators		|Logical Operators		|Logical Comparisons		|Indexing Operators
+|:-				|:-				|:-				|:-		|:-
+|`""`				|`-`				|`!`				|`<=`		|`:`
+|`#`				|`*`				|`&`				|`!=`		|`()`
+|`<-`				|`/`				|`|`				|`==`		|`[]`
+|`help()`		|`%/%`			|`FALSE`		|`>=`		|`{}`
+|`remove()`	|`^`				|					|			|
+|						|`+	`				|					|			|
+
+### Vocabulary Table for Lesson A2
+
+|Object Construction		|Randomization		|Math, Element-wise		|Math, Summary		|Math, Cumulative
+|:-		|:-		|:-		|:-		|:-
+|`=`				|`rbinom()`		|`abs()`		|`length()`			|`cummax()`
+|`args()`		|`rnorm()`		|`ceiling()`|`mad()`				|`cummin()`
+|`c()`			|`rpois()`		|`exp()`		|`max()`				|`cumprod()`
+|`rep()`		|`runif()`		|`floor()`	|`mean()`				|`cumsum()`
+|`seq()`		|`sample()`		|`log()`		|`median()`			|`diff()`
+|`vector()`	|`set.seed()`	|`rank()`		|`min()`				|
+|`function(){}`|					|`round()`	|`prod()`				|
+|						|							|`sqrt()`		|`sd()`					|
+|						|							|						|`sum()`				|
+
+
+### Vocabulary Table for Lesson A3
+
+|Object Class		|Indefinite Quantities		|Built-In Objects		|Set Theory		|Logical Switches
+|:-							|:-					|:-							|:-							|:-		
+|`as.character()`	|`Inf`				|`letters`				|`%in%`						|`all()`
+|`as.logical()`		|`is.infinite()`|`LETTERS`			|`duplicated()`		|`any()`
+|`as.numeric()`		|`is.na()`		|`month.abb`			|`intersect()`		|`identical()`
+|`class()`				|`is.nan()`		|`month.name`			|`setdiff()`			|`ifelse()`
+|`as.__()`				|`is.null()`	|`pi`							|`union()`				|`pmax()`
+|`is.__()`				|`NA`					|								|`unique()`				|`pmin()`
+|`mode()`					|`NaN`				|								|								|`xor()`
+|								|`NULL`				|								|								|
+|								|NULL				|								|								|
+
+### Vocabulary Table for Lesson A4
+
+|Inspecting Objects		|Factors		|Chronology		|Indexing		|Distributions
+|:-						|:-							|:-								|:-					|:-
+|`tail()`				|`cut()`					|`as.POSIXct()`			|`append()`		|`~`
+|`head()`				|`factor()`				|`difftime()`				|`match()`		|`dt()`
+|`quantile()`		|`levels()`				|`OlsonNames()`			|`names()`		|`pt()`
+|`summary()`		|`nlevels()`			|`Sys.time()`				|`order()`		|`qt()`
+|							|								|`Sys.timezone()`		|`sort()`			|`rt()`
+|							|								|`weekdays()`				|`which()`		|`t.test()`
+
+### Vocabulary Table for Lesson A5
+
+|Text Encoding and Display		|Text Merging and Splitting		|Regular Expressions I		|Regular Expressions II		|R Regex Interface
+|:-		|:-		|:-		|:-		|:-
+|`\`				|`nchar()`		|`.`			|`()`			|`adist()`
+|`\n`				|`nzchar()`		|`[-]`		|`{,}`		|`agrep()`
+|`\t`				|`paste()`		|`[[::]]`	|`*`			|`gregexpr()`
+|`\u`				|`strsplit()`	|`[]`			|`\\`			|`grep()`
+|`iconv()`	|`substring()`|`[^]`		|`^`			|`grepl()`
+|`noquote()`|							|`gsub()`	|`+`			|`regexpr()`
+|`tolower()`|							|`sub()`	|`|`			|`strptime()`
+|`toupper()`	|							|					|`$`			|
+
+### Vocabulary Table for Lesson B1
+
+|Lists		|Arrays and List-Array Hybrids		| Array Index Functions		|Combining Arrays		|Matrix Calculations
+|:-		|:-		|:-		|:-		|:-
+|`[[]]`					|`array()`				|`aperm()`		|	`cbind()`		|`%*%`
+|`$`						|`as.array()`			|`arr.ind=`		|`merge()`		|`colMeans()`
+|`as.list()`		|`as.data.frame()`|`diag()`			|`rbind()`		|`colSums()`
+|`list()`				|`data.frame()`		|`lower.tri()`|							|`outer()`
+|`unlist()`			|`dim()`					|`slice.index()`|						|`rowMeans()`
+|								|`dimnames()`			|`upper.tri()`|							|`rowSums()`
+
+### Vocabulary Table for Lesson B2
+
+|Importing Libraries	|Basic Apply Family		|Adaptive Apply-Like Functions		| Parallel Processing (package:parallel)
+|:-										|:-					|:-									|:-		
+|`data()`								|`apply()`		|`do.call()`					|`detectCores()`
+|`detach()`							|`lapply()`		|`eapply()`						|`makeCluster()`
+|`install.packages()`		|`mapply()`		|`environment()`			|`parApply()`
+|`library()`						|`sapply()`		|`rapply()`						|`parLapply()`
+|`search()`							|`tapply()`		|`simplify2array()`		|`stopCluster()`
+|`update.packages()`	
+
+### Vocabulary Table for Lesson B3
+
+|Read/Write Functions |File Translation Packages  |File System Manipulation |Internet File Retrieval  |Interface Access
+|:-		|:-		|:-		|:-
+|`getwd()`		|`foreign`		|`dir.create()`		|`close()`				|`assign()`
+|`load()`			|`openxlsx`		|`dir.exists()`		|`download.file()`|`get()`
+|`read.csv()`	|`readstata13`|`file.copy()`		|`file.size()`		|`options()`
+|`readLines()`|`rjson`			|`file.exists()`	|`object.size()`	|`source()`
+|`save()`			|							|`file.remove()`	|`unzip()`				|`system()`
+|`setwd()`		|							|`file.rename()`	|`url()`
+|`write.csv()`|							|`list.files()`		|`zip()`
+|`writeLines()`|						|
+
+### Vocabulary Table for Lesson B4
+
+|Pre-Packaged Plotting		|Color		|Polygons		|Labels		|Devices
+|:-		|:-		|:-		|:-		|:-
+|`barplot()`		|`col2rgb()`|`points( )`	|`text( )`		|`graphics.off( )`
+|`boxplot()`		|`gray()`		|`segments()`	|`mtext()`		|`jpeg()`
+|`contour()`		|`hcl()`		|`polygon()`	|`axis()`			|`par()`
+|`hist()`				|`hsv()`		|`lines( )`		|`strheight()`|`pdf()`
+|`image()`			|`rainbow()`|`arrows()`		|`strwidth()`	|`plot.new()`
+|`mosaicplot()`	|`rgb()`		|`abline()`		|`legend()`		|`plot.window()`
+|`plot()`				|`rgb2hsv()`|`rect()`			|							|`png()`
+|`stem()`				|						|							|							|`svg()`
+|`persp()`			|						|							|							|
+|`filled.contour()`|				|							|							|
+
+
+### Vocabulary Table for Lesson B5
+
+Conditionals and Loops  |Error Handling |Expression |Object Dissection  |Function Dissection
+|:-		|:-		|:-		|:-		|:-
+|`if(){}`				|`gc()`					|`cat()`							|`attr()`				|`expression()`
+|`else{}`				|`proc.time()`	|`capture.output()`		|`attributes()`	|`eval()`
+|`&&`						|`::`						|`invisible()`				|`slot()`				|`formals()`
+|`||`					|`stop()`				|`print()`						|`slotNames()`	|`body()`
+|`for(){}`			|`Sys.sleep()`	|`suppressWarnings()`	|`@`						|`methods()`
+|`while(){}`		|`try()`				|`\u0007`						|`str()`				|`showMethods()`
+|`optim()`			|`unclass()`		|											|								|`getS3method()`
+|`break`				|`warning()`		|											|								|`getAnywhere()`
+|`return()`			|								|											|								|
