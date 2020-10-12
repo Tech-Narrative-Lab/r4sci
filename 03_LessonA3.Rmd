@@ -418,4 +418,4 @@ The help documentation may be a difficult to read at first but keep practicing. 
 |`as.__()`				|`is.null()`	|`pi`							|`union()`				|`pmax()`
 |`is.__()`				|`NA`					|								|`unique()`				|`pmin()`
 |`mode()`					|`NaN`				|								|								|`xor()`
-|								|`NULL`				|								|								|
+|							  	|`NULL`				|								|								|
