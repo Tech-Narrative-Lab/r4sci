@@ -36,14 +36,15 @@ Below are the vocabulary tables for all lessons.
 
 |Object Class		|Indefinite Quantities		|Built-In Objects		|Set Theory		|Logical Switches
 |:-							|:-					|:-							|:-							|:-		
-|`as.character()`	|`Inf`				|`letters`				|`%in%`						|`all()`
-|`as.logical()`		|`is.infinite()`|`LETTERS`			|`duplicated()`		|`any()`
-|`as.numeric()`		|`is.na()`		|`month.abb`			|`intersect()`		|`identical()`
-|`class()`				|`is.nan()`		|`month.name`			|`setdiff()`			|`ifelse()`
-|`as.__()`				|`is.null()`	|`pi`							|`union()`				|`pmax()`
-|`is.__()`				|`NA`					|								|`unique()`				|`pmin()`
-|`mode()`					|`NaN`				|								|								|`xor()`
-|								|`NULL`				|								|								|
+|`as.character()`	|`Inf`				|`letters`			|`%in%`						|`all()`
+|`as.logical()`		|`is.infinite()`|`LETTERS`		|`duplicated()`		|`any()`
+|`as.numeric()`		|`is.finite()`		|`month.abb`		|`intersect()`		|`identical()`
+|`as.integer()`			|`is.na()`		|`month.name`		|`setdiff()`			|`ifelse()`
+|`as.__()`				|`is.nan()`	|`pi`						|`union()`				|`pmax()`
+|`is.__()`				|`is.null()`					|								|`unique()`				|`pmin()`
+|`mode()`					|`NA`				|								|								|`xor()`
+|`class()`				|`NaN`				|								|								|
+|							  	|`NULL`				|								|								|
 
 ### Vocabulary Table for Lesson A4
 
