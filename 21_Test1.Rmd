@@ -1,0 +1,365 @@
+---
+  title: Test 1 (A1-A3)
+---
+
+[Go to the Table of Contents](00_TableOfContents.html)
+
+## Test Problems
+
+Valid Answers: Vocabulary Tables A1-A3
+
+Directions: Each test question declares a function that does the same thing as a function, operator, or built-in object listed in vocabulary table A1, A2, or A3.  Determine which vocabulary table function does the same thing as the declared function in the test question.  Aim to complete this 25-question test in 100 minutes (4 minutes to question).
+
+### [01]
+```{R >}
+## Given:
+## arg_one: is.numeric(), length() > 0, !is.na(), is.finite()
+## arg_two: is.numeric(), length() == length(arg_one), !is.na(), is.finite()
+## Disregard warning messages
+
+MysteryOperator <- function (arg_one, arg_two) {
+	output <- is.nan(sqrt(arg_two - arg_one))
+	return(output)
+}
+```
+
+### [02]
+```{R ifelse()}
+## Given:
+## arg_one: is.logical(), length() > 0, !is.na()
+## arg_two: is.vector(), length() == length(arg_one)
+## arg_three: is.vector(), mode() == mode(arg_two),
+    ## length() == length(arg_one),
+
+MysteryFunction <- function (arg_one, arg_two, arg_three) {
+	obj_one <- is.na(arg_one)
+	arg_one[obj_one] <- FALSE
+	output <- rep(as.numeric(NA), length(arg_one))
+	output[arg_one] <- arg_two[arg_one]
+	output[!arg_one] <- arg_three[!arg_one]
+	output[obj_one] <- as.numeric(NA)
+	return(output)
+}
+```
+
+### [03]
+```{R <}
+## Given:
+## arg_one: is.numeric(), length() > 0, !is.na(), is.finite()
+## arg_two: is.numeric(), length() == length(arg_one), !is.na(), is.finite()
+## Disregard warning messages
+
+MysteryOperator <- function (arg_one, arg_two) {
+	output <- is.nan(sqrt(arg_one - arg_two))
+	return(output)
+  }
+```
+
+### [04]
+```{R NaN}
+MysteryBuiltIn <- function () {
+	return(0/0)
+}
+```
+
+### [05]
+```{R unique()}
+## Given:
+## arg_one: is.vector()
+
+MysteryFunction <- function (arg_one) {
+	output <- arg_one[!duplicated(arg_one)]
+	return(output)
+}
+```
+
+### [06]
+```{R Inf}
+MysteryBuiltIn <- function () {
+	return(1/0)
+}
+```
+
+### [07]
+```{R xor()}
+## Given:
+## arg_one: as.logical(), length() > 0
+## arg_two: as.logical(), length() == length(arg_one)
+
+MysteryFunction <- function (arg_one, arg_two) {
+	output <- as.numeric(arg_one) + as.numeric(arg_two)
+	output <- {output == 1}
+	return(output)
+	}
+```
+
+### [08]
+```{R length()}
+## Given:
+## arg_one: is.vector()
+## Disregard warning messages
+
+MysteryFunction <- function (arg_one) {
+	output <- as.numeric(arg_one)
+	output[] <- 1
+	output <- sum(output)
+	return(output)
+}
+```
+
+### [09]
+```{R :}
+## Given:
+## arg_one: is.numeric(), length() == 1, !is.na(), is.finite()
+## arg_two: is.numeric(), length() == 1, !is.na(), is.finite()
+
+MysteryOperator <- function (arg_one, arg_two) {
+  output <- seq(from= arg_one, to= arg_two)
+  return(output)
+  }
+```
+
+### [10]
+```{R /}
+## Given:
+## arg_one: is.numeric(), length() > 0, arg_one >= 0
+## arg_two: is.numeric(), length() == length(arg_one), arg_two >= 0
+## Disregard decimals < 10^-6
+
+MysteryOperator <- function (arg_one, arg_two) {
+	output <- exp(log(arg_one) - log(arg_two))
+	return(output)
+}
+```
+
+### [11]
+```{R diff()}
+## Given:
+## arg_one: is.numeric(), length() > 0
+
+MysteryFunction <- function (arg_one){
+	output <- c(arg_one, NA) - c(NA, arg_one)
+	output <- output[c(-1, -length(output))]
+	return(output)
+	}
+```
+
+### [12]
+```{R max()}
+## Given:
+## arg_one: is.numeric(), length() > 0, !is.na(), is.finite()
+
+MysteryFunction <- function (arg_one) {
+	output <- sum(arg_one) - arg_one
+	output <- output == min(output)
+	output <- arg_one[output][1]
+	return(output)
+}
+```
+
+### [13]
+```{R mode()}
+## Given: 
+## arg_one: is.character() OR is.logical() OR is.numeric()
+   ## Note: is.numeric() can also be is.integer() but does not have to be.
+## arg_one: length() > 0
+
+MysteryFunction <- function (arg_one) {
+	obj_one <- c(is.numeric(arg_one), is.logical(arg_one),
+      is.character(arg_one))
+	output <- c("numeric", "logical", "character")
+	output <- output[obj_one]
+	return(output)
+}
+
+```
+
+### [14]
+```{R sd()}
+## Given:
+## arg_one: is.numeric(), length() > 1, !is.na(), is.finite()
+
+MysteryFunction <- function (arg_one) {
+	output <- {arg_one - mean(arg_one)}^2
+	output <- sum(output) / {length(arg_one) - 1}
+	output <- sqrt(output)
+	output[is.nan(output)] <- NA
+	return(output)
+}
+```
+
+### [15]
+```{R ceiling()}
+## Given:
+## arg_one: is.numeric(), length() > 0, 
+
+MysteryFunction <- function (arg_one) {
+	object_one <- arg_one %/% 1
+	object_two <- arg_one %% 1
+	output <- object_one + as.numeric(object_two > 0)
+	output[is.infinite(arg_one)] <- arg_one[is.infinite(arg_one)]
+	return(output)
+	}
+```
+
+### [16]
+```{R sqrt()}
+## Given:
+## arg_one: is.numeric(), length > 0,
+
+MysteryFunction <- function (arg_one) {
+  output <- arg_one^{1/2}
+  return(output)
+}
+```
+
+### [17]
+```{R all()}
+## Given:
+## arg_one: is.logical(), length() > 0, !is.na()
+
+MysteryFunction <- function (arg_one) {
+	output <- sum( as.numeric(arg_one)) == length(arg_one)
+	return(output)
+}
+```
+
+### [18]
+```{R runif()}
+## Given:
+## arg_one: is.numeric(), length() == 1, !is.na(), is.finite(), > 0
+## arg_two: is.numeric, length() == 1, !is.na(), is.finite()
+## arg_three: is.numeric, length() == 1, !is.na(), is.finite(), > arg_two
+## {arg_three - arg_two} < 10^3
+## Disregard decimals < 10^-3
+
+MysteryFunction <- function(arg_one, arg_two, arg_three) {
+  output <- seq(from= arg_two, to= arg_three, length.out= 10^6)
+  output <- sample(output, size= arg_one, replace= TRUE)
+  return(output)
+}
+```
+
+### [19]
+```{R floor()}
+## Given:
+## arg_one: is.numeric(), length() > 0
+
+MysteryFunction <- function (arg_one) {
+	output <- arg_one %/% 1
+	return(output)
+}
+```
+
+### [20]
+```{R intersect()}
+## Given:
+## arg_one: is.vector(), length() > 0
+## arg_two: is.vector(), length() == length(arg_one)
+
+MysteryFunction <- function (arg_one, arg_two) {
+	arg_one <- unique(arg_one)
+	arg_two <- unique(arg_two)
+	output <- c(arg_one, arg_two)
+	obj_one <- output[duplicated(output)]
+	output <- output[output %in% obj_one]
+	output <- output[!duplicated(output)]
+	return(output)
+	}
+```
+
+### [21]
+```{R %/%}
+## Given:
+## arg_one: is.numeric(), length() > 0, 
+## arg_two: is.numeric(), length() == length(arg_two)
+
+MysteryOperator <- function (arg_one, arg_two) {
+	output <- floor(arg_one / arg_two)
+	return(output)
+	}
+```
+
+### [22]
+```{R *}
+## Given:
+## arg_one: is.numeric(), length() > 0, arg_one >= 0
+## arg_two: is.numeric(), length() == length(arg_one), arg_two >= 0
+## Disregard decimals < 10^-6
+
+MysteryOperator <- function (arg_one, arg_two) {
+	output <- exp(log(arg_one) + log(arg_two))
+	return(output)
+}
+```
+
+### [23]
+```{R pmax()}
+## Given:
+## arg_one: is.numeric(), length() > 0, !is.na()
+## arg_two: is.numeric(), length() == length(arg_one), !is.na()
+
+MysteryFunction <- function (arg_one, arg_two) {
+	obj_one <- arg_one < arg_two
+	arg_one[obj_one] <- arg_two[obj_one]
+	return(arg_one)
+}
+```
+
+### [24]
+```{R &}
+## Given:
+## arg_one: is.logical(), length() > 0, 
+## arg_two: is.logical(), length() > length(arg_one)
+
+MysteryOperator <- function (arg_one, arg_two) {
+	output <- as.logical(as.numeric(arg_one) * as.numeric(arg_two))
+	return(output)
+}
+```
+
+### [25]
+```{R !}
+## Given:
+## arg_one: is.logical(), length() > 0,
+
+MysteryOperator <- function (arg_one) {
+	output <- as.logical(1 - as.numeric(arg_one))
+	return(output)
+}
+```
+
+```
+
+
+## Test Answers
+
+(Scroll down for the test answers)
+
+...
+
+...
+
+...
+
+...
+
+...
+
+...
+
+...
+
+...
+
+...
+
+...
+
+|_			|_				|_				|_				|_
+|:-			|:-				|:-				|:-				|:-
+|1. `>`				|2. `ifelse()`	|3. `<`					|4. `NaN`				|5. `unique()`
+|6. `Inf`			|7. `xor()`			|8. `length()`	|9. `:`					|10. `/`
+|11. `diff()`	|12. `max()`		|13. `mode()`		|14. `sd()`			|15. `ceiling()`
+|16. `sqrt()`	|17. `all()`		|18. `runif()`	|19. `floor()`	|20. `intersect()`
+|21. `%/%`		|22. `*`				|23. `pmax()`		|24. `&`				|25. `!`
