@@ -508,9 +508,9 @@ NULL</code></pre>
 +   x= 0:9,
 +   size= 3,
 +   replace= TRUE,
-+   prob= {1:10} / 10
++   prob= 3:12 / sum(3:12)
 + )</code></pre>
-<pre><code>[1] 9 4 0</code></pre>
+<pre><code>[1] 9 3 0</code></pre>
 <pre class="r"><code>&gt; ## runif() generates a uniformly distributed sample, meaning that all numbers
 &gt;   ## that fall between the min= and max= arguments have an equal change of 
 &gt;   ## being selected.  n= specifies how many numbers to generate

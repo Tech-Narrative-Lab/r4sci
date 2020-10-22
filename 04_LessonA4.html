@@ -393,7 +393,7 @@ summary {
 +       size= 8
 +       )
 +   ]</code></pre>
-<pre><code>[1] &quot;o&quot; &quot;m&quot; &quot;b&quot; &quot;l&quot; &quot;c&quot; &quot;z&quot; &quot;t&quot; &quot;f&quot;</code></pre>
+<pre><code>[1] &quot;o&quot; &quot;z&quot; &quot;j&quot; &quot;e&quot; &quot;a&quot; &quot;l&quot; &quot;c&quot; &quot;r&quot;</code></pre>
 <p>Third, you can express some summary statistics about the object. This is effective for gaining an abstract perspective on large scale objects or for checking for specific risks. The class-sensitive function <code>summary()</code> is a great first step. It displays various kinds of relevant summary information for different classes of objects. In addition to <code>summary()</code> you can (and should) make testing functions as needed. It falls to the programmer to determine what array of tests is enough to confirm that code works as intended. To write error-free code, a programmer needs to be suspicious and skeptical. Testing is a crucial part of this mindset.</p>
 <pre class="r"><code>&gt; ## CREATE DEMONSTRATION OBJECTS ==========
 &gt; 
@@ -416,7 +416,7 @@ summary {
    1.00   10.75   30.50   38.50   60.25  100.00 </code></pre>
 <pre class="r"><code>&gt; mean(numeric_object)</code></pre>
 <pre><code>[1] 38.5</code></pre>
-<pre class="r"><code>&gt; quantile(numeric_object, probs= c( 0, 0.25, 0.5, 0.75, 1 ))</code></pre>
+<pre class="r"><code>&gt; quantile(numeric_object, probs= c(0, 0.25, 0.5, 0.75, 1))</code></pre>
 <pre><code>    0%    25%    50%    75%   100% 
   1.00  10.75  30.50  60.25 100.00 </code></pre>
 <pre class="r"><code>&gt; ## For character vectors, summary() will fall back to generic information about
@@ -428,9 +428,9 @@ summary {
        10 character character </code></pre>
 <pre class="r"><code>&gt; length(character_object)</code></pre>
 <pre><code>[1] 10</code></pre>
-<pre class="r"><code>&gt; mode(  character_object)</code></pre>
+<pre class="r"><code>&gt; mode(character_object)</code></pre>
 <pre><code>[1] &quot;character&quot;</code></pre>
-<pre class="r"><code>&gt; class( character_object)</code></pre>
+<pre class="r"><code>&gt; class(character_object)</code></pre>
 <pre><code>[1] &quot;character&quot;</code></pre>
 <pre class="r"><code>&gt; ## For logical vectors, summary() will generate similar information
 &gt;   ## but break down the length() counts by each possible value.
@@ -440,48 +440,52 @@ summary {
 logical       9       1 </code></pre>
 <pre class="r"><code>&gt; ## DEVISING OTHER TESTS TO DO OBJECT INSPECTION ==========
 &gt; 
-&gt; ## This expressions calculates the percentage of invalid/missing
-&gt;   ## elements, i.e., the percentage of NA.  If this value exceeds zero
-&gt;   ## when there is no reason for NA elements to exist, or when this
+&gt; ## INVALID ELEMENTS - This expressions calculates the percentage of 
+&gt;   ## invalid/missing elements, i.e., the percentage of NA.  If this value 
+&gt;   ## exceeds zero when there is no reason for NA elements to exist, or if this
 &gt;   ## value rises rapidly after a particular line of code, it is
 &gt;   ## a sign that you should investigate further.
 &gt; 
 &gt; mean( is.na(numeric_object) )</code></pre>
 <pre><code>[1] 0</code></pre>
-<pre class="r"><code>&gt; ## This expression tests for a known distributional property of the
-&gt;   ## data.  Here we compare the actual frequency of different
+<pre class="r"><code>&gt; ## DISTRIBUTIONS - This expression tests for a known distributional property
+&gt;   ## of the data.  Here we compare the actual frequency of different
 &gt;   ## groups of letters to the probability argument used in sample()
 &gt;   ## to generate the object, finding them roughly identical.
 &gt; 
-&gt; letter_frequency &lt;- c(
-+   sum( character_object %in% letters[10:17] ),
-+   sum( character_object %in% letters[c( 1:4, 23:26 )] )
+&gt; prob_dist_letters &lt;- c(rep(0.5/10, 10), rep(0.5/16, 16))
+&gt; sampled_letters &lt;- sample(
++   letters,
++   size= 10^3,
++   prob= prob_dist_letters,
++   replace= TRUE
 +   )
 &gt; 
-&gt; input_frequency &lt;- abs(1:26 - 13.5)
-&gt; input_frequency &lt;- input_frequency / sum(input_frequency)
-&gt; input_frequency &lt;- c(
-+   sum( input_frequency[10:17] ),
-+   sum( input_frequency[c(1:4, 23:26)] )
-+   )
+&gt; observed_dist &lt;- mean(sampled_letters %in% letters[9:12])
+&gt; expected_dist &lt;- sum(prob_dist_letters[9:12])
 &gt; 
-&gt; round(letter_frequency / length(character_object) , digits= 3 )</code></pre>
-<pre><code>[1] 0.1 0.4</code></pre>
-<pre class="r"><code>&gt; round(input_frequency, digits= 3)</code></pre>
-<pre><code>[1] 0.095 0.521</code></pre>
-<pre class="r"><code>&gt; ## This pair of expressions measures the percent all letters of
-&gt;   ## the alphabet are represented and the percent of all vector
-&gt;   ## elements that are letters.  Both of these should be one by
-&gt;   ## definition.  Anything else would indicate that something
-&gt;   ## unexpected has occurred.
+&gt; observed_dist</code></pre>
+<pre><code>[1] 0.165</code></pre>
+<pre class="r"><code>&gt; expected_dist</code></pre>
+<pre><code>[1] 0.1625</code></pre>
+<pre class="r"><code>&gt; ## SETS - This pair of expressions measures the percent all letters of
+&gt;   ## the alphabet that are represented and the percent of all vector
+&gt;   ## elements that are letters.  The first should be one by
+&gt;   ## definition.  The second should be 10/26 because of how the sample
+&gt;   ## was drawn.  Anything else would indicate that something unexpected
+&gt;   ## has occurred.
 &gt; 
 &gt; mean(character_object %in% letters)</code></pre>
 <pre><code>[1] 1</code></pre>
 <pre class="r"><code>&gt; mean(letters %in% character_object)</code></pre>
 <pre><code>[1] 0.3846154</code></pre>
+<pre class="r"><code>&gt; length(letters[1:10]) / length(letters)</code></pre>
+<pre><code>[1] 0.3846154</code></pre>
 <pre class="r"><code>&gt; ## Delete demonstration objects that are no longer needed
 &gt; remove(numeric_object, character_object, logical_object,
-+   input_frequency, letter_frequency)</code></pre>
++   observed_dist, expected_dist, prob_dist_letters, sampled_letters)
+&gt; objects()</code></pre>
+<pre><code>character(0)</code></pre>
 </div>
 <div id="factor-and-posixct-class---working-with-categorical-and-chronological-data" class="section level3">
 <h3>Factor and POSIXct Class - Working with Categorical and Chronological Data</h3>
@@ -625,7 +629,7 @@ Levels: QQ S M L XL</code></pre>
 &gt;   ## Note the use of unambiguous format.
 &gt; 
 &gt; Sys.time()</code></pre>
-<pre><code>[1] &quot;2020-10-01 10:55:16 EDT&quot;</code></pre>
+<pre><code>[1] &quot;2020-10-19 14:56:00 EDT&quot;</code></pre>
 <pre class="r"><code>&gt; ## Sys.timezone() expresses the current time zone localization
 &gt;   ## information.  This information can be useful as an input to
 &gt;   ## other chronological functions.  The listed city does not

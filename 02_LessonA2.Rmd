@@ -180,7 +180,7 @@ sample(
 	x= 0:9,
 	size= 3,
 	replace= TRUE,
-	prob= {1:10} / 10
+	prob= 3:12 / sum(3:12)
 )
 
 ## runif() generates a uniformly distributed sample, meaning that all numbers

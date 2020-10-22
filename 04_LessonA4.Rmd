@@ -70,7 +70,7 @@ logical_object <- {numeric_object %/% 2} == 0
 summary(numeric_object)
 
 mean(numeric_object)
-quantile(numeric_object, probs= c( 0, 0.25, 0.5, 0.75, 1 ))
+quantile(numeric_object, probs= c(0, 0.25, 0.5, 0.75, 1))
 
 ## For character vectors, summary() will fall back to generic information about
   ## the object.  You can also generate this information using length(),
@@ -79,8 +79,8 @@ quantile(numeric_object, probs= c( 0, 0.25, 0.5, 0.75, 1 ))
 summary(character_object)
 
 length(character_object)
-mode(  character_object)
-class( character_object)
+mode(character_object)
+class(character_object)
 
 ## For logical vectors, summary() will generate similar information
 	## but break down the length() counts by each possible value.
@@ -89,46 +89,48 @@ summary(logical_object)
 
 ## DEVISING OTHER TESTS TO DO OBJECT INSPECTION ==========
 
-## This expressions calculates the percentage of invalid/missing
-	## elements, i.e., the percentage of NA.  If this value exceeds zero
-	## when there is no reason for NA elements to exist, or when this
+## INVALID ELEMENTS - This expressions calculates the percentage of 
+	## invalid/missing elements, i.e., the percentage of NA.  If this value 
+	## exceeds zero when there is no reason for NA elements to exist, or if this
 	## value rises rapidly after a particular line of code, it is
 	## a sign that you should investigate further.
 
 mean( is.na(numeric_object) )
 
-## This expression tests for a known distributional property of the
-	## data.  Here we compare the actual frequency of different
+## DISTRIBUTIONS - This expression tests for a known distributional property
+	## of the data.  Here we compare the actual frequency of different
 	## groups of letters to the probability argument used in sample()
 	## to generate the object, finding them roughly identical.
 
-letter_frequency <- c(
-	sum( character_object %in% letters[10:17] ),
-	sum( character_object %in% letters[c( 1:4, 23:26 )] )
+prob_dist_letters <- c(rep(0.5/10, 10), rep(0.5/16, 16))
+sampled_letters <- sample(
+	letters,
+	size= 10^3,
+	prob= prob_dist_letters,
+	replace= TRUE
 	)
 
-input_frequency <- abs(1:26 - 13.5)
-input_frequency <- input_frequency / sum(input_frequency)
-input_frequency <- c(
-	sum( input_frequency[10:17] ),
-	sum( input_frequency[c(1:4, 23:26)] )
-	)
+observed_dist <- mean(sampled_letters %in% letters[9:12])
+expected_dist <- sum(prob_dist_letters[9:12])
 
-round(letter_frequency / length(character_object) , digits= 3 )
-round(input_frequency, digits= 3)
+observed_dist
+expected_dist
 
-## This pair of expressions measures the percent all letters of
-	## the alphabet are represented and the percent of all vector
-	## elements that are letters.  Both of these should be one by
-	## definition.  Anything else would indicate that something
-	## unexpected has occurred.
+## SETS - This pair of expressions measures the percent all letters of
+	## the alphabet that are represented and the percent of all vector
+	## elements that are letters.  The first should be one by
+	## definition.  The second should be 10/26 because of how the sample
+  ## was drawn.  Anything else would indicate that something unexpected
+  ## has occurred.
 
 mean(character_object %in% letters)
+
 mean(letters %in% character_object)
+length(letters[1:10]) / length(letters)
 
 ## Delete demonstration objects that are no longer needed
 remove(numeric_object, character_object, logical_object,
-	input_frequency, letter_frequency)
+	observed_dist, expected_dist, prob_dist_letters, sampled_letters)
 ```
 
 ### Factor and POSIXct Class - Working with Categorical and Chronological Data
@@ -170,7 +172,7 @@ shirt_neck <- cut(
 shirt_neck
 
 ## Note how the object now expresses with the line "Levels: 
-	## Large Medium Small" below the vector.  This is where R 
+	## S M L XL" below the vector.  This is where R 
 	## expresses the valid set of categories ("levels") for that
 	## vector.  The vector will not accept categoricals that have
 	## not first been added as a valid level. The levels() function
@@ -434,7 +436,7 @@ named_vector
 ## Operations performed element-wise on an object generally do not influence the
   ## names meta-data.  However, many operations will wipe out names.  When
   ## programming, you will need to decide whether the risks of using names
-  ## (i.e., that a function wipes them out) if worth the benefit of names
+  ## (i.e., that a function wipes them out) is worth the benefit of names
   ## (i.e., lower chances of programmer error when selecting within vectors)
 
 names(named_vector) <- c("Alpha", "Bravo", "Charlie", "Delta", "Echo")
