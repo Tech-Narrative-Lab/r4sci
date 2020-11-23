@@ -304,7 +304,7 @@ write.xlsx(
 
 ## Meta-information
 ## Author: Joshua Mendelsohn (jmendel@example.com)
-## Creation: 2020-09-22 for "R Programming for Scientific Analysis", Chp. 1
+## Creation: 2076-09-22 for "R Programming for Scientific Analysis", Chp. 1
 ## Description: This script correlates variables from a weather dataset
 
 ## Environment set-up
