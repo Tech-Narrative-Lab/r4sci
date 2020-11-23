@@ -371,7 +371,55 @@ summary {
 <p><a href="06_LessonB1.html">Proceed to Next Lesson (B1:Array and List Objects)</a></p>
 <div id="text-encoding-and-display" class="section level3">
 <h3>Text Encoding and Display</h3>
-<p>Computers store textual symbols as positions on a character table. Computers use these positions to retrieve instructions for displaying the characters on screen. There are many character encoding tables. Unicode Consortium’s UTF-8 is the dominant encoding system on the web, and for many Unix-like operating systems. UTF-16 is the dominant encoding system for Windows. Each Unicode encoding system extends is be backwards compatible with older standards – ASCII and UCS-2 respectively. If you open a file and find gibberish text, character encoding may be at issue. Here are examples of what happens if you mix character encodings in various ways. The ઀ symbol indicates an unrecognized character. Different operating systems and applications may display it differently.</p>
+<p>Computers store textual symbols as positions on a character table. Computers use these positions to retrieve instructions for displaying the characters on screen. For example, below is an excerpt of the 16 row x 8 column ASCII character encoding table, which is one of the oldest and simplest:</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="left">Col. 2</th>
+<th align="left">Col. 3</th>
+<th align="left">Col. 4</th>
+<th align="left">Col. 5</th>
+<th align="left">Col. 6</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><strong>Row 0</strong></td>
+<td align="left">Space</td>
+<td align="left">0</td>
+<td align="left">@</td>
+<td align="left">P</td>
+<td align="left">’</td>
+</tr>
+<tr class="even">
+<td align="left"><strong>Row 1</strong></td>
+<td align="left">!</td>
+<td align="left">1</td>
+<td align="left">A</td>
+<td align="left">Q</td>
+<td align="left">a</td>
+</tr>
+<tr class="odd">
+<td align="left"><strong>Row 2</strong></td>
+<td align="left">&quot;</td>
+<td align="left">2</td>
+<td align="left">B</td>
+<td align="left">R</td>
+<td align="left">b</td>
+</tr>
+<tr class="even">
+<td align="left"><strong>Row 3</strong></td>
+<td align="left">#</td>
+<td align="left">3</td>
+<td align="left">C</td>
+<td align="left">S</td>
+<td align="left">c</td>
+</tr>
+</tbody>
+</table>
+<p>In this table, capital R is the symbol in the Row 2, Column 5, where the rows and columns count upwards from 0. That is the <code>5 * 16 + 1 ==</code> 82nd position in the ASCII table.</p>
+<p>There are many character encoding tables. Unicode Consortium’s UTF-8 is the dominant encoding system on the web, and for many Unix-like operating systems. UTF-16 is the dominant encoding system for Windows. Each Unicode encoding system builds on an older standard – ASCII and UCS-2 respectively. If you open a file and find gibberish text, character encoding may be at issue. Here are examples of what happens if you mix character encodings in various ways. The ઀ symbol indicates an unrecognized character. Different operating systems and applications may display it differently.</p>
 <table>
 <colgroup>
 <col width="50%"></col>
@@ -418,8 +466,8 @@ summary {
 +   from= &quot;UTF-8&quot;, to= &quot;ASCII&quot;
 + )</code></pre>
 <pre><code>[1] NA</code></pre>
-<p>The reason that so many characters are invalid in the example above is that ASCII is a <em>very</em> old standard only supports 127 characters.</p>
-<p>UTF-8 is the encoding favored for this lesson. On its Unicode table, each UTF-8 character is denoted with a four-digit hexadecimal location. Hexadecimal is a way of writing numbers in base 16 instead of base 10. In hexadecimal, the numbers from 8 to fifteen are <code>8 9 A B C D E F</code>. In other words, 10 is the decimal notation for ten, but A is the hexadecimal notation. Twenty-eight is “28” in decimal notation, but 1C in hexadecimal. Below is a sample of symbols from the UTF-8 table, along with their hexadecimal position on the table.</p>
+<p>The reason that so many characters are invalid in the example above is that ASCII is one of the oldest standards. It only supported 127 characters.</p>
+<p>UTF-8 is the encoding favored for this lesson. On its Unicode table, each UTF-8 character is denoted with a four-digit hexadecimal location. Hexadecimal is a way of writing numbers in base 16 instead of base 10. In hexadecimal, the numbers from 8 to fifteen are <code>8 9 A B C D E F</code>. In other words, <code>10</code> is the decimal notation for ten, but <code>A</code> is the hexadecimal notation for ten. Twenty-eight is <code>28</code> in decimal notation, but <code>1C</code> in hexadecimal. Below is a sample of symbols from the UTF-8 table, along with their hexadecimal position on the table.</p>
 <table>
 <thead>
 <tr class="header">
@@ -511,7 +559,7 @@ summary {
 <li><p>Capital and lower-case letters have separate locations on the table. This is part of why R is case sensitive.</p></li>
 <li><p>Visibly identical symbols can be encoded multiple times if they have different meanings. For example, Latin Capital A and Greek Capital Alpha display identically, but occupy different table positions.</p></li>
 <li><p>UTF-8 support for various languages and alphabets is vast, even extending to historical alphabets like Runic.</p></li>
-<li><p>UTF-8 offers an extensive array of mathematical operators, geometric shapes, and even symbols. You can input any Unicode character into R by prefacing its hexadecimal location with </p></li>
+<li><p>UTF-8 offers an extensive array of mathematical operators, geometric shapes, and even symbols. You can input any Unicode character into R by prefacing its hexadecimal location with <code>\u</code>.</p></li>
 </ol>
 <pre class="r"><code>&gt; &quot;\u221B&quot;</code></pre>
 <pre><code>[1] &quot;∛&quot;</code></pre>
@@ -614,8 +662,8 @@ summary {
 &gt; 
 &gt; last_two &lt;- substring(
 +   text= text_vector,
-+   first= nchar( text_vector ) - 1,
-+   last= nchar( text_vector )
++   first= nchar(text_vector) - 1,
++   last=  nchar(text_vector)
 + )
 &gt; last_two[!nzchar( last_two )] &lt;- NA
 &gt; 
@@ -639,7 +687,7 @@ summary {
 <pre class="r"><code>&gt; ## Delete demonstration objects that are no longer needed
 &gt; remove(a_sentence, sentence_split)</code></pre>
 <p>In the example above, <code>strsplit()</code> splits a single element into a vector of elements. It uses <code>split=</code> to specify that the space character denotes where the breaks between elements should go. This function expresses its results in a class of object called a “list”, which is denoted with the double square brackets. List class will be discussed in detail in Lesson B1. For now, you can extract the vector from the list object by adding <code>[[1]]</code> to the end of the object.</p>
-<p>The <code>paste()</code> might be considered the inverse of <code>strsplit()</code>. It either combines the character elements of a vector into a single element using <code>collapse=</code>, or it combines elements in equivalent positions in two vectors using <code>sep=</code>.</p>
+<p><code>paste()</code> might be considered the inverse of <code>strsplit()</code>. It either combines the character elements of a vector into a single element using <code>collapse=</code>, or it combines elements in equivalent positions in two (or more) vectors using <code>sep=</code>.</p>
 <pre class="r"><code>&gt; ## Generate two character vectors with different cases
 &gt; lower_sentence &lt;- strsplit(&quot;this is a sentence&quot;, split= &quot; &quot;)[[1]]
 &gt; upper_sentence &lt;- toupper(lower_sentence)
@@ -738,7 +786,7 @@ summary {
 <pre><code>[1] &quot;The quick brown animal jumps over the lazy animal, and then, the lazy animal took a nap. Later, Brown animal did likewise.&quot;</code></pre>
 <pre class="r"><code>&gt; ## Delete demonstration objects that are no longer needed
 &gt; remove(test_sentence)</code></pre>
-<p>A RegEx [-] specifies a range of characters to match. This range is based on the order of those characters inside the character encoding table, regardless of whether those characters have comparable meaning. Since character encoding can be platform and locale specific, character ranges should be used cautiously and with rigorous testing. To get around this issue, there are built-in character groups, such as <code>[[:space:]]</code> for spacing characters (space, tab <code>\t</code>, return <code>\n</code>, etc.), <code>[[:punct:]]</code> for punctuation characters, <code>[[:alpha:]]</code> for letters, and <code>[[:digits:]]</code> for numbers. However, these too require some caution, especially when working with text in non-Latin alphabets.</p>
+<p>A RegEx <code>[-]</code> specifies a range of characters to match. This range is based on the order of those characters inside the character encoding table, regardless of whether those characters have comparable meaning. Since character encoding can be platform and locale specific, character ranges should be used cautiously and with rigorous testing. To get around this issue, there are built-in character groups, such as <code>[[:space:]]</code> for spacing characters (space <code></code>, tab <code>\t</code>, return <code>\n</code>, etc.), <code>[[:punct:]]</code> for punctuation characters, <code>[[:alpha:]]</code> for letters, and <code>[[:digits:]]</code> for numbers. However, these too require some caution, especially when working with text in non-Latin alphabets.</p>
 <pre class="r"><code>&gt; ## assign unicode characters from 0030 to 006F to an object
 &gt; unicode_blocks &lt;- c(
 +   &quot;003- Latin Digit/Punct&quot;= &quot;0123456789:;&lt;=&gt;?&quot;,  ## 0030-003F
@@ -825,9 +873,9 @@ summary {
 &gt; remove(unicode_blocks)</code></pre>
 <p>In the demonstration above, there are several features of note.</p>
 <ol style="list-style-type: decimal">
-<li><p>Backslash displays as \. This indicates that the backslash should be treated literally as a backlash, rather than as an escape character.</p></li>
-<li><p>The Ethiopic section mark displays as </p></li>
-<li><p>The digits search missed the Ethiopic numbers. Even class searches can be hit-or-miss, especially in non-Latin alphabets.</p></li>
+<li><p>Backslash displays as <code>\\</code>. This indicates that the backslash should be treated literally as a backlash, rather than as an escape character.</p></li>
+<li><p>The Ethiopic section mark displays as <code>\u1360</code>. If R does not have a display method for a character, it will display its position on the encoding table.</p></li>
+<li><p>The <code>[[:digit:]]</code> search missed the Ethiopic numbers. Even class searches can be hit-or-miss, especially in non-Latin alphabets.</p></li>
 </ol>
 <p>Two other useful RegEx operators are the wildcard <code>.</code> and negative search <code>[^]</code> operations. In RegEx, a period will match any character exactly once. To match a literal period, you would need to place the period inside square brackets. The <code>^</code> operator, used inside square brackets, will match any character except the one following it. You can place it in front of ranges to negative match the entire range. In addition, for situations where only the first match needs to be replaced, the <code>sub()</code> function can be used in place of the <code>gsub()</code> function.</p>
 <pre class="r"><code>&gt; ## Generate a test_sentence
@@ -1048,8 +1096,10 @@ Then, I shok the book I toook until I forsooook it&#39;s loooook
 +   sample( c( &quot;a&quot;, &quot;B&quot; ), size= 10, replace= TRUE )
 +   )
 &gt; names(test_object) &lt;- test_object
-&gt; 
-&gt; ## detect position of first occurance of &quot;ab&quot; within each element
+&gt; test_object</code></pre>
+<pre><code>  BaBB   aBaB   BBBa   aaaa   BBBB   aBaa   Baaa   BBBa   aaBa   BBaa 
+&quot;BaBB&quot; &quot;aBaB&quot; &quot;BBBa&quot; &quot;aaaa&quot; &quot;BBBB&quot; &quot;aBaa&quot; &quot;Baaa&quot; &quot;BBBa&quot; &quot;aaBa&quot; &quot;BBaa&quot; </code></pre>
+<pre class="r"><code>&gt; ## detect position of first occurance of &quot;ab&quot; within each element
 &gt;   ## regexprt will return -1 if the string does not appear in an
 &gt;   ## element.  Setting all -1 to be larger than the largest string
 &gt;   ## ensures that an empty element is returned if the pattern is
@@ -1255,7 +1305,7 @@ attr(,&quot;useBytes&quot;)
 <td align="left">Matches capital A, followed by the end of a line. So, &quot; Group A&quot; matches, but “Group A and B” does not.</td>
 </tr>
 <tr class="odd">
-<td align="left"><code>(AB)\|(YZ)</code></td>
+<td align="left"><code>(AB)|(YZ)</code></td>
 <td align="left">Matches the two-character string “AB” or “YZ”. so “AB Words” and “Words YZ” would both match.</td>
 </tr>
 <tr class="even">

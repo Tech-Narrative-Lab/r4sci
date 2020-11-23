@@ -20,7 +20,18 @@ knitr::opts_chunk$set(prompt= TRUE)
 
 ### Text Encoding and Display
 
-Computers store textual symbols as positions on a character table.  Computers use these positions to retrieve instructions for displaying the characters on screen.  There are many character encoding tables.  Unicode Consortium's UTF-8 is the dominant encoding system on the web, and for many Unix-like operating systems.  UTF-16 is the dominant encoding system for Windows.  Each Unicode encoding system extends is be backwards compatible with older standards – ASCII and UCS-2 respectively.  If you open a file and find gibberish text, character encoding may be at issue.  Here are examples of what happens if you mix character encodings in various ways.  The ઀ symbol indicates an unrecognized character.  Different operating systems and applications may display it differently.
+Computers store textual symbols as positions on a character table.  Computers use these positions to retrieve instructions for displaying the characters on screen.  For example, below is an excerpt of the 16 row x 8 column ASCII character encoding table, which is one of the oldest and simplest:
+
+|					|Col. 2	|Col. 3	| Col. 4		|Col. 5		|Col. 6
+|:-				|:-				|:-	|:-		|:-		|:-
+|**Row 0**|Space		|0	|@		|P		|'
+|**Row 1**|!				|1	|A		|Q		|a
+|**Row 2**|"				|2	|B		|R		|b
+|**Row 3**|#				|3	|C		|S		|c
+
+In this table, capital R is the symbol in the Row 2, Column 5, where the rows and columns count upwards from 0.  That is the `5 * 16 + 1 ==` 82nd position in the ASCII table.
+
+There are many character encoding tables.  Unicode Consortium's UTF-8 is the dominant encoding system on the web, and for many Unix-like operating systems.  UTF-16 is the dominant encoding system for Windows.  Each Unicode encoding system builds on an older standard – ASCII and UCS-2 respectively.  If you open a file and find gibberish text, character encoding may be at issue.  Here are examples of what happens if you mix character encodings in various ways.  The ઀ symbol indicates an unrecognized character.  Different operating systems and applications may display it differently.
 
 |Encoding Mix		|Displayed Text
 |:-|:-
@@ -45,9 +56,9 @@ iconv(
 )
 ```
 
-The reason that so many characters are invalid in the example above is that ASCII is a _very_ old standard only supports 127 characters.
+The reason that so many characters are invalid in the example above is that ASCII is  one of the oldest standards.  It only supported 127 characters.
 
-UTF-8 is the encoding favored for this lesson.  On its Unicode table, each UTF-8 character is denoted with a four-digit hexadecimal location.  Hexadecimal is a way of writing numbers in base 16 instead of base 10.  In hexadecimal, the numbers from 8 to fifteen are `8 9 A B C D E F`. In other words, 10 is the decimal notation for ten, but A is the hexadecimal notation.  Twenty-eight is "28" in decimal notation, but 1C in hexadecimal.  Below is a sample of symbols from the UTF-8 table, along with their hexadecimal position on the table.
+UTF-8 is the encoding favored for this lesson.  On its Unicode table, each UTF-8 character is denoted with a four-digit hexadecimal location.  Hexadecimal is a way of writing numbers in base 16 instead of base 10.  In hexadecimal, the numbers from 8 to fifteen are `8 9 A B C D E F`. In other words, `10` is the decimal notation for ten, but `A` is the hexadecimal notation for ten.  Twenty-eight is `28` in decimal notation, but `1C` in hexadecimal.  Below is a sample of symbols from the UTF-8 table, along with their hexadecimal position on the table.
 
 |Character		|Description		|Hexadecimal Location		|Location as Decimal Number
 |:-		|:-		|:-		|:-
@@ -75,7 +86,7 @@ Several features are noteworthy:
 
 4.  UTF-8 support for various languages and alphabets is vast, even extending to historical alphabets like Runic.
 
-5.  UTF-8 offers an extensive array of mathematical operators, geometric shapes, and even symbols.  You can input any Unicode character into R by prefacing its hexadecimal location with \u.
+5.  UTF-8 offers an extensive array of mathematical operators, geometric shapes, and even symbols.  You can input any Unicode character into R by prefacing its hexadecimal location with `\u`.
 
 ```{R Unicode u}
 "\u221B"
@@ -185,8 +196,8 @@ substring(text= text_vector, first= 2, last= 4)
 
 last_two <- substring(
 	text= text_vector,
-	first= nchar( text_vector ) - 1,
-	last= nchar( text_vector )
+	first= nchar(text_vector) - 1,
+	last=  nchar(text_vector)
 )
 last_two[!nzchar( last_two )] <- NA
 
@@ -216,7 +227,7 @@ remove(a_sentence, sentence_split)
 
 In the example above, `strsplit()` splits a single element into a vector of elements.  It uses `split=` to specify that the space character denotes where the breaks between elements should go.  This function expresses its results in a class of object called a "list", which is denoted with the double square brackets.  List class will be discussed in detail in Lesson B1.  For now, you can extract the vector from the list object by adding `[[1]]` to the end of the object.
 
-The `paste()` might be considered the inverse of `strsplit()`.  It either combines the character elements of a vector into a single element using `collapse=`, or it combines elements in equivalent positions in two vectors using `sep=`.
+`paste()` might be considered the inverse of `strsplit()`.  It either combines the character elements of a vector into a single element using `collapse=`, or it combines elements in equivalent positions in two (or more) vectors using `sep=`.
 
 ```{R paste()}
 ## Generate two character vectors with different cases
@@ -329,7 +340,7 @@ gsub( ## won't capture both forms of brown fox
 remove(test_sentence)
 ```
 
-A RegEx [-] specifies a range of characters to match.  This range is based on the order of those characters inside the character encoding table, regardless of whether those characters have comparable meaning.  Since character encoding can be platform and locale specific, character ranges should be used cautiously and with rigorous testing.  To get around this issue, there are built-in character groups, such as `[[:space:]]` for spacing characters (space, tab `\t`, return `\n`, etc.), `[[:punct:]]` for punctuation characters, `[[:alpha:]]` for letters, and `[[:digits:]]` for numbers.  However, these too require some caution, especially when working with text in non-Latin alphabets.
+A RegEx `[-]` specifies a range of characters to match.  This range is based on the order of those characters inside the character encoding table, regardless of whether those characters have comparable meaning.  Since character encoding can be platform and locale specific, character ranges should be used cautiously and with rigorous testing.  To get around this issue, there are built-in character groups, such as `[[:space:]]` for spacing characters (space ` `, tab `\t`, return `\n`, etc.), `[[:punct:]]` for punctuation characters, `[[:alpha:]]` for letters, and `[[:digits:]]` for numbers.  However, these too require some caution, especially when working with text in non-Latin alphabets.
 
 ```{R Character Ranges}
 ## assign unicode characters from 0030 to 006F to an object
@@ -385,11 +396,11 @@ remove(unicode_blocks)
 
 In the demonstration above, there are several features of note.  
 
-1.  Backslash displays as \\.  This indicates that the backslash should be treated literally as a backlash, rather than as an escape character.
+1.  Backslash displays as `\\`.  This indicates that the backslash should be treated literally as a backlash, rather than as an escape character.
 
-2.  The Ethiopic section mark displays as \u1360.  If R does not have a display method for a character, it will display its position on the encoding table.
+2.  The Ethiopic section mark displays as `\u1360`.  If R does not have a display method for a character, it will display its position on the encoding table.
 
-3.  The digits search missed the Ethiopic numbers.  Even class searches can be hit-or-miss, especially in non-Latin alphabets.
+3.  The `[[:digit:]]` search missed the Ethiopic numbers.  Even class searches can be hit-or-miss, especially in non-Latin alphabets.
 
 Two other useful RegEx operators are the wildcard `.` and negative search `[^]` operations.  In RegEx, a period will match any character exactly once.  To match a literal period, you would need to place the period inside square brackets.   The `^` operator, used inside square brackets, will match any character except the one following it.  You can place it in front of ranges to negative match the entire range.  In addition, for situations where only the first match needs to be replaced, the `sub()` function can be used in place of the `gsub()` function.  
 
@@ -613,6 +624,7 @@ test_object <- paste0(
 	sample( c( "a", "B" ), size= 10, replace= TRUE )
 	)
 names(test_object) <- test_object
+test_object
 
 ## detect position of first occurance of "ab" within each element
 	## regexprt will return -1 if the string does not appear in an
@@ -749,7 +761,7 @@ For convenience, this table summarizes some of the basic regular expressions.
 |`A{2,}`	|Matches the character A at least twice.  So "AA" and "AAAA" match, but "A" does not.
 |`^A`	|Matches the start of a line, followed by capital A.  So, "A words" would match, but "Some A words" would not.  Note that ^ has different meaning when inside `[ ]`, compared to outside.
 |`A$`	|Matches capital A, followed by the end of a line. So, " Group A" matches, but "Group A and B" does not.
-|`(AB)\|(YZ)`	|Matches the two-character string "AB" or "YZ".  so "AB Words" and "Words YZ" would both match. 
+|`(AB)|(YZ)`	|Matches the two-character string "AB" or "YZ".  so "AB Words" and "Words YZ" would both match. 
 |`[\\n\\t]`	|Matches a single character that is either a "\n" return,  "\t" tab, " " space.
 |`[[:space:]]`	|Matches a pre-defined range of (Latin alphabet) spacing characters, including returns, tabs, and spaces. There are many other pre-defined ranges, such as `[[:punct:]]` for punctuation.
 

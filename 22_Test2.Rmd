@@ -1,0 +1,437 @@
+---
+  title: Test 2 (A1-A5)
+---
+
+[Go to the Table of Contents](00_TableOfContents.html)
+
+## Test Problems
+
+Valid Answers: Vocabulary Tables A1-A5
+
+Directions: Each test question declares a function that does the same thing as a function, operator, or built-in object listed in vocabulary table A1, A2, A3, A4, or A5.  Determine which vocabulary table function does the same thing as the declared function in the test question.  Aim to complete this 25-question test in 200 minutes (8 minutes per question).
+
+### [01]
+```{R ">="}
+## Given:
+## arg_one: is.numeric()
+## arg_two: is.numeric(), length() == length(arg_one)
+
+MysteryOperator <- function(arg_one, arg_two) {
+	output <- pmax(arg_one, arg_two)
+	output <- {output == arg_one}
+	return(output)
+}
+
+```
+
+### [02]
+```{R "+", eval=FALSE, echo=TRUE}
+## In the expression below, what alternative RegEx
+   ## could be used in place of "{1,}"?
+
+grep(pattern= "to{1,}", x= a_string_object )
+```
+
+### [03]
+```{R sample()}
+## Given:
+## arg_one: is.vector()
+## arg_two: is.numeric(), length() == 1, <= length(arg_one), > 0
+## Other arguments left at default settings
+
+MysteryFunction <- function(arg_one, arg_two) {
+  output <- runif(n= length(arg_one))
+  output <- arg_one[order(output)]
+  output <- output[1:arg_two]
+  return(output)
+}
+```
+
+### [04]
+```{R "*", eval=FALSE, echo=TRUE}
+## In the expression below, what alternative RegEx
+   ## could be used in place of "{0,}"
+
+grep(pattern= "to{0,}", x= a_string_object )
+```
+
+### [05]
+```{R identical()}
+## Given:
+## arg_one: is.vector(), != NaN
+## arg_two: is.vector(), != NaN
+## Other arguments left at default settings
+
+MysteryFunction <- function(arg_one, arg_two){
+	object_one <- length(arg_one) == length(arg_two)
+	object_two <- class(arg_one)  == class(arg_two)
+	object_three <- arg_one == arg_two
+	object_three[is.na(arg_one) & is.na(arg_two)] <- TRUE
+	output <- object_one & object_two & all(object_three)
+	output[is.na(output)] <- FALSE
+	return(output)
+	}
+
+```
+
+### [06]
+```{R ^, eval=FALSE, echo=TRUE}
+## The question below shows a text search done with
+   ## and without regular expressions. What RegEx
+   ## operator should go in place of ??? in the second
+   ## expression to make it do the same thing as the
+   ## first expression?
+
+## Search done without RegEx:
+
+substring(
+	text= text_object,
+	first= 1,
+	last= nchar("AAA")
+	) == "AAA"
+
+## Search done with RegEX
+
+grepl(
+	x= text_object,
+	pattern= paste("???", "AAA", sep="")
+	)
+
+```
+
+### [07]
+```{R month.abb}
+## Given: (none)
+
+MysteryBuiltIn <- function() {
+	output <- substring(month.name, first= 1, last= 3)
+	return(output)
+}
+
+```
+
+### [08]
+```{R $, eval=FALSE, echo=TRUE}
+## The question below shows a text search done with
+   ## and without regular expressions. What RegEx
+   ## operator should go in place of ??? in the second
+   ## expression to make it do the same thing as the
+   ## first expression?
+
+## Search done without RegEx:
+
+substring(
+	text= text_object,
+	first= nchar(text_object) - nchar("AAA") + 1,
+	last= nchar(text_object)
+	) == "AAA"
+
+## Search done with RegEX
+
+grepl(
+	x= text_object,
+	pattern= paste("AAA", "???", sep="")
+	)
+
+```
+
+### [09]
+```{R median()}
+## Given:
+## arg_one: is.numeric(), != NA
+## Other arguments left at default settings
+
+MysteryFunction <- function(arg_one) {
+	output <- quantile(arg_one)["50%"]
+	names(output) <- NULL
+	return(output)
+	}
+
+```
+
+### [10] -Spare-
+```{R %%}
+## Given:
+## arg_one: is.numeric()
+## arg_two: is.numeric(), length() == length(arg_one)
+
+MysteryOperator <- function(arg_one, arg_two) {
+	output <- arg_one %/% arg_two
+	output <- arg_one - {arg_two * output}
+	return(output)
+}
+
+```
+
+### [11]
+```{R nlevels()}
+## Given:
+## arg_one: is.factor()
+
+MysteryFunction <- function(arg_one) {
+	output <- length( levels(arg_one))
+	return(output)
+}
+
+```
+
+### [12]
+```{R seq()}
+## Given:
+## arg_one: 	is.numeric(), length() == 1
+## arg_two: 	is.numeric(), length() == 1
+## arg_three: is.numeric(), length() == 1
+## arg_two - arg_one has the same sign as arg_three
+
+## Other arguments left at default settings
+
+MysteryFunction <- function(arg_one, arg_two, arg_three) {
+	object_one <- {arg_two - arg_one} / arg_three
+	object_one <- {0:object_one} * arg_three
+	object_one <- object_one + arg_one
+	return(object_one)
+	}
+
+```
+
+### [13]
+```{R which()}
+## Given:
+## arg_one: is.logical(), names() == NULL
+## Other arguments left as default settings
+
+MysteryFunction <- function(arg_one){
+	output <- 1:length(arg_one)
+	output <- output[arg_one]
+	return(output)
+}
+
+```
+
+### [14]
+```{R rep()}
+## Given:
+## arg_one: is.vector()
+## arg_two: is.numeric(), length() == 1, >=0
+
+MysteryFunction <- function(arg_one, arg_two) {
+	arg_two <- floor(arg_two)
+	output <- vector(mode= "numeric",
+		length= length(arg_one) * arg_two )
+	output[] <- 1
+	output <- output * 1:length(arg_one)
+	output <- arg_one[output]
+	return(output)
+}
+
+```
+
+### [15]
+```{R pt()}
+## Given:
+## arg_one: is.numeric(), length() == 1
+## arg_two: is.integer(), length() == 1, >0
+## Other arguments left at default settings
+## Ignore decimal differences < 10^-3
+
+MysteryFunction <- function(arg_one, arg_two) {
+  output <- seq(from= 0 + 10^-6,
+  	to= 1 - 10^-6, by= 10^-6)
+  output <- qt(output, df= arg_two)
+  output <- mean(output < arg_one)
+  return(output)
+}
+
+```
+
+### [16]
+```{R mad()}
+## Given:
+## arg_one: is.numeric()
+## Other arguments left at default settings
+
+MysteryFunction <- function(arg_one) {
+	output <- arg_one - median(arg_one)
+	output <- median(abs(output)) * 1.4826
+	return(output)
+}
+
+```
+
+### [17] -Spare-
+```{R rt()}
+## Given:
+## arg_one: is.numeric(), length == 1, >0
+## arg_two: is.numeric(), length == 1, >0
+## Recommend setting arg_two to >=20 to avoid long run times
+
+MysteryFunction <- function(arg_one, arg_two) {
+  output <- seq(
+  	from= qt(0 + 10^-6, df= arg_two),
+  	to= qt(1 - 10^-6, df= arg_two),
+  	by= 10^-6
+  	)
+  object_one <- dt(output, df= arg_two)
+  output <- sample(x= output, size= arg_one, replace= TRUE,
+  	prob= object_one)
+  return(output)
+}
+
+```
+
+### [18]
+```{R setdiff()}
+## Given:
+## arg_one: is.vector()
+## arg_two: is.vector()
+
+MysteryFunction <- function(arg_one, arg_two) {
+	output <- arg_one[!{arg_one %in% arg_two}]
+	output <- unique(output)
+	return(output)
+}
+
+```
+
+### [19]
+```{R toupper()}
+## Given:
+## arg_one: is.character(), length() == 1, != NA
+## arg_one: all letters are from the Latin alphabet
+
+MysteryFunction <- function(arg_one) {
+	output <- strsplit(arg_one, split= "")[[1]]
+	index_obj <- match(output, letters)
+	output[!is.na(index_obj)] <- LETTERS[
+		index_obj][!is.na(index_obj)]
+	output <- paste(output, collapse= "")
+	return(output)
+}
+
+```
+
+### [20]
+```{R "|"}
+## Given:
+## arg_one: is.logical(), length() > 0
+## arg_two: is.logical(), length() == length(arg_one)
+
+MysteryOperator <- function(arg_one, arg_two) {
+	object_one <- c(which(arg_one), which(arg_two))
+	output <- rep(FALSE, length(arg_one))
+	output[object_one] <- TRUE
+	return(output)
+}
+
+```
+
+### [21] -Spare-
+```{R substring()}
+## Given:
+## arg_one: is.character(), length() == 1, nchar() > 0
+## arg_two: is.integer(), length() == 1, >0
+## arg_three: is.integer(), length() == 1, >= arg_two
+
+MysteryFunction <- function(arg_one, arg_two, arg_three) {
+	arg_two   <- min(arg_two,   nchar(arg_one))
+	arg_three <- min(arg_three, nchar(arg_one))
+	output <- strsplit(arg_one, split= "")[[1]]
+	output <- output[arg_two:arg_three]
+	output <- paste(output, collapse= "")
+	return(output)
+}
+
+```
+
+### [22]
+```{R "&"}
+## Given:
+## arg_one: is.logical()
+## arg_two: is.logical(), length() == length(arg_one)
+
+MysteryOperator <- function(arg_one, arg_two) {
+	output <- pmin(as.numeric(arg_one), as.numeric(arg_two))
+	output <- as.logical(output)
+	return(output)
+}
+
+```
+
+### [23]
+
+```{R nchar()}
+## Given:
+## arg_one: is.vector(), length() == 1, != NULL
+## All other arguments left at default settings
+
+MysteryFunction <- function(arg_one) {
+	output <- as.character(arg_one)
+	output <- strsplit(output, split= "")[[1]]
+	output <- length(output)
+	return(output)
+}
+
+```
+
+### [24]
+```{R sort()}
+## Given:
+## arg_one: is.vector()
+## Other arguments left at default settings
+
+MysteryFunction <- function(arg_one) {
+	output <- arg_one[!is.na(arg_one)]
+	output <- output[order(output)]
+	return(output)
+}
+
+```
+
+### [25]
+```{R grepl()}
+## Given
+## arg_one: is.character(), length() == 1
+## arg_two: is.character()
+## All other arguments left at default settings
+
+MysteryFunction <- function(arg_one, arg_two) {
+	output <- rep(FALSE, length(arg_two))
+	object_one <- grep(arg_one, arg_two)
+	output[object_one] <- TRUE
+	return(output)
+}
+
+```
+
+
+## Test Answers
+
+(Scroll down for the test answers)
+
+...
+
+...
+
+...
+
+...
+
+...
+
+...
+
+...
+
+...
+
+...
+
+...
+
+|_					|_					|_						|_					|_
+|:-					|:-					|:-						|:-					|:-
+|1. `>=`		|2. `+ (RegEx)`		|3. `sample()`			|4. `* (RegEx)`		|5. `identical()`
+|6. `^ (RegEx)`		|7. `month.abb`		|8. `$ (RegEx)`			|9. `median()`		|10. `%%`
+|11. `nlevels()`	|12. `seq()`	|13. `which()`			|14. `rep()`	|15. `pt()`
+|16. `mad()`	|17. `rt()`	|18. `setdiff()`		|19. `toupper()`	|20. `|`
+|21. `substring()`	|22. `&`	|23. `nchar()`		|24. `sort()`	|25. `grepl()`

@@ -372,7 +372,7 @@ summary {
 <p>This lesson will introduce you to lists, arrays, and data frames, which are core object classes used to organize vectors and store data.</p>
 <div id="lists-and-hierarchical-vector-storage" class="section level3">
 <h3>Lists and Hierarchical Vector Storage</h3>
-<p>Vectors are the basic building blocks of R data structures. All complex R objects that store data consist of vectors embedded in various forms of higher organizational structures. The list class object is perhaps the most important and versatile of these structures. A list is like a vector, except that each element of a list can hold a vector, or another list. Using lists embedded as elements of other lists, list class objects enable organization of vectors into arbitrary hierarchies of data. To illustrate the basic mechanics of a list, let us return to <code>substring()</code>, a text parsing function from Lesson A5. The <code>strsplit()</code> function divides a text string into a vector of elements, splitting it up everywhere that a specific character appears. Packaging those vectors into a list, <code>strsplit()</code> can split multiple strings at the same time.</p>
+<p>Vectors are the basic building blocks of R data structures. All complex R objects that store data consist of vectors embedded in various forms of higher organizational structures. The list class object is perhaps the most important and versatile of these structures. A list is like a vector, except that each element of a list can hold a vector, or another list. Using lists embedded as elements of other lists, list class objects enable organization of vectors into arbitrary hierarchies of data. To illustrate the basic mechanics of a list, let us return to <code>strsplit()</code>, a text parsing function from Lesson A5. The <code>strsplit()</code> function divides a text string into a vector of elements, splitting it up everywhere that a specific character appears. Packaging those vectors into a list, <code>strsplit()</code> can split multiple strings at the same time.</p>
 <pre class="r"><code>&gt; ## create vector of text strings
 &gt; hamlet &lt;- c(
 +   &quot;To be, or not to be, that is the question:&quot;,
@@ -466,8 +466,7 @@ $`Three Word Name`
 &gt; list_object$&quot;Three Word Name&quot;</code></pre>
 <pre><code>[1] TRUE</code></pre>
 <pre class="r"><code>&gt; ## Delete demonstration object
-&gt; remove(list_objects)</code></pre>
-<pre><code>Warning in remove(list_objects): object &#39;list_objects&#39; not found</code></pre>
+&gt; remove(list_object)</code></pre>
 <p>Lists can hold other lists, forming hierarchies with arbitrary structure. In the example below, <code>list.object</code> has two elements. Element A is a two-element list, holding elements A1 and A2. Element B is a three-element list, holding elements B1, B2, and B3. B3 is a one-element list, holding the element B3.1. Using <code>$</code> extractions, any element in this hierarchy is retrievable.</p>
 <pre class="r"><code>&gt; list_object &lt;- list(
 +   &quot;A&quot;= list( &quot;A1&quot;= 1, &quot;A2&quot;= 2 ),
@@ -540,7 +539,7 @@ e f
   1   2   3   5   6 </code></pre>
 <pre class="r"><code>&gt; ## Delete demonstration objects
 &gt; remove(new_list, named_vector)</code></pre>
-<p>List class is perhaps the most versatile basic object class in R. Most complex object classes in R are actually list objects with sophisticated display characters and special hooks for eliciting class-sensitive behavior in other functions. For example, in R, the function ‘lm()’ generates linear models (i.e., performs regression analysis). The ‘lm()’ function expresses objects of lm class. However, if you set the class identifier to ‘NULL’, the object will reveal its true underlying structure – a list object with 12 elements.</p>
+<p>List class is perhaps the most versatile basic object class in R. Most complex object classes in R are actually list objects with sophisticated display characters and special hooks for eliciting class-sensitive behavior in other functions. For example, in R, the function <code>lm()</code> generates linear models (i.e., performs regression analysis). The <code>lm()</code> function expresses objects of lm class. However, if you set the class identifier to <code>NULL</code>, the object will reveal its true underlying structure – a list object with 12 elements.</p>
 <pre class="r"><code>&gt; ## generate a simple linear model object
 &gt; ind_variable &lt;- 1:10
 &gt; dep_variable &lt;- ind_variable^2
@@ -667,7 +666,7 @@ $model
 </div>
 <div id="multi-dimensional-positioning-with-arrays" class="section level3">
 <h3>Multi-dimensional Positioning with Arrays</h3>
-<p>The typical scientific dataset consists of a spreadsheet – data arrayed into rows of cases and columns of variables / fields. R can support this format using vectors. R can use a positioning system with multiple dimensions, simulating rows and columns, and it has a display method to reflect dimensions. The function ‘dim()’ supplies access to the dimensionality of the vector. Setting the dimensions attribute to a vector with greater than one element will generate a multi-dimensional position system. The number of elements in the vector passed to ‘dim()’ determines the number of dimensions in the resulting system. The numbers in each element determine the number of rows / columns / etc. that the given dimension can support. The ‘prod()’ of the ‘dim()’ of the vector must equal the total number of elements in the vector. In other words, R will reject setting ‘dim( x )’ to anything that would make ‘prod( dim( x ) ) == length( x )’ not express TRUE.</p>
+<p>The typical scientific dataset consists of a spreadsheet – data arrayed into rows of cases and columns of variables / fields. R can support this format using vectors. R can use a positioning system with multiple dimensions, simulating rows and columns, and it has a display method to reflect dimensions. The function <code>dim()</code> supplies access to the dimensionality of the vector. Setting the dimensions attribute to a vector with greater than one element will generate a multi-dimensional position system. The number of elements in the vector passed to <code>dim()</code> determines the number of dimensions in the resulting system. The numbers in each element determine the number of rows / columns / etc. that the given dimension can support. The <code>prod()</code> of the <code>dim()</code> of the vector must equal the total number of elements in the vector. In other words, R will reject setting <code>dim( x )</code> to anything that would make <code>prod(dim(x)) == length(x)</code> not express <code>TRUE</code>.</p>
 <pre class="r"><code>&gt; ## This is a basic vector with 24 elements.
 &gt; a_vector &lt;- 1:24
 &gt; a_vector</code></pre>
@@ -699,31 +698,55 @@ $model
 [6,]    6   12   18   24</code></pre>
 <pre class="r"><code>&gt; ## Delete demonstration objects
 &gt; remove(a_vector)</code></pre>
-<p>This multi-dimensional vector is an array. Because it has exactly two-dimensions, it is also a special type of array called a matrix. For the purposes of this class, the term array is privileged over the term matrix, as matrices are only a special sub-type of the larger object class. However, <code>class()</code> will identify 2D arrays as matrix class, and 3+ D arrays as array class. Moreover, there are many functions that work on 2D vectors, but are not flexible enough to generalize to N-Dimensional space. The examples below make side by side comparisons of the class and display methods of a 1D vector, 2D matrix, and a 3D array object. For class vs mode, note how <code>class()</code> and <code>mode()</code> diverge. This is typical for higher order objects – while classes may become more complex, the basic storage modes for the data inside them do not. For object display, note the use of the new <code>[,]</code> syntax to display rows / columns, and the <code>,,</code> syntax to display higher dimensions.</p>
-<pre class="vectors"><code>&gt; ## create objects
-+ a_array &lt;- a_matrix &lt;- a_vector &lt;- as.numeric(1:24)
-+ dim(a_matrix) &lt;- c(6, 4)
-+ dim(a_array) &lt;- c(4, 3, 2)
-+ 
-+ ## object class / mode
-+ 
-+ class(a_vector)
-+ class(a_matrix)
-+ class(a_array)
-+ 
-+ mode(a_vector)
-+ mode(a_matrix)
-+ mode(a_array)
-+ 
-+ ## objects displayed
-+ a_vector
-+ 
-+ a_matrix
-+ 
-+ a_array
-+ 
-+ ## Delete demonstration object
-+ remove(a_vector, a_matrix, a_array)</code></pre>
+<p>This multi-dimensional vector is an array. Because it has exactly two-dimensions, it is also a special type of array called a matrix. For the purposes of this class, the term array is privileged over the term matrix, as matrices are only a special sub-type of the larger object class. However, <code>class()</code> will identify 2D arrays as both matrix and array class, while only identifying 3+ D arrays as array class. Moreover, there are many functions that work on 2D vectors, but are not flexible enough to generalize to N-Dimensional space. The examples below make side by side comparisons of the class and display methods of a 1D vector, 2D matrix, and a 3D array object. For class vs mode, note how <code>class()</code> and <code>mode()</code> diverge. This is typical for higher order objects – while classes may become more complex, the basic storage modes for the data inside them do not. For object display, note the use of the new <code>[,]</code> syntax to display rows / columns, and the <code>,,</code> syntax to display higher dimensions.</p>
+<pre class="r"><code>&gt; ## create objects
+&gt; a_array &lt;- a_matrix &lt;- a_vector &lt;- as.numeric(1:24)
+&gt; dim(a_matrix) &lt;- c(6, 4)
+&gt; dim(a_array) &lt;- c(4, 3, 2)
+&gt; 
+&gt; ## object class / mode
+&gt; 
+&gt; class(a_vector)</code></pre>
+<pre><code>[1] &quot;numeric&quot;</code></pre>
+<pre class="r"><code>&gt; class(a_matrix)</code></pre>
+<pre><code>[1] &quot;matrix&quot; &quot;array&quot; </code></pre>
+<pre class="r"><code>&gt; class(a_array)</code></pre>
+<pre><code>[1] &quot;array&quot;</code></pre>
+<pre class="r"><code>&gt; mode(a_vector)</code></pre>
+<pre><code>[1] &quot;numeric&quot;</code></pre>
+<pre class="r"><code>&gt; mode(a_matrix)</code></pre>
+<pre><code>[1] &quot;numeric&quot;</code></pre>
+<pre class="r"><code>&gt; mode(a_array)</code></pre>
+<pre><code>[1] &quot;numeric&quot;</code></pre>
+<pre class="r"><code>&gt; ## objects displayed
+&gt; a_vector</code></pre>
+<pre><code> [1]  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24</code></pre>
+<pre class="r"><code>&gt; a_matrix</code></pre>
+<pre><code>     [,1] [,2] [,3] [,4]
+[1,]    1    7   13   19
+[2,]    2    8   14   20
+[3,]    3    9   15   21
+[4,]    4   10   16   22
+[5,]    5   11   17   23
+[6,]    6   12   18   24</code></pre>
+<pre class="r"><code>&gt; a_array</code></pre>
+<pre><code>, , 1
+
+     [,1] [,2] [,3]
+[1,]    1    5    9
+[2,]    2    6   10
+[3,]    3    7   11
+[4,]    4    8   12
+
+, , 2
+
+     [,1] [,2] [,3]
+[1,]   13   17   21
+[2,]   14   18   22
+[3,]   15   19   23
+[4,]   16   20   24</code></pre>
+<pre class="r"><code>&gt; ## Delete demonstration object
+&gt; remove(a_vector, a_matrix, a_array)</code></pre>
 <p>Each array has two position coordinate systems – its basic vector system and a new set of coordinates for each dimension. You can use either to do <code>[]</code> extraction.</p>
 <pre class="r"><code>&gt; ## create objects
 &gt; a_array &lt;- a_matrix &lt;- a_vector &lt;- as.numeric(1:24) + 100
@@ -846,7 +869,7 @@ Rows A B C
    d 0 0 0</code></pre>
 <pre class="r"><code>&gt; ## Delete demonstration object
 &gt; remove(an_array)</code></pre>
-<p>In this example, also note the use of <code>dim()</code> to determine the length of each <code>dimnames()</code> vector. This is a more powerful approach than writing in the actual number because this code will not throw an error if the dimensions of the array change. Writing in the actual number, i.e., ‘letters[1:4]’ instead of ‘letters[1:dim( an.array )[1]]’ is called “hard coding” a value and is considered bad practice in most programming scenarios.</p>
+<p>In this example, also note the use of <code>dim()</code> to determine the length of each <code>dimnames()</code> vector. This is a more powerful approach than writing in the actual number because this code will not throw an error if the dimensions of the array change. Writing in the actual number, i.e., <code>letters[1:4]</code> instead of <code>letters[1:dim( an.array )[1]]</code> is called “hard coding” a value and is considered bad practice in most programming scenarios.</p>
 </div>
 <div id="list-array-hybrids-multi-dimensional-list-vectors-and-data-frames" class="section level3">
 <h3>List-Array Hybrids: Multi-Dimensional List Vectors and Data Frames</h3>
@@ -854,34 +877,43 @@ Rows A B C
 <pre class="r"><code>&gt; ## Create list
 &gt; list_object &lt;- as.list(1:4)
 &gt; list_object[[1]] &lt;- list_object[[4]] &lt;- as.list(101:102)
+&gt; list_matrix &lt;- list_object
 &gt; 
 &gt; ## Apply dim() and dimnames() to list
-&gt; dim(list_object) &lt;- c(2, 2)
-&gt; dimnames(list_object) &lt;- list(
+&gt; dim(list_matrix) &lt;- c(2, 2)
+&gt; dimnames(list_matrix) &lt;- list(
 +   &quot;Rows&quot;= letters[1:2],
 +   &quot;Cols&quot;= LETTERS[1:2]
 +   )
 &gt; 
-&gt; 
 &gt; ## Express object and expressions by various methods
-&gt; list_object</code></pre>
+&gt; list_matrix</code></pre>
 <pre><code>    Cols
 Rows A      B     
    a List,2 3     
    b 2      List,2</code></pre>
-<pre class="r"><code>&gt; list_object[&quot;a&quot;, &quot;A&quot;, drop= FALSE]</code></pre>
+<pre class="r"><code>&gt; list_matrix[&quot;a&quot;, &quot;A&quot;, drop= FALSE]</code></pre>
 <pre><code>    Cols
 Rows A     
    a List,2</code></pre>
-<pre class="r"><code>&gt; list_object[[&quot;a&quot;, &quot;A&quot;]]</code></pre>
+<pre class="r"><code>&gt; list_matrix[[&quot;a&quot;, &quot;A&quot;]]</code></pre>
 <pre><code>[[1]]
 [1] 101
 
 [[2]]
 [1] 102</code></pre>
+<pre class="r"><code>&gt; ## Compare class/mode for a standard list vs. a list with dimensions
+&gt; class(list_object)</code></pre>
+<pre><code>[1] &quot;list&quot;</code></pre>
+<pre class="r"><code>&gt; class(list_matrix)</code></pre>
+<pre><code>[1] &quot;matrix&quot; &quot;array&quot; </code></pre>
+<pre class="r"><code>&gt; mode(list_object)</code></pre>
+<pre><code>[1] &quot;list&quot;</code></pre>
+<pre class="r"><code>&gt; mode(list_matrix)</code></pre>
+<pre><code>[1] &quot;list&quot;</code></pre>
 <pre class="r"><code>&gt; ## Delete demonstration objects
-&gt; remove(list_object)</code></pre>
-<p>Hybridizing the unique strengths of lists and arrays is an effective strategic for data storage. The <code>data.frame</code> class (henceforth called “data frame” class for simplicity) is R’s premier hybrid data storage object class. Most of your work cleaning, manipulating, and analyzing datasets will involve at least one object from this highly versatile class. Essentially, data frames are lists that behave like cases x variables data spreadsheets. The R constrains data frame list elements to hold vectors of identical length, and the object has a positioning system for recognizing element in each list’s vector that occupy the same row.</p>
+&gt; remove(list_object, list_matrix)</code></pre>
+<p>Hybridizing the unique strengths of lists and arrays is an effective strategic for data storage. The <code>data.frame</code> class (henceforth called “data frame” class for simplicity) is R’s premier hybrid data storage object class. Most of your work cleaning, manipulating, and analyzing datasets will involve at least one object from this highly versatile class. Essentially, data frames are lists that behave like cases x variables data spreadsheets. The R constrains data frame list elements to hold vectors of identical length, and the object has a positioning system for recognizing elements in each list’s vector that occupy the same row.</p>
 <pre class="r"><code>&gt; ## Create a data.frame class object
 &gt; survey_results &lt;- data.frame(
 +   &quot;ID&quot;= c( &quot;r159&quot;, &quot;p652&quot;, &quot;a048&quot; ),
@@ -1014,8 +1046,8 @@ Columns  Rows 1 Rows 2 Rows 3
 <pre class="r"><code>&gt; ## Delete demonstration object
 &gt; remove(array_object, index_multi, index_vector)</code></pre>
 <p>Many of the functions in the previous section have counterparts that work only on two-dimensional arrays. The 2D counterpart of <code>aperm()</code> is <code>t()</code>, and the counterparts of <code>slice.index()</code> are <code>row()</code> and <code>col()</code>. There are trade-offs to using the 2D functions when applicable versus using the generalized multi-dimensional versions instead. The 2D functions are slightly less computationally intensive and require fewer arguments because they do not have the burden of configuring to arrays of different dimensionality. However, a programming style built on generalized multi-dimensional functions is more versatile because the same code and coding strategies will work across a broader set of use cases. This can become important when working on projects where the final specifications for the code may change repeatedly and when recycling code from old projects to rapidly carry out similar tasks on new ones.</p>
-<p>My recommendation for this case is to go with the generalized form unless extremely high performance is needed - the versatility advantages of the generalized form can easily outweigh the additional computational costs. For example, on my machine, the more general <code>aperm()</code> runs equivalent calculations only 3.4 percent slower than the more specific <code>t()</code>. This is different than the typical trade-off between specific functions and generalized functions. For example, the more general <code>ifelse()</code> runs 530.5 percent factor than its more specific counterpart <code>pmax()</code>.</p>
-<p>Three more 2D-specific positioning functions that <em>do</em> perform well enough for consideration are<code>diag()</code>, <code>lower.tri()</code>, and <code>upper.tri()</code>. These functions express <code>TRUE</code> for the elements of a two-dimensional array for which the row position equals, is greater than, or is less than the column position respectively.</p>
+<p>My recommendation for this case is to go with the generalized form unless extremely high performance is needed - the versatility advantages of the generalized form can outweigh the additional computational costs. To be precise, on my machine, the more general <code>aperm()</code> runs equivalent calculations 19 percent slower than the more specific <code>t()</code>. This is a smaller disparity than is typically found between generalized and specific functions. For example, the more general <code>ifelse()</code> runs 413 percent slower than its more specific counterpart <code>pmax()</code> on my machine.</p>
+<p>Three 2D-specific positioning functions that <em>do</em> perform well enough for consideration are<code>diag()</code>, <code>lower.tri()</code>, and <code>upper.tri()</code>. These functions express <code>TRUE</code> for the elements of a two-dimensional array for which the row position equals, is greater than, or is less than the column position respectively.</p>
 <pre class="r"><code>&gt; ## create a simple 2D array
 &gt; array_2d &lt;- array(101:109, dim= rep(3, 2))
 &gt; array_2d</code></pre>
@@ -1090,7 +1122,15 @@ Columns  Rows 1 Rows 2 Rows 3
 &gt; matched_names &lt;- state_area
 &gt; colnames(matched_names) &lt;- colnames(state_population)[2:1]
 &gt; 
-&gt; rbind(state_population, matched_names)</code></pre>
+&gt; head(state_population, 2)</code></pre>
+<pre><code>  State Population
+1    NH    1356458
+2    MA    6902149</code></pre>
+<pre class="r"><code>&gt; head(matched_names, 2)</code></pre>
+<pre><code>  Population State
+1       5567    CT
+2       9349    NH</code></pre>
+<pre class="r"><code>&gt; rbind(state_population, matched_names)</code></pre>
 <pre><code>  State Population
 1    NH    1356458
 2    MA    6902149
@@ -1101,8 +1141,15 @@ Columns  Rows 1 Rows 2 Rows 3
 7    RI       1214
 8    MA      10565</code></pre>
 <pre class="r"><code>&gt; ## merge() matches two datasets together by a common case/row ID
-&gt; 
-&gt; merge(
+&gt; head(state_population, 2)</code></pre>
+<pre><code>  State Population
+1    NH    1356458
+2    MA    6902149</code></pre>
+<pre class="r"><code>&gt; head(state_area, 2)</code></pre>
+<pre><code>  Area Jurisdiction
+1 5567           CT
+2 9349           NH</code></pre>
+<pre class="r"><code>&gt; merge(
 +   x= state_population, by.x= &quot;State&quot;,
 +   y= state_area,       by.y= &quot;Jurisdiction&quot;
 + )</code></pre>

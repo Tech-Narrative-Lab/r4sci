@@ -369,7 +369,7 @@ summary {
 <p><a href="00_TableOfContents.html">Go to the Table of Contents</a></p>
 <p><a href="06_LessonB1.html">Return to Last Lesson (B1: Array and List Objects)</a></p>
 <p><a href="08_LessonB3.html">Proceed to Next Lesson (B3: Environment)</a></p>
-<p>As discussed in Lesson A1, functions are objects. They do not show up in the output of <code>objects()</code> because they are stored in environments other than the global environment. The ability to hold multiple environments makes R modular. At start-up, a small number of “packages” load automatically to supply a range of versatile core functions. The user can load additional packages to make more functions available for use. In total, basic R loads approximately 2,400 functions in seven packages at start-up, of which about 300 are covered in this class:</p>
+<p>As discussed in Lesson A1, functions are objects. They do not show up in the output of <code>objects()</code> because they are stored in environments other than the global environment. The ability to hold multiple environments makes R modular. At start-up, a small number of “packages” load automatically into separate environments to supply a range of versatile core functions. The user can load additional packages to make more functions available for use. In total, basic R loads approximately 2,400 functions in seven packages at start-up, of which about 300 are covered in this class:</p>
 <table>
 <colgroup>
 <col width="50%"></col>
@@ -416,7 +416,11 @@ summary {
 <pre><code>[1] Functions in each package currently loaded:
      base     stats     utils   methods grDevices  datasets  graphics 
      1243       449       215       203       112       104        87 </code></pre>
-<p>The function <code>search()</code> reveals all the environments currently loaded. By default, this includes the seven packages discussed above, the global environment (<code>.GlobalEnv</code>), and the R’s user interface (<code>tools:RGUI</code>). The <code>library()</code> and <code>detach()</code> functions load a new package and unload it respectively. In this lesson, we will discuss the package parallel, which contains functions for doing parallel processing in R. Here is a demonstration of loading and unloading this package.</p>
+<p>The function <code>search()</code> reveals all the environments currently loaded. By default, this includes the seven packages discussed above and the global environment (<code>.GlobalEnv</code>). If you are executing R from a user interface, <code>search()</code> will also reveal that (e.g., <code>tools:RGUI</code>, <code>tools:rstudio</code>, etc.).</p>
+<p>In addition to the seven auto-loading packages, R comes pre-installed with several others. You can load these packages when you need them. The <code>library()</code> and <code>detach()</code> functions load a new package and unload it respectively.</p>
+<pre><code>compiler     grid parallel  splines   stats4    tools 
+       9      208       33       13       13      119 </code></pre>
+<p>In this lesson, we will discuss the parallel package, which contains functions for doing parallel processing in R. Here is a demonstration of loading and unloading this package.</p>
 <pre class="r"><code>&gt; ## view packages currently loaded
 &gt; search()    </code></pre>
 <pre><code>[1] &quot;.GlobalEnv&quot;        &quot;package:stats&quot;     &quot;package:graphics&quot; 
@@ -437,6 +441,13 @@ summary {
 [7] &quot;package:methods&quot;   &quot;Autoloads&quot;         &quot;package:base&quot;     </code></pre>
 <p>Through <code>package:datasets</code>, R comes with several datasets pre-installed. These datasets can be useful for learning and testing purposes. The function <code>data()</code> will load datasets into the global environment from <code>datasets</code>. It can also load datasets from other packages that come with built-in sample data.</p>
 <p>R is an open-source collaborative endeavor. Teams around the world publish and maintain packages on their particular computational specialty. At the time of this writing, there are nearly 14,000 packages available on the CRAN package repository, of which only a handful come pre-installed in the way that <code>parallel</code> is pre-installed. The <code>install.packages()</code> function installs packages from the repository. You will need to specify a <code>repos=</code> repository from which to download the code, such as <code>install.packages(repos= https://mirrors.nics.utk.edu/cran)</code> and can specify where to put the installed package using <code>lib=</code> if the default location is not viable. The <code>update.packages()</code> function will retrieve the updated version of all installed packages that have gone out of date. Setting <code>ask=</code> to <code>FALSE</code> will prevent R from confirming for each package that you wish to install it.</p>
+<p>The R’s community’s package offerings are one of the strengths of R as a programming language. Regardless of your field, someone has probably written a package with tools that can potentially assist you. However, community packages also come with specific risks:</p>
+<ol style="list-style-type: decimal">
+<li><p>R’s core development team vets pre-installed packages, ensuring that all packages work together without conflict. The more that your code relies on them, the more confidence you can have that your functions are compatible. Using community packages creates risk that the functions in one package may not be compatible with the functions in another.</p></li>
+<li><p>When you build code that depends on a community package, you force every user of your code to depend on that package. Across large software teams or collaborative efforts, making this kind of decision unilaterally can be bad etiquette. Moreover, collaborators will be best able to contribute to your code (or vet it) if it consists of common R functions, instead of more exotic functions.</p></li>
+<li><p>The developers may decide to stop maintaining the package or may be slow to update the package to be compatible with the latest operating system / base R updates. If this happens, you may need to go line-by-line through your scripts to remove code that is no longer viable.</p></li>
+</ol>
+<p>Given these risks, make an effort to minimize the number of community packages you use in your R code. Only load packages when it will save a significant amount of coding labor. Only use community package functions when the operation cannot easily be done with a few lines of base R code. Do not get into the habit of installing new packages because you do not have an immediate answer for how to get from point A to point B. Base R functions are generally efficient and effective, make the most of them!</p>
 <div id="the-apply-family-of-functions" class="section level3">
 <h3>The Apply Family of Functions</h3>
 <p>To do analytic computation, you will need to break data into parts and perform computation on each of those parts. This could happen because:</p>
@@ -447,7 +458,7 @@ summary {
 <li><p>You are running a simulation that has some element of randomness to it, so you want to run it multiple times to measure the variability in results</p></li>
 </ul>
 <p>The apply family of functions are R’s premier tools for segmented / batch processing. Each function takes an <code>X=</code> data object, divides it up into chunks with an <code>INDEX=</code>, <code>MARGIN=</code>, or implied chunking schema, and applies a <code>FUN=</code> function to that chunk.</p>
-<p>The tapply() function accepts an <code>X=</code> data vector and divides into chunks according to an <code>INDEX=</code> vector. It can also accept an <code>INDEX=</code> list containing multiple vectors, in which case <code>tapply()</code> will apply the function to separately each cross-tabulation of <code>INDEX=</code> vectors.</p>
+<p>The <code>tapply()</code> function accepts an <code>X=</code> data vector and divides into chunks according to an <code>INDEX=</code> vector. It can also accept an <code>INDEX=</code> list containing multiple vectors, in which case <code>tapply()</code> will apply the function separately to each cross-tabulation of <code>INDEX=</code> vectors.</p>
 <pre class="r"><code>&gt; ## Create a mock dataset
 &gt; 
 &gt; set.seed( 2657 )
@@ -474,7 +485,7 @@ summary {
 +   )</code></pre>
 <pre><code>Blue  Red 
  111  104 </code></pre>
-<pre class="r"><code>&gt; ## Calculate the mean separately for each color using tapply
+<pre class="r"><code>&gt; ## Calculate the median separately for each color and type using tapply
 &gt; tapply(
 +   X= survey_data$Score,
 +   INDEX= survey_data[ , c(&quot;Color&quot;, &quot;Type&quot;)],
@@ -493,13 +504,13 @@ Color    A     B
 +   dimnames=  list(
 +       &quot;Length&quot;= letters[1:4],
 +       &quot;Width&quot;= letters[24:26],
-+       &quot;Depth&quot;= letters[12:13]
++       &quot;Depth&quot;= letters[13:14]
 +       )
 +   )
 &gt; census_data[ , , 1]  &lt;- outer(1:4, 1:3)
 &gt; census_data[ , , 2 ] &lt;- outer(1:4, 1:3) * 2
 &gt; census_data</code></pre>
-<pre><code>, , Depth = l
+<pre><code>, , Depth = m
 
       Width
 Length x y  z
@@ -508,7 +519,7 @@ Length x y  z
      c 3 6  9
      d 4 8 12
 
-, , Depth = m
+, , Depth = n
 
       Width
 Length x  y  z
@@ -519,27 +530,27 @@ Length x  y  z
 <pre class="r"><code>&gt; ## Calculate the median for each depth, identifying MARGIN=
 &gt;   ## either by the dimension name or the dimension position
 &gt; apply(X= census_data, MARGIN= &quot;Depth&quot;, FUN= median)</code></pre>
-<pre><code>l m 
+<pre><code>m n 
 4 8 </code></pre>
 <pre class="r"><code>&gt; apply(X= census_data, MARGIN= 3, FUN= median)</code></pre>
-<pre><code>l m 
+<pre><code>m n 
 4 8 </code></pre>
 <pre class="r"><code>&gt; ## Calculate the median for each width x depth, in effect
-&gt;   ## summarizing across lengths
+&gt;   ## summarizing lengths at each width x depth
 &gt; apply(X= census_data, MARGIN= c(&quot;Width&quot;, &quot;Depth&quot;), FUN= median)</code></pre>
 <pre><code>     Depth
-Width   l  m
+Width   m  n
     x 2.5  5
     y 5.0 10
     z 7.5 15</code></pre>
 <pre class="r"><code>&gt; ## Do equivalent segmentation with apply() and tapply()
 &gt; apply(X= census_data, MARGIN= &quot;Depth&quot;, FUN= median)</code></pre>
-<pre><code>l m 
+<pre><code>m n 
 4 8 </code></pre>
 <pre class="r"><code>&gt; index &lt;- slice.index(census_data, MARGIN= 3)
 &gt; index &lt;- dimnames(census_data)[[3]][index]
 &gt; tapply(X= census_data, INDEX= index, FUN= median)</code></pre>
-<pre><code>l m 
+<pre><code>m n 
 4 8 </code></pre>
 <pre class="r"><code>&gt; ## Delete demonstration objects
 &gt; remove(census_data, index)</code></pre>
@@ -621,9 +632,7 @@ $Ladder
   B   E   F 
 251 495 254 </code></pre>
 <pre class="r"><code>&gt; ## Delete demonstration objects
-&gt; remove(SampleSummary, sample_population, sample_probability)
-&gt; objects()</code></pre>
-<pre><code>character(0)</code></pre>
+&gt; remove(SampleSummary, sample_population, sample_probability)</code></pre>
 </div>
 <div id="adaptive-segmented-functions" class="section level3">
 <h3>Adaptive Segmented Functions</h3>
@@ -710,7 +719,7 @@ $C
 [1] 64</code></pre>
 <pre class="r"><code>&gt; ## Delete demonstration objects
 &gt; remove(list_object)</code></pre>
-<p>The eapply() function surveys all the objects in a specified environment and applies a function to each of them individually. One of its major uses is gathering up objects inside a function, since each instance of a function generates its own temporary environment and performs operations inside it. For this purpose, <code>eapply()</code> can be used in conjunction with <code>environment()</code>. That function finds which environment contains a <code>fun=</code> function or contains (if given no argument) the current instance of <code>environment()</code>.</p>
+<p>The eapply() function surveys all the objects in a specified environment and applies a function to each of them individually. One of its major uses is gathering up objects inside a function, since each instance of a function generates its own temporary environment and performs operations inside it. For this purpose, <code>eapply()</code> can be used in conjunction with <code>environment()</code>. That function finds which environment contains a <code>fun=</code> function or expresses (if given no argument) the environment that holds the current instance of <code>environment()</code>.</p>
 <pre class="r"><code>&gt; ## set up example environment
 &gt; remove(list= objects())
 &gt; lambda4 &lt;- rpois(n= 64, lambda= 4)
@@ -752,7 +761,7 @@ $x
 [1] 1 2 3 4 5 6 7 8</code></pre>
 <pre class="r"><code>&gt; ## Delete demonstration objects
 &gt; remove(ZScore, lambda4, lambda8, lambda12)</code></pre>
-<p>The <code>do.call()</code> function accepts a list of objects and then simultaneously passes each list element as a separate object to a function, matching up list names to arguments when applicable. A common use for <code>do.call()</code> is collecting parts of a dataset processed in parallel and compiling them with <code>rbind()</code> back to a single dataset. Because <code>do.call()</code> can accept arguments in list form and pass them as objects to a function, it is useful in a variety of circumstances.</p>
+<p>The <code>do.call()</code> function accepts a list of objects and then simultaneously passes each list element as a separate object to a function, matching up list names to arguments when applicable. A common use for <code>do.call()</code> is collecting parts of a dataset processed in parallel and compiling them back to a single dataset with <code>rbind()</code>. Because <code>do.call()</code> can accept arguments in list form and pass them as objects to a function, it is useful in a variety of circumstances.</p>
 <pre class="r"><code>&gt; ## create a list containing multiple datasets
 &gt; parallel_data &lt;- list(
 +   &quot;15m+&quot;= data.frame(
@@ -799,7 +808,7 @@ $x
 <div id="processor" class="section level4">
 <h4>Processor</h4>
 <p>The processor (“CPU”) is the part of your computer that does computations. In most computers, your CPU consists of multiple CPU cores stacked on top of each other. This enables your computer to run multiple processes at the same time.</p>
-<p><em>Parallel processing</em>– The most powerful way to use a CPU is engaging all its cores at the same time. To do this, you divide up a computation in chunks that can be processed independently. If it helps, think of <code>lapply()</code>. Since a function is applied separately to the elements of the list, each element might as well be on its own core. Splitting a task among multiple cores is called “parallel processing.” This less will focus on parallel processing using a single machine. However, you can use the same techniques and functions to perform parallel processing across multiple machines.</p>
+<p><em>Parallel processing</em>– The most powerful way to use a CPU is engaging all its cores at the same time. To do this, you divide up a computation in chunks that can be processed independently. If it helps, think of <code>lapply()</code>. Since a function is applied separately to the elements of the list, each element might as well be on its own core. Splitting a task among multiple cores is called “parallel processing.” This lesson will focus on parallel processing using a single machine. However, you can use the same techniques and functions to perform parallel processing across multiple machines.</p>
 <p><em>Core Resource Management</em>– On a high performance computation, aim to keep about 80 percent of your cores engaged. If you are working on a server, be courteous to other users and your system administrator (“sys admin”). Do not use more than half of the cores during work hours. Better yet, schedule your heavy computations for nights/weekends when high-core use is less likely to inconvenience. Check in with your admin as well. Servers can send a “distress” message to the admin if their resources are put too far under strain.</p>
 <p><em>Listening to your machine </em>– When you run your processor at full capacity, it will generate a significant amount of heat. Paying attention to heat is one way that you can “listen to your hardware,” allowing it to guide you in programming effectively. When your CPU is generating significant heat, you will be able to feel it in two places on a laptop: at the heat vents and on the underside directly below your processor. As heat builds up during heavy computation, your fan will eventually activate, as your computer switches from passive heat dissipation to active dissipation. Your computer can “run hot” for a long time. However, over extended computation heat built up may cause the internal temperature to exceed operational thresholds. With these thresholds exceeded, your machine will automatically begin throttling down processor speed to protect itself from damage. Next time your fan activates, take a moment to feel for the heat vents and the hottest point on the underside. For best results, do this exercise while your laptop is plugged-in and after the battery has already been fully charged for a while – a charging battery also emits heat.</p>
 <p><em>Heat dissipation</em>– To get the best performance out of your CPU during heavy computation, do what you can to improve its heat dissipation:</p>
@@ -811,11 +820,11 @@ $x
 <li><p>Do not leave your computer in direct window sunshine.</p></li>
 <li><p>Give your laptop as much airflow as possible. A low-tech option is propping your machine between two stacks of books so that most of the underside has abundant airflow. Laptop cooling pads are the higher-tech solution.</p></li>
 </ul>
-<p><em>Graphical Processing Unit (GPU)</em> – You have two kinds of processors in your machine, the CPU and GPU. The GPU is an independent processor that renders the polygons underlying your screen’s display. It is like a CPU, except that it has many more cores than a CPU and each individual core is much less powerful. This allows it to layer many tiny polygons on your screen to create complex visual displays. If you have a task that involves doing many small calculations (such as an agent-based simulation with many simplistic actors), it might be helpful to route it through your GPU, instead of your CPU. GPU tasking is out of scope for this class, but worth pursuing if your computations have the right parameters for it.</p>
+<p><em>Graphical Processing Unit (GPU)</em> – You have two kinds of processors in your machine, the CPU and GPU. The GPU is an independent processor that renders the polygons underlying your screen’s display. It is like a CPU, except that it typically has many more cores than a CPU, each core is typically less powerful and each core is more specialized in the kinds of calculations they can perform. This allows it to layer many tiny polygons on your screen to create complex visual displays. If you have a task that involves doing many small calculations (such as an agent-based simulation with many simplistic actors), it might be helpful to route it through your GPU, instead of your CPU. GPU tasking is out of scope for this class, but worth pursuing if your computations have the right parameters for it.</p>
 </div>
 <div id="random-access-memory-ram" class="section level4">
 <h4>Random Access Memory (RAM)</h4>
-<p>RAM is chip-based memory on your computer. The CPU stores data temporarily in RAM so that it can retrieve it easily. CPU and RAM can conduct information transfer at high speeds and volumes. However, you have significantly less RAM than standard storage memory. By default, R stores everything in the R environment in RAM. This makes data easy to retrieve and makes vector operations faster. However, this also means that every object you store in the R environment takes up RAM that the processor could use to store intermediate computations needed to execute functions.</p>
+<p>RAM is chip-based (“fast”) memory on your computer. The CPU stores data temporarily in RAM so that it can retrieve it easily. CPU and RAM can conduct information transfer at high speeds and volumes. However, you have significantly less RAM than standard storage memory. By default, R stores everything in the R environment in RAM. This makes data easy to retrieve and makes vector operations faster. However, this also means that every object you store in the R environment takes up RAM that the processor could use to store intermediate computations needed to execute functions.</p>
 <p><em>Swap Memory</em>– If you need more processing power, increase the number of cores and store everything they need at their fingertips (i.e., in RAM). However, this can result in R needing more RAM than you have. If this happens, your machine will shift data to “swap”. Swap (or “virtual memory”) is when your machine starts storing RAM data to regular storage memory. Since storage memory loads slowly (compared to RAM), this slows down processor cores as they wait for their turn to access storage. A computer that runs out of swap may lock up entirely, terminate processes, freeze processes, or engage in other self-protective mechanisms. If you have gotten to the point where swap engages, you have already missed the mark for efficient computation.</p>
 <p><em>Minimizing Footprint</em>– To get the best performance out of RAM, minimize how much RAM is in use and how often it gets reallocated:</p>
 <ul>
@@ -934,7 +943,7 @@ $x
 </tbody>
 </table>
 <p>These formats are the ends of a spectrum of formatting. For example, a wide dataset might hold census datasets for multiple years, with the first column denoting the year of the census. The year column supplies long-format data about datasets that are otherwise in wide-format.</p>
-<p>Wide format is popular because it is easy to visually inspect, makes analysis of specific variables easy to do with column-wise operations, and it more resource efficient for storing a single dense dataset. Long format is a useful counterpart because it can stack multiple datasets, even if each of the datasets has different variables. Moreover, long format allows for sparse storage. Sparse storage only stores non-empty data, with empty cells implied by absence. For variables with many empty cells, sparse storage can have a much smaller resource footprint. The tables below shows a sparse dataset in long and wide formats to illustrate the difference.</p>
+<p>Wide format is popular because it is easy to visually inspect, makes analysis of specific variables easy to do with column-wise operations, and it more resource efficient for storing a single dense dataset. Long format is a useful counterpart because it can stack multiple datasets, even if each of the datasets has different variables. Moreover, long format allows for sparse storage. Sparse storage only stores non-empty data, with empty cells implied by absence. For variables with many empty cells, sparse storage can have a much smaller resource footprint. The tables below show a sparse dataset in long and wide formats to illustrate the difference.</p>
 <p><strong>Total size as a wide-format dataset: 54 cells</strong></p>
 <table>
 <thead>
@@ -1122,7 +1131,30 @@ MartinezL   Martinez, Linda         L    IL</code></pre>
 13 WilliamsA     State                NY
 14      LeeP     State                FL
 15 MartinezL     State                IL</code></pre>
-<pre class="r"><code>&gt; ## Covert long -&gt; wide ==========
+<pre class="r"><code>&gt; ## if your data is of different modes, coercion will result.  If so, you can
+&gt;   ## preemptively convert all data to character, and store the mode as a 
+&gt;   ## separate variable.
+&gt; long_data$Mode &lt;- ifelse(long_data$Variable == &quot;Name&quot;, &quot;character&quot;, &quot;factor&quot;)
+&gt; long_data</code></pre>
+<pre><code>        Case  Variable              Data      Mode
+1     SmithJ      Name      Smith, James character
+2    GarciaM      Name      Garcia, Mary character
+3  WilliamsA      Name Williams, Anthony character
+4       LeeP      Name     Lee, Patricia character
+5  MartinezL      Name   Martinez, Linda character
+6     SmithJ ShirtSize                 S    factor
+7    GarciaM ShirtSize                 M    factor
+8  WilliamsA ShirtSize                 L    factor
+9       LeeP ShirtSize                 M    factor
+10 MartinezL ShirtSize                 L    factor
+11    SmithJ     State                CA    factor
+12   GarciaM     State                TX    factor
+13 WilliamsA     State                NY    factor
+14      LeeP     State                FL    factor
+15 MartinezL     State                IL    factor</code></pre>
+<pre class="r"><code>&gt; long_data$Mode &lt;- NULL
+&gt; 
+&gt; ## Covert long -&gt; wide ==========
 &gt; 
 &gt; ## Use tapply to covert back to wide
 &gt;   ## Note the declaration of a function directly into the FUN=
@@ -1151,7 +1183,7 @@ WilliamsA Williams, Anthony         L    NY</code></pre>
 <div id="parallel-processing-with-the-parallel-package" class="section level3">
 <h3>Parallel Processing (With the <code>parallel</code> Package)</h3>
 <p>One of the most important benefits of segmented processing is that it lends itself to parallel processing. As discussed earlier in this chapter, modern computers have multiple CPU cores that are able do calculations independently. If a calculation lends itself to segmented processing, it will also lend itself to having those segments processed in parallel. This leads to faster results.</p>
-<p>The R parallel package supports multiple methods for parallel processing. This section will focus on the <code>par_()</code> functions instead of the <code>mc_()</code> functions, because the <code>mc_()</code> functions rely on a UNIX-specific forking approach. However, the <code>mc_()</code> functions can be more efficient than the <code>par_()</code> functions and are worth exploring if you typically work on a UNIX-like system (includes MAC).</p>
+<p>The R parallel package supports multiple methods for parallel processing. This section will focus on the <code>par_()</code> functions instead of the <code>mc_()</code> functions, because the <code>mc_()</code> functions rely on a UNIX-specific forking approach. However, the <code>mc_()</code> functions can be more efficient than the <code>par_()</code> functions and are worth exploring if you typically work on a UNIX-like system (includes Mac).</p>
 <p>There are three basic steps to parallel processing.</p>
 <ol style="list-style-type: decimal">
 <li><p>Create a cluster of processes that will carry out parallel computation, using the <code>makeCluster()</code> function. Use <code>detectCores()</code> to determine how many cores you have, and therefore how many processes you can run simultaneously. Aim to have no more than 80 percent of your cores engaged at a time.</p></li>
@@ -1176,31 +1208,31 @@ WilliamsA Williams, Anthony         L    NY</code></pre>
 &gt;   ## operating system&#39;s process manager application.
 &gt; unclass(core_cluster)</code></pre>
 <pre><code>[[1]]
-node of a socket cluster on host &#39;localhost&#39; with pid 2465
+node of a socket cluster on host &#39;localhost&#39; with pid 11370
 
 [[2]]
-node of a socket cluster on host &#39;localhost&#39; with pid 2470
+node of a socket cluster on host &#39;localhost&#39; with pid 11374
 
 [[3]]
-node of a socket cluster on host &#39;localhost&#39; with pid 2466
+node of a socket cluster on host &#39;localhost&#39; with pid 11371
 
 [[4]]
-node of a socket cluster on host &#39;localhost&#39; with pid 2467
+node of a socket cluster on host &#39;localhost&#39; with pid 11375
 
 [[5]]
-node of a socket cluster on host &#39;localhost&#39; with pid 2469
+node of a socket cluster on host &#39;localhost&#39; with pid 11377
 
 [[6]]
-node of a socket cluster on host &#39;localhost&#39; with pid 2473
+node of a socket cluster on host &#39;localhost&#39; with pid 11376
 
 [[7]]
-node of a socket cluster on host &#39;localhost&#39; with pid 2468
+node of a socket cluster on host &#39;localhost&#39; with pid 11372
 
 [[8]]
-node of a socket cluster on host &#39;localhost&#39; with pid 2472
+node of a socket cluster on host &#39;localhost&#39; with pid 11378
 
 [[9]]
-node of a socket cluster on host &#39;localhost&#39; with pid 2471</code></pre>
+node of a socket cluster on host &#39;localhost&#39; with pid 11373</code></pre>
 <pre class="r"><code>&gt; ## Create test data and a test function to run in parallel
 &gt; SampleAndSummary &lt;- function(lambda) {
 +   sample_data &lt;- rpois(n= 10^7, lambda= lambda)

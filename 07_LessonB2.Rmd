@@ -18,7 +18,7 @@ knitr::opts_chunk$set(prompt= TRUE)
 
 [Proceed to Next Lesson (B3: Environment)](08_LessonB3.html)
 
-As discussed in Lesson A1, functions are objects.  They do not show up in the output of `objects()` because they are stored in environments other than the global environment.  The ability to hold multiple environments makes R modular.  At start-up, a small number of "packages" load automatically to supply a range of versatile core functions.  The user can load additional packages to make more functions available for use.  In total, basic R loads approximately 2,400 functions in seven packages at start-up, of which about 300 are covered in this class:
+As discussed in Lesson A1, functions are objects.  They do not show up in the output of `objects()` because they are stored in environments other than the global environment.  The ability to hold multiple environments makes R modular.  At start-up, a small number of "packages" load automatically into separate environments to supply a range of versatile core functions.  The user can load additional packages to make more functions available for use.  In total, basic R loads approximately 2,400 functions in seven packages at start-up, of which about 300 are covered in this class:
 
 |Package		|Description Quote From The `help()` Page
 |:-		|:-
@@ -39,10 +39,15 @@ The exact number of functions in each packages changes over time but here is the
   ## If you have not loaded any additional packages before running, this will
   ## count the functions in the default packages that load in R at start-up.
 
+## Find list of packages that are part of R
+i <- grep("Part of R", installed.packages()[,'License'])
+part_of_r <- installed.packages()[i, 'Package']
+
 ## Find packages
 package_list <- search()
 package_list <- package_list[grep("package", package_list)]
 names(package_list) <- gsub( "package[:]", "", package_list )
+package_list <- package_list[names(package_list) %in% part_of_r]
 package_list <- as.list(package_list)
 
 ## Count functions in packages
@@ -56,10 +61,43 @@ CountFunctions <- function(pack_list= package_list){
 CountFunctions()
 
 ## Delete demonstration objects
-remove(package_list, CountFunctions)
+remove(package_list, CountFunctions, part_of_r)
 ```
 
-The function `search()` reveals all the environments currently loaded.  By default, this includes the seven packages discussed above, the global environment (`.GlobalEnv`), and the R's user interface (`tools:RGUI`).  The `library()` and `detach()` functions load a new package and unload it respectively.  In this lesson, we will discuss the package parallel, which contains functions for doing parallel processing in R.  Here is a demonstration of loading and unloading this package.
+The function `search()` reveals all the environments currently loaded.  By default, this includes the seven packages discussed above and the global environment (`.GlobalEnv`).  If you are executing R from a user interface, `search()` will also reveal that (e.g., `tools:RGUI`, `tools:rstudio`, etc.).  
+
+In addition to the seven auto-loading packages, R comes pre-installed with several others.  You can load these packages when you need them.  The `library()` and `detach()` functions load a new package and unload it respectively.  
+
+```{R Count Functions in Pre-installed Packages, echo= FALSE}
+
+## Count functions in R's pre-installed packages ==========
+  ## If you have not loaded any additional packages before running, this will
+  ## count the functions in the default packages that load in R at start-up.
+
+## Find packages that are pre-installed, but not auto-loaded
+i <- grep("Part of R", installed.packages()[,'License'])
+package_list <- installed.packages()[i, 'Package']
+package_list <- package_list[package_list != "tcltk"]
+package_list <- package_list[!{paste0("package:", package_list) %in% search()}]
+package_list <- as.list(package_list)
+
+## Count functions in each package
+CountFunctions <- function(x) {
+  require(package= x, character.only= TRUE, quietly= TRUE)
+	y <- ls.str(paste0("package:", x))
+	y <- length(y)
+	detach(paste0("package:", x), character.only= TRUE)
+	return(y)
+}
+
+sapply(package_list, CountFunctions)
+
+## Delete demonstration objects
+remove(CountFunctions, package_list, i)
+
+```
+
+In this lesson, we will discuss the parallel package, which contains functions for doing parallel processing in R.  Here is a demonstration of loading and unloading this package.
 
 ```{R Packages}
 ## view packages currently loaded
@@ -78,6 +116,16 @@ Through `package:datasets`, R comes with several datasets pre-installed.  These 
 
 R is an open-source collaborative endeavor.  Teams around the world publish and maintain packages on their particular computational specialty.  At the time of this writing, there are nearly 14,000 packages available on the CRAN package repository, of which only a handful come pre-installed in the way that `parallel` is pre-installed.  The `install.packages()` function installs packages from the repository.  You will need to specify a `repos=` repository from which to download the code, such as `install.packages(repos= https://mirrors.nics.utk.edu/cran)` and can specify where to put the installed package using `lib=` if the default location is not viable. The `update.packages()` function will retrieve the updated version of all installed packages that have gone out of date.  Setting `ask=` to `FALSE` will prevent R from confirming for each package that you wish to install it.
 
+The R's community's package offerings are one of the strengths of R as a programming language.  Regardless of your field, someone has probably written a package with tools that can potentially assist you.  However, community packages also come with specific risks:
+
+1. R's core development team vets pre-installed packages, ensuring that all packages work together without conflict.  The more that your code relies on them, the more confidence you can have that your functions are compatible.  Using community packages creates risk that the functions in one package may not be compatible with  the functions in another.
+
+2. When you build code that depends on a community package, you force every user of your code to depend on that package.  Across large software teams or collaborative efforts, making this kind of decision unilaterally can be bad etiquette.  Moreover, collaborators will be best able to contribute to your code (or vet it) if it consists of common R functions, instead of more exotic functions.
+
+3. The developers may decide to stop maintaining the package or may be slow to update the package to be compatible with the latest operating system / base R updates.  If this happens, you may need to go line-by-line through your scripts to remove code that is no longer viable.
+
+Given these risks, make an effort to minimize the number of community packages you use in your R code.  Only load packages when it will save a significant amount of coding labor.  Only use community package functions when the operation cannot easily be done with a few lines of base R code.  Do not get into the habit of installing new packages because you do not have an immediate answer for how to get from point A to point B.  Base R functions are generally efficient and effective, make the most of them!
+
 ### The Apply Family of Functions
 
 To do analytic computation, you will need to break data into parts and perform computation on each of those parts.  This could happen because:
@@ -92,7 +140,7 @@ To do analytic computation, you will need to break data into parts and perform c
 
 The apply family of functions are R's premier tools for segmented / batch processing.  Each function takes an `X=` data object, divides it up into chunks with an `INDEX=`, `MARGIN=`, or implied chunking schema, and applies a `FUN=` function to that chunk.
 
-The tapply() function accepts an `X=` data vector and divides into chunks according to an `INDEX=` vector.  It can also accept an `INDEX=` list containing multiple vectors, in which case `tapply()` will apply the function to separately each cross-tabulation of `INDEX=` vectors.
+The `tapply()` function accepts an `X=` data vector and divides into chunks according to an `INDEX=` vector.  It can also accept an `INDEX=` list containing multiple vectors, in which case `tapply()` will apply the function separately to each cross-tabulation of `INDEX=` vectors.
 
 ```{R tapply()}
 ## Create a mock dataset
@@ -119,7 +167,7 @@ tapply(
 	FUN= median
 	)
 
-## Calculate the mean separately for each color using tapply
+## Calculate the median separately for each color and type using tapply
 tapply(
 	X= survey_data$Score,
 	INDEX= survey_data[ , c("Color", "Type")],
@@ -139,7 +187,7 @@ census_data <- array( NA,
 	dimnames=  list(
 		"Length"= letters[1:4],
 		"Width"= letters[24:26],
-		"Depth"= letters[12:13]
+		"Depth"= letters[13:14]
 		)
 	)
 census_data[ , , 1]  <- outer(1:4, 1:3)
@@ -152,7 +200,7 @@ apply(X= census_data, MARGIN= "Depth", FUN= median)
 apply(X= census_data, MARGIN= 3, FUN= median)
 
 ## Calculate the median for each width x depth, in effect
-	## summarizing across lengths
+	## summarizing lengths at each width x depth
 apply(X= census_data, MARGIN= c("Width", "Depth"), FUN= median)
 
 ## Do equivalent segmentation with apply() and tapply()
@@ -226,7 +274,6 @@ mapply(
 
 ## Delete demonstration objects
 remove(SampleSummary, sample_population, sample_probability)
-objects()
 ```
 
 ### Adaptive Segmented Functions
@@ -281,7 +328,7 @@ rapply(object= list_object, f= max, how= "list")
 remove(list_object)
 ```
 
-The eapply() function surveys all the objects in a specified environment and applies a function to each of them individually.  One of its major uses is gathering up objects inside a function, since each instance of a function generates its own temporary environment and performs operations inside it.  For this purpose, `eapply()` can be used in conjunction with `environment()`. That function finds which environment contains a `fun=` function or contains (if given no argument) the current instance of `environment()`.
+The eapply() function surveys all the objects in a specified environment and applies a function to each of them individually.  One of its major uses is gathering up objects inside a function, since each instance of a function generates its own temporary environment and performs operations inside it.  For this purpose, `eapply()` can be used in conjunction with `environment()`. That function finds which environment contains a `fun=` function or expresses (if given no argument) the environment that holds the current instance of `environment()`.
 
 ```{R eapply()}
 ## set up example environment
@@ -310,7 +357,7 @@ ZScore(1:8)
 remove(ZScore, lambda4, lambda8, lambda12)
 ```
 
-The `do.call()` function accepts a list of objects and then simultaneously passes each list element as a separate object to a function, matching up list names to arguments when applicable.  A common use for `do.call()` is collecting parts of a dataset processed in parallel and compiling them with `rbind()` back to a single dataset.  Because `do.call()` can accept arguments in list form and pass them as objects to a function, it is useful in a variety of circumstances.
+The `do.call()` function accepts a list of objects and then simultaneously passes each list element as a separate object to a function, matching up list names to arguments when applicable.  A common use for `do.call()` is collecting parts of a dataset processed in parallel and compiling them back to a single dataset with `rbind()`.  Because `do.call()` can accept arguments in list form and pass them as objects to a function, it is useful in a variety of circumstances.
 
 ```{R do.call()}
 ## create a list containing multiple datasets
@@ -354,7 +401,7 @@ Note: CPU, RAM and storage are common to all computers, but some advice in this 
 
 The processor ("CPU") is the part of your computer that does computations.  In most computers, your CPU consists of multiple CPU cores stacked on top of each other.  This enables your computer to run multiple processes at the same time.
 
-_Parallel processing_– The most powerful way to use a CPU is engaging all its cores at the same time.  To do this, you divide up a computation in chunks that can be processed independently.  If it helps, think of `lapply()`.  Since a function is applied separately to the elements of the list, each element might as well be on its own core.  Splitting a task among multiple cores is called "parallel processing."  This less will focus on parallel processing using a single machine.  However, you can use the same techniques and functions to perform parallel processing across multiple machines.
+_Parallel processing_– The most powerful way to use a CPU is engaging all its cores at the same time.  To do this, you divide up a computation in chunks that can be processed independently.  If it helps, think of `lapply()`.  Since a function is applied separately to the elements of the list, each element might as well be on its own core.  Splitting a task among multiple cores is called "parallel processing."  This lesson will focus on parallel processing using a single machine.  However, you can use the same techniques and functions to perform parallel processing across multiple machines.
 
 _Core Resource Management_– On a high performance computation, aim to keep about 80 percent of your cores engaged.  If you are working on a server, be courteous to other users and your system administrator ("sys admin").  Do not use more than half of the cores during work hours.  Better yet, schedule your heavy computations for nights/weekends when high-core use is less likely to inconvenience.  Check in with your admin as well.  Servers can send a "distress" message to the admin if their resources are put too far under strain.
 
@@ -374,11 +421,11 @@ _Heat dissipation_– To get the best performance out of your CPU during heavy c
 
 *	Give your laptop as much airflow as possible.  A low-tech option is propping your machine between two stacks of books so that most of the underside has abundant airflow.  Laptop cooling pads are the higher-tech solution.
 
-_Graphical Processing Unit (GPU)_ – You have two kinds of processors in your machine, the CPU and GPU.  The GPU is an independent processor that renders the polygons underlying your screen's display.  It is like a CPU, except that it has many more cores than a CPU and each individual core is much less powerful.  This allows it to layer many tiny polygons on your screen to create complex visual displays.  If you have a task that involves doing many small calculations (such as an agent-based simulation with many simplistic actors), it might be helpful to route it through your GPU, instead of your CPU.  GPU tasking is out of scope for this class, but worth pursuing if your computations have the right parameters for it.
+_Graphical Processing Unit (GPU)_ – You have two kinds of processors in your machine, the CPU and GPU.  The GPU is an independent processor that renders the polygons underlying your screen's display.  It is like a CPU, except that it typically has many more cores than a CPU, each core is typically less powerful and each core is more specialized in the kinds of calculations they can perform.  This allows it to layer many tiny polygons on your screen to create complex visual displays.  If you have a task that involves doing many small calculations (such as an agent-based simulation with many simplistic actors), it might be helpful to route it through your GPU, instead of your CPU.  GPU tasking is out of scope for this class, but worth pursuing if your computations have the right parameters for it.
 
 #### Random Access Memory (RAM)
 
-RAM is chip-based memory on your computer.  The CPU stores data temporarily in RAM so that it can retrieve it easily.  CPU and RAM can conduct information transfer at high speeds and volumes.  However, you have significantly less RAM than standard storage memory.  By default, R stores everything in the R environment in RAM.  This makes data easy to retrieve and makes vector operations faster.  However, this also means that every object you store in the R environment takes up RAM that the processor could use to store intermediate computations needed to execute functions.
+RAM is chip-based ("fast") memory on your computer.  The CPU stores data temporarily in RAM so that it can retrieve it easily.  CPU and RAM can conduct information transfer at high speeds and volumes.  However, you have significantly less RAM than standard storage memory.  By default, R stores everything in the R environment in RAM.  This makes data easy to retrieve and makes vector operations faster.  However, this also means that every object you store in the R environment takes up RAM that the processor could use to store intermediate computations needed to execute functions.
 
 _Swap Memory_– If you need more processing power, increase the number of cores and store everything they need at their fingertips (i.e., in RAM).  However, this can result in R needing more RAM than you have.  If this happens, your machine will shift data to "swap".  Swap (or "virtual memory") is when your machine starts storing RAM data to regular storage memory.  Since storage memory loads slowly (compared to RAM), this slows down processor cores as they wait for their turn to access storage.  A computer that runs out of swap may lock up entirely, terminate processes, freeze processes, or engage in other self-protective mechanisms. If you have gotten to the point where swap engages, you have already missed the mark for efficient computation.
 
@@ -429,7 +476,7 @@ In a simple long data format, the first column contains the case ID, the second 
 
 These formats are the ends of a spectrum of formatting.  For example, a wide dataset might hold census datasets for multiple years, with the first column denoting the year of the census.  The year column supplies long-format data about datasets that are otherwise in wide-format.
 
-Wide format is popular because it is easy to visually inspect, makes analysis of specific variables easy to do with column-wise operations, and it more resource efficient for storing a single dense dataset.  Long format is a useful counterpart because it can stack multiple datasets, even if each of the datasets has different variables.  Moreover, long format allows for sparse storage.  Sparse storage only stores non-empty data, with empty cells implied by absence.  For variables with many empty cells, sparse storage can have a much smaller resource footprint.  The tables below shows a sparse dataset in long and wide formats to illustrate the difference.
+Wide format is popular because it is easy to visually inspect, makes analysis of specific variables easy to do with column-wise operations, and it more resource efficient for storing a single dense dataset.  Long format is a useful counterpart because it can stack multiple datasets, even if each of the datasets has different variables.  Moreover, long format allows for sparse storage.  Sparse storage only stores non-empty data, with empty cells implied by absence.  For variables with many empty cells, sparse storage can have a much smaller resource footprint.  The tables below show a sparse dataset in long and wide formats to illustrate the difference.
 
 **Total size as a wide-format dataset: 54 cells**
 
@@ -498,6 +545,14 @@ long_data$Data <- unlist(survey_data, use.names= FALSE)
 ## Here is the result
 long_data
 
+## if your data is of different modes, coercion will result.  If so, you can
+  ## preemptively convert all data to character, and store the mode as a 
+  ## separate variable.
+long_data$Mode <- ifelse(long_data$Variable == "Name", "character", "factor")
+long_data
+
+long_data$Mode <- NULL
+
 ## Covert long -> wide ==========
 
 ## Use tapply to covert back to wide
@@ -524,7 +579,7 @@ remove(wide_data, long_data, survey_data)
 
 One of the most important benefits of segmented processing is that it lends itself to parallel processing.  As discussed earlier in this chapter, modern computers have multiple CPU cores that are able do calculations independently.  If a calculation lends itself to segmented processing, it will also lend itself to having those segments processed in parallel.  This leads to faster results.
 
-The R parallel package supports multiple methods for parallel processing.  This section will focus on the `par_()` functions instead of the `mc_()` functions, because the `mc_()` functions rely on a UNIX-specific forking approach.  However, the `mc_()` functions can be more efficient than the `par_()` functions and are worth exploring if you typically work on a UNIX-like system (includes MAC).
+The R parallel package supports multiple methods for parallel processing.  This section will focus on the `par_()` functions instead of the `mc_()` functions, because the `mc_()` functions rely on a UNIX-specific forking approach.  However, the `mc_()` functions can be more efficient than the `par_()` functions and are worth exploring if you typically work on a UNIX-like system (includes Mac).
 
 There are three basic steps to parallel processing.
 

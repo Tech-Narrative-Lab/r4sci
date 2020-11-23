@@ -22,7 +22,7 @@ This lesson will introduce you to lists, arrays, and data frames, which are core
 
 ### Lists and Hierarchical Vector Storage
 
-Vectors are the basic building blocks of R data structures.  All complex R objects that store data consist of vectors embedded in various forms of higher organizational structures.  The list class object is perhaps the most important and versatile of these structures.  A list is like a vector, except that each element of a list can hold a vector, or another list.  Using lists embedded as elements of other lists, list class objects enable organization of vectors into arbitrary hierarchies of data.  To illustrate the basic mechanics of a list, let us return to `substring()`, a text parsing function from Lesson A5.  The `strsplit()` function divides a text string into a vector of elements, splitting it up everywhere that a specific character appears.  Packaging those vectors into a list, `strsplit()` can split multiple strings at the same time.
+Vectors are the basic building blocks of R data structures.  All complex R objects that store data consist of vectors embedded in various forms of higher organizational structures.  The list class object is perhaps the most important and versatile of these structures.  A list is like a vector, except that each element of a list can hold a vector, or another list.  Using lists embedded as elements of other lists, list class objects enable organization of vectors into arbitrary hierarchies of data.  To illustrate the basic mechanics of a list, let us return to `strsplit()`, a text parsing function from Lesson A5.  The `strsplit()` function divides a text string into a vector of elements, splitting it up everywhere that a specific character appears.  Packaging those vectors into a list, `strsplit()` can split multiple strings at the same time.
 
 ```{R List Objects}
 ## create vector of text strings
@@ -46,7 +46,7 @@ hamlet
 remove(hamlet)
 ```
 
-In the example, the `strsplit()` function receives a character vector with four text string elements, as well as instructions to split each string up at the spaces.  It expresses a list with four elements, each of which is a vector holding the words from one of the inputted text strings.  The `[[]]` indicate the elements of the list, while the `[]` indicate the elements of the vector inside the list.  So, "that" is the seventh element of the vector inside the first element of the list, and "nobler" is the third element of the vector inside the third list element.  In total, this list packages four vectors of different lengths into something that you can assign to one object.
+In the example, the `strsplit()` function receives a character vector with four text string elements, as well as instructions to split each string up at the spaces.  It expresses a list with four elements, each of which is a vector holding the words from one of the inputted text strings.  The `[[]]` indicate the elements of the list, while the `[]` indicate the elements of the vector inside the list.  So, "that" is the seventh element of the vector inside the first element of the list, and "nobler" is the third element of the vector inside the second list element.  In total, this list packages four vectors of different lengths into something that you can assign to one object.
 
 The `list()` function generates list objects, where each object it receives as an input is packaged as an element of that list.  Each element of a list is accessible through the standard `[]` operator.  Each object held in an element of a list is extractable through the `[[]]` operator.
 
@@ -101,7 +101,7 @@ list_object[[ "Strings" ]]
 list_object$"Three Word Name"
 
 ## Delete demonstration object
-remove(list_objects)
+remove(list_object)
 ```
 
 Lists can hold other lists, forming hierarchies with arbitrary structure.  In the example below, `list.object` has two elements.  Element A is a two-element list, holding elements A1 and A2.  Element B is a three-element list, holding elements B1, B2, and B3.  B3 is a one-element list, holding the element B3.1.  Using `$` extractions, any element in this hierarchy is retrievable.
@@ -148,7 +148,7 @@ unlist(new_list)
 remove(new_list, named_vector)
 ```
 
-List class is perhaps the most versatile basic object class in R.  Most complex object classes in R are actually list objects with sophisticated display characters and special hooks for eliciting class-sensitive behavior in other functions.  For example, in R, the function 'lm()' generates linear models (i.e., performs regression analysis).  The 'lm()' function expresses objects of lm class.  However, if you set the class identifier to 'NULL', the object will reveal its true underlying structure – a list object with 12 elements.
+List class is perhaps the most versatile basic object class in R.  Most complex object classes in R are actually list objects with sophisticated display characters and special hooks for eliciting class-sensitive behavior in other functions.  For example, in R, the function `lm()` generates linear models (i.e., performs regression analysis).  The `lm()` function expresses objects of lm class.  However, if you set the class identifier to `NULL`, the object will reveal its true underlying structure – a list object with 12 elements.
 
 ```{R Lists Underly Most Complex Objects}
 ## generate a simple linear model object
@@ -171,7 +171,7 @@ remove(ind_variable, dep_variable, lm_object)
 
 ### Multi-dimensional Positioning with Arrays
 
-The typical scientific dataset consists of a spreadsheet – data arrayed into rows of cases and columns of variables / fields.  R can support this format using vectors.  R can use a positioning system with multiple dimensions, simulating rows and columns, and it has a display method to reflect dimensions.  The function 'dim()' supplies access to the dimensionality of the vector.  Setting the dimensions attribute to a vector with greater than one element will generate a multi-dimensional position system.  The number of elements in the vector passed to 'dim()' determines the number of dimensions in the resulting system.  The numbers in each element determine the number of rows / columns / etc. that the given dimension can support.  The 'prod()' of the 'dim()' of the vector must equal the total number of elements in the vector.  In other words, R will reject setting 'dim( x )' to anything that would make 'prod( dim( x ) ) == length( x )' not express TRUE.
+The typical scientific dataset consists of a spreadsheet – data arrayed into rows of cases and columns of variables / fields.  R can support this format using vectors.  R can use a positioning system with multiple dimensions, simulating rows and columns, and it has a display method to reflect dimensions.  The function `dim()` supplies access to the dimensionality of the vector.  Setting the dimensions attribute to a vector with greater than one element will generate a multi-dimensional position system.  The number of elements in the vector passed to `dim()` determines the number of dimensions in the resulting system.  The numbers in each element determine the number of rows / columns / etc. that the given dimension can support.  The `prod()` of the `dim()` of the vector must equal the total number of elements in the vector.  In other words, R will reject setting `dim( x )` to anything that would make `prod(dim(x)) == length(x)` not express `TRUE`.
 
 ```{R dim() and vector dimensionality}
 ## This is a basic vector with 24 elements.
@@ -199,9 +199,9 @@ a_vector
 remove(a_vector)
 ```
 
-This multi-dimensional vector is an array.  Because it has exactly two-dimensions, it is also a special type of array called a matrix.  For the purposes of this class, the term array is privileged over the term matrix, as matrices are only a special sub-type of the larger object class.  However, `class()` will identify 2D arrays as matrix class, and 3+ D arrays as array class.  Moreover, there are many functions that work on 2D vectors, but are not flexible enough to generalize to N-Dimensional space.  The examples below make side by side comparisons of the class and display methods of a 1D vector, 2D matrix, and a 3D array object.  For class vs mode, note how `class()` and `mode()` diverge.  This is typical for higher order objects – while classes may become more complex, the basic storage modes for the data inside them do not.  For object display, note the use of the new `[,]` syntax to display rows / columns, and the `,,` syntax to display higher dimensions.
+This multi-dimensional vector is an array.  Because it has exactly two-dimensions, it is also a special type of array called a matrix.  For the purposes of this class, the term array is privileged over the term matrix, as matrices are only a special sub-type of the larger object class.  However, `class()` will identify 2D arrays as both matrix and array class, while only identifying 3+ D arrays as array class.  Moreover, there are many functions that work on 2D vectors, but are not flexible enough to generalize to N-Dimensional space.  The examples below make side by side comparisons of the class and display methods of a 1D vector, 2D matrix, and a 3D array object.  For class vs mode, note how `class()` and `mode()` diverge.  This is typical for higher order objects – while classes may become more complex, the basic storage modes for the data inside them do not.  For object display, note the use of the new `[,]` syntax to display rows / columns, and the `,,` syntax to display higher dimensions.
 
-```{Vectors of various dimensionality} 
+```{R Vectors of various dimensionality} 
 ## create objects
 a_array <- a_matrix <- a_vector <- as.numeric(1:24)
 dim(a_matrix) <- c(6, 4)
@@ -294,7 +294,7 @@ an_array
 remove(an_array)
 ```
 
-In this example, also note the use of `dim()` to determine the length of each `dimnames()` vector.  This is a more powerful approach than writing in the actual number because this code will not throw an error if the dimensions of the array change.  Writing in the actual number, i.e., 'letters[1:4]' instead of 'letters[1:dim( an.array )[1]]' is called "hard coding" a value and is considered bad practice in most programming scenarios.
+In this example, also note the use of `dim()` to determine the length of each `dimnames()` vector.  This is a more powerful approach than writing in the actual number because this code will not throw an error if the dimensions of the array change.  Writing in the actual number, i.e., `letters[1:4]` instead of `letters[1:dim( an.array )[1]]` is called "hard coding" a value and is considered bad practice in most programming scenarios.
 
 ### List-Array Hybrids: Multi-Dimensional List Vectors and Data Frames
 
@@ -304,25 +304,32 @@ List class objects rely on much of the same logic as vectors, except that indivi
 ## Create list
 list_object <- as.list(1:4)
 list_object[[1]] <- list_object[[4]] <- as.list(101:102)
+list_matrix <- list_object
 
 ## Apply dim() and dimnames() to list
-dim(list_object) <- c(2, 2)
-dimnames(list_object) <- list(
+dim(list_matrix) <- c(2, 2)
+dimnames(list_matrix) <- list(
 	"Rows"= letters[1:2],
 	"Cols"= LETTERS[1:2]
 	)
 
-
 ## Express object and expressions by various methods
-list_object
-list_object["a", "A", drop= FALSE]
-list_object[["a", "A"]]
+list_matrix
+list_matrix["a", "A", drop= FALSE]
+list_matrix[["a", "A"]]
+
+## Compare class/mode for a standard list vs. a list with dimensions
+class(list_object)
+class(list_matrix)
+
+mode(list_object)
+mode(list_matrix)
 
 ## Delete demonstration objects
-remove(list_object)
+remove(list_object, list_matrix)
 ```
 
-Hybridizing the unique strengths of lists and arrays is an effective strategic for data storage.  The `data.frame` class (henceforth called "data frame" class for simplicity) is R's premier hybrid data storage object class.  Most of your work cleaning, manipulating, and analyzing datasets will involve at least one object from this highly versatile class.  Essentially, data frames are lists that behave like cases x variables data spreadsheets.  The R constrains data frame list elements to hold vectors of identical length, and the object has a positioning system for recognizing element in each list's vector that occupy the same row.
+Hybridizing the unique strengths of lists and arrays is an effective strategic for data storage.  The `data.frame` class (henceforth called "data frame" class for simplicity) is R's premier hybrid data storage object class.  Most of your work cleaning, manipulating, and analyzing datasets will involve at least one object from this highly versatile class.  Essentially, data frames are lists that behave like cases x variables data spreadsheets.  The R constrains data frame list elements to hold vectors of identical length, and the object has a positioning system for recognizing elements in each list's vector that occupy the same row.
 
 ```{R Data Frames}
 ## Create a data.frame class object
@@ -414,9 +421,9 @@ remove(array_object, index_multi, index_vector)
 
 Many of the functions in the previous section have counterparts that work only on two-dimensional arrays.  The 2D counterpart of `aperm()` is `t()`, and the counterparts of `slice.index()` are `row()` and `col()`.  There are trade-offs to using the 2D functions when applicable versus using the generalized multi-dimensional versions instead.  The 2D functions are slightly less computationally intensive and require fewer arguments because they do not have the burden of configuring to arrays of different dimensionality.  However, a programming style built on generalized multi-dimensional functions is more versatile because the same code and coding strategies will work across a broader set of use cases.  This can become important when working on projects where the final specifications for the code may change repeatedly and when recycling code from old projects to rapidly carry out similar tasks on new ones.  
 
-My recommendation for this case is to go with the generalized form unless extremely high performance is needed - the versatility advantages of the generalized form can easily outweigh the additional computational costs.  For example, on my machine, the more general `aperm()` runs equivalent calculations only 3.4 percent slower than the more specific `t()`.  This is different than the typical trade-off between specific functions  and generalized functions.  For example, the more general `ifelse()` runs 530.5 percent factor than its more specific counterpart `pmax()`.
+My recommendation for this case is to go with the generalized form unless extremely high performance is needed - the versatility advantages of the generalized form can  outweigh the additional computational costs.  To be precise, on my machine, the more general `aperm()` runs equivalent calculations 19 percent slower than the more specific `t()`.  This is a smaller disparity than is typically found between generalized and specific functions.  For example, the more general `ifelse()` runs 413 percent slower than its more specific counterpart `pmax()` on my machine.
 
-Three more 2D-specific positioning functions that _do_ perform well enough for consideration are` diag()`, `lower.tri()`, and `upper.tri()`.  These functions express `TRUE` for the elements of a two-dimensional array for which the row position equals, is greater than, or is less than the column position respectively.
+Three 2D-specific positioning functions that _do_ perform well enough for consideration are` diag()`, `lower.tri()`, and `upper.tri()`.  These functions express `TRUE` for the elements of a two-dimensional array for which the row position equals, is greater than, or is less than the column position respectively.
 
 ```{R diag(), lower.tri(), upper.tri()}
 ## create a simple 2D array
@@ -472,9 +479,14 @@ cbind(state_population, state_area)
 matched_names <- state_area
 colnames(matched_names) <- colnames(state_population)[2:1]
 
+head(state_population, 2)
+head(matched_names, 2)
+
 rbind(state_population, matched_names)
 
 ## merge() matches two datasets together by a common case/row ID
+head(state_population, 2)
+head(state_area, 2)
 
 merge(
 	x= state_population, by.x= "State",

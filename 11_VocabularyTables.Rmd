@@ -15,7 +15,8 @@ Below are the vocabulary tables for all lessons.
 |`<-`				|`/`				|`|`				|`==`		|`[]`
 |`help()`		|`%/%`			|`FALSE`		|`>=`		|`{}`
 |`remove()`	|`^`				|				  	|`>`		|
-|						|`+	`				|				  	|`<`		|
+|						|`+`				|				  	|`<`		|
+|						|`%%`				|				  	| 			|
 
 ### Vocabulary Table for Lesson A2
 
