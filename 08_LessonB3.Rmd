@@ -22,11 +22,11 @@ This lesson explores the ways that R can interact with the digital world around 
 
 ### Think Before You Execute
 
-In this lesson, you will learn how to bridge the boundaries between the R environment and the digital world around it.  Before this lesson, there was nothing in the material that could cause harm that a reboot would not fix.  With this lesson, that ceases to be the case.  An incorrect line of code can potential corrupt your data, or damage files critical to your operating system.  Think before you execute.
+In this lesson, you will learn how to bridge the boundaries between the R environment and the digital world around it.  Before this lesson, there was nothing you could do using the class material that a reboot would not fix.  With this lesson, that ceases to be true.  An incorrect line of code can potential corrupt your data or damage files critical to your operating system.  Think before you execute.
 
 ### Read and Writing to Memory
 
-In a computer file system, every file has a file path.  This file path provides complete directions for finding a file within hierarchical layers of directories.  For example, on a Mac, the desktop is a directory located inside your user account directory which is located inside the User directory which is a top-level directory of the file system.  So, the full file path for a file on your desktop would be Users => UserName => Desktop => YourFile.ext.  In Mac file path syntax, this would be denoted as `/Users/UserName/Desktop/YourFile.ext`.  Even though you only see the `YourFile.ext` part when viewing the file through your operating system's graphical interface, the full file path is the actual designation of the file.  That is why you can have files in different directories that have the same name.  On a PC, file path syntax is similar.  However, PCs use backslashes instead of forward slashes.  Since backslash is the escape character in R, double backslash denotes a literal backslash.  So, the file path shown above would be `\\Users\\UserName\\Desktop\\YourFile.ext`.   In addition, PCs use a different way of handling volumes in path names, so a PC-style file path is likely to have a volume letter, followed by a colon, as in `C:\\Users\\UserName\\Desktop\\YourFile.ext`.
+In a computer file system, every file has a file path.  This file path provides complete directions for finding a file within hierarchical layers of directories.  For example, on a Mac, the desktop is a directory located inside your user account directory which is located inside the User directory which is a top-level directory of the file system.  So, the full file path for a file on your desktop would be Users => UserName => Desktop => YourFile.ext.  In Mac (i.e., Unix-like) file path syntax, this would be denoted as `/Users/UserName/Desktop/YourFile.ext`.  Even though you only see the `YourFile.ext` part when viewing the file through your operating system's graphical interface, the full file path is the actual designation of the file.  That is why you can have files in different directories that have the same name.  On a PC, file path syntax is similar.  However, PCs use backslashes instead of forward slashes.  Since backslash is the escape character in R, double backslash denotes a literal backslash.  So, the file path shown above would be `\\Users\\UserName\\Desktop\\YourFile.ext`.   In addition, PCs use a different way of handling volumes in path names, so a PC-style file path is likely to have a volume letter, followed by a colon, as in `C:\\Users\\UserName\\Desktop\\YourFile.ext`.  As present, forward slashes work on both Unix-like and Windows-based operating systems, so they are the recommended way to specify file paths.
 
 When you open R, the program opens with an implicit location within the file directories of your system.  This location is the "working directory".  The `getwd()` function will report your current working directory.  The `setwd()` function enables you to change your working directory.  When you read or write files and only specify the file name, R will assume that you want to access a file by that name that is situated in your working directory.  A full file path that has the directory lineage all the way back to top-level is an "absolute" file path.  A file path that only denotes where a file should be relative to the working directory is called a "relative" file path.
 
@@ -43,7 +43,7 @@ setwd("..")
 getwd()
 ```
 
-The `save()` function will save R objects to your file system in R's native storage format.  The `load()` function will read R objects from files in that format.  Using `load()` make those objects available in your environment.  While `save()` and `load()` do not depend on file extensions to perform their functions, general practice is to give your save files the extension of `.RData` when saving.
+The `save()` function will save R objects to your file system in R's native storage format.  The `load()` function will read R objects from files in that format and make those objects available in your environment.  While `save()` and `load()` do not depend on file extensions to perform their functions, general practice is to give your save files the extension of `.RData` when saving.
 
 ```{R save() and load()}
 ## Create an object to save
@@ -66,9 +66,9 @@ remove(save_object)
 file.remove("B_Intermediates/ListObject.Rdata")
 ```
 
-The `load()` function is a rare example of a function that violates the "expression versus assignment" behavior standard in R.  When you assign the expression from `load()` to an object, that object will receive the name of the object that `load()` added to the environment.
+The `load()` function violates the "expression versus assignment" behavior standard in R.  When you assign the expression from `load()` to an object, that object will only receive a character vector containing the names of the objects that `load()` added to the environment -- not the objects themselves.  You can use functions like `assign()`, `get()`, and `remove()` to manipulate objects using their names.
 
-Aside from native format, R supports plain text file formats.  This includes the basic `.txt` text file, and `.csv` spreadsheet file formats.  The `.txt` file is a simple file format that holds text characters, and provides no other information (such as formatting).  The `.csv` file uses the same format as a `.txt`.  However, it puts each row of a spreadsheet on its own line and uses a symbol called a "delimiter" to delineate the boundaries between cells.  This delimiter is typically a comma.  The example below displays a two x two spreadsheet, and the `.csv` encoding that would represent it.  Note how quotations distinguish between commas that are part of the cell contents and commas that are cell delimiters.
+Aside from R's native file format, R supports plain text file formats.  This includes the basic `.txt` text file, and `.csv` spreadsheet file formats.  The `.txt` file is a simple file format that holds text characters and provides no other information (such as formatting).  The `.csv` also holds simple text characters.  However, it puts each row of a spreadsheet on its own line and uses a symbol called a "delimiter" to delineate the boundaries between cells.  This delimiter is typically a comma.  The example below displays a two x two spreadsheet, and the `.csv` encoding that would represent it.  Note how quotations distinguish between commas that are part of the cell contents and commas that are cell delimiters.
 
 **Example Table**
 
@@ -79,11 +79,11 @@ Aside from native format, R supports plain text file formats.  This includes the
 
 **CSV Notation for the Table**
 
-`,Col 1,Col 2\nRow 1,A,B\nRow2,"C,D"\n`
+`,Column 1,Column 2\nRow 1,A,B\nRow2,"C,D"\n`
 
 In R, functions that write data to the file system typically follow the naming pattern of `write._()` and functions that read data from the file system typically follow the naming pattern of `read._()`.  For example, the file functions for `.csv` files are `read.csv()` and `write.csv()`.  However, the .txt file function breaks this pattern, using `readLines()` and `writeLines()`.  It also uses `con=` instead of the standard `file=` for the argument specifying the file path.  
 
-The `writeLines()` function interprets each element of an `text=`character vector as its own line in the resulting text file.  However, any `\n` within those elements will also be treated as denoting a new line.  The `write.csv()` function looks for an `x=` array or data frame argument.  
+The `writeLines()` function interprets each element of a `text=`character vector as its own line in the resulting text file.  However, any `\n` within those elements will also be treated as denoting a new line.  The `write.csv()` function looks for an `x=` array or data frame argument.  
 
 If you do not specify a `file=` argument for `write.csv()` or a `con=` argument for `writeLines()`, the function will express (in the console) what it would have written to the file system.
 
@@ -106,15 +106,15 @@ For `read.csv()`, note the `header=` argument.  When set to `TRUE`, `read.csv()`
 
 `foreign`– Like `parallel`, the `foreign` package comes pre-installed in basic R but you must load it for each session using the `library()` function.  It supplies functions for reading data files in the formats of some statistical analysis programs.   This includes limited support for SAS, SPSS, Octave, Minitab, Microsoft Access, and older versions of STATA files.  These functions tend to follow the standard function and argument naming conventions for read/write functions.  However, there are at least three major gaps in `foreign`, for which you may need to install other packages.
 
-`openxlsx`– `foreign` does not have a function for reading Microsoft Excel `.xlsx` files.  I recommend installing package `openxlsx`.  Avoid package `xlsx` as it depends on Java code calls that are vulnerable to performance issues.
+1. `openxlsx`– `foreign` does not have a function for reading Microsoft Excel `.xlsx` files.  I recommend installing package `openxlsx`.  Avoid package `xlsx` as it depends on Java code calls that are vulnerable to performance issues.
 
-`readstata13`– `foreign` only reads version 5-12 STATA files.  The `foreign` package team recommends `readstata13`.  Note: STATA supports multiple missing-ness codes, while R only represents missing-ness with NA, so some information is lost in translation.  
+2. `readstata13`– `foreign` only reads version 5-12 STATA files.  The `foreign` package team recommends `readstata13`.  Note: STATA supports multiple missing-ness codes, while R only represents missing-ness with NA, so some information may be lost in translation.  
 
-`rjson`– `foreign` does not currently have a function for reading `.json` formatted data. This format is common for data stored on webpages or transmitted data through server Application Programming Interfaces (API).  The `.json` format is short for JavaScript Object Notation.  Its syntax is based on JavaScript, the programming language underlying most of the interactive elements of modern websites.  In form, a `.json` objects resembles an R list object with data frams objects or vectors contained within.  The data structure was designed to be both human-readable and machine-readable.  The package `rjson` is a good option, if not the only option, for reading/writing `.json` files.
+3. `rjson`– `foreign` does not currently have a function for reading `.json` formatted data. This format is common for data stored on webpages or transmitted through server Application Programming Interfaces (API).  The `.json` format is short for JavaScript Object Notation.  Its syntax is based on JavaScript, the programming language underlying most of the interactive elements of modern websites.  In form, a `.json` objects resembles an R list object with data frams objects or vectors contained within.  The data structure was designed to be both human-readable and machine-readable.  The package `rjson` is a good option, if not the only option, for reading/writing `.json` files.
 
 ### File System Manipulation
 
-R can create, move, copy, rename, and delete files and directories from you file system.  For manipulation, the `list.files()` function is analogous to `objects()`.  It expresses the file paths for the files in your working directory.  With the `include.dirs=` argument set to TRUE, the expression will include sub-directories within your working directory.  With the `recursive=` argument set to `TRUE`, the expression will include all files in sub-directories within your working directory.
+R can create, move, copy, rename, and delete files and directories from you file system.  The `list.files()` function is analogous to `objects()`.  It expresses the file paths for the files in your working directory.  With the `include.dirs=` argument set to `TRUE`, the expression will include sub-directories within your working directory.  With the `recursive=` argument set to `TRUE`, the expression will include all files in sub-directories within your working directory.
 
 ```{R File System Manipulation}
 ## Set working directory
@@ -138,7 +138,8 @@ write.csv(
 	)
 
 ## View contents of working directory and all sub-directories,
-	## confirming that new files now exist
+	## confirming that new files now exist.  This function ignores all of the 
+  ## textbook files, which would make the outputs unwieldy.
 ListFilesIgnoreLessons <- function(){
 	file_list <- list.files(recursive= TRUE, include.dirs= TRUE)
 	file_list[-grep("[.](html|Rmd)$", file_list)]
@@ -275,7 +276,7 @@ output_bucket <- file.remove(
 	list.files("B_Intermediates", recursive= TRUE, full.names= TRUE))
 remove(all_data, core_cluster, data_roster, GenerateFiles, output_bucket,
 	file_names)
-file.remove(c("B_Intermediates/COMPILEDSourceFiles"))
+file.remove("B_Intermediates/COMPILEDSourceFiles")
 ```
 
 ### Internet File Retrieval
@@ -341,7 +342,7 @@ file.remove("C_Outputs/ManyNumbers.csv", "C_Outputs/ManyNumbers.zip")
 
 ### Interface Access
  
-In complex coding projects, there are circumstances under which it is useful to let your code use decision rules to find a needed object, rather than hard coding the name of that object.  For example, if you loading `.RData` files in batch from an external source, you may need an approach for identifying the names of the newly loaded objects and sorting / re-packaging them to fit an organizational schema.  The `get()` function retrieves an object based on its name, and the `assign()` function copies the contents of an object to another copy.  Used in tandem with `objects()` and `eapply()`, they supply many options for handling arbitrary collections of objects.
+In complex coding projects, there are circumstances under which it is useful to let your code use decision rules to find a needed object, rather than hard coding the name of that object.  For example, if you are loading batches of `.RData` files from an external source, you may need an approach for identifying the names of the newly loaded objects and sorting / re-packaging them to fit an organizational schema.  The `get()` function retrieves an object based on its name, and the `assign()` function copies the contents of an object to another object  Used in tandem with `objects()` and `eapply()`, they supply many options for handling arbitrary collections of objects.
 
 ```{R Object Retrieval}
 ## Create three objects of lengths that randomly vary each run

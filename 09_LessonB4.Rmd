@@ -107,7 +107,7 @@ remove(cuba, haiti, dr, flag_colors)
 ```
 
 
-Additionally, note the use of `legend()`, `col=`, and other arguments to adjust the behavior of these functions.  The `legend()` function adds a legend to an existing visualization.  `legend` si one of many functions that layer visual elements on top of existing visualizations that are still active in an R graphical device.  Other visualization functions can operate in this mode with the right arguments (typically `add= TRUE`).  
+Additionally, note the use of `legend()`, `col=`, and other arguments to adjust the behavior of these functions.  The `legend()` function adds a legend to an existing visualization.  `legend` is one of many functions that layer visual elements on top of existing visualizations that are still active in an R graphical device.  Other visualization functions can operate in this mode with the right arguments (typically `add= TRUE`).  
 
 The `col=` argument enables specifying the color of main plotting elements.  There is an entire section of this chapter devoted to color.  For now, note that R recognizes many color name text strings, so this is one of the simplest methods for specifying colors.  The `col=` argument is also one of a group of arguments will be discussed later in this chapter as we explore `par()`. Speaking more broadly, the behavior of each visualization is customizable, with visualization functions typically supporting a standardized set of at least 72 customization arguments. 
 

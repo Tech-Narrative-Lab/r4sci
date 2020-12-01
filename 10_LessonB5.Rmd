@@ -16,9 +16,579 @@ knitr::opts_chunk$set(prompt= TRUE)
 
 [Return to Last Lesson (B4: Visualization)](09_LessonB4.html)
 
-CONTENT PENDING - LESSON UPDATE IN PROGRESS
+This lesson will introduce you to tools and techniques for writing more sophisticated programs. 
+
+### Evaluating Your Code
+
+Much like writing a book, good code typically requires multiple drafts.  For the first draft, you might write the section headings first as an outline and then develop code for each section that accomplishes the specified task.  For the second draft, you might adjust your code based on what you learned from the first draft.  For example, changing code in early sections to better support the code in later sections or changing variables to more accurately reflect how they were used.  For the third draft, you might rewrite sections of code that take a long time to run or have a large RAM footprint.  For the fourth draft (if needed), you might switch from testing the code against a small test dataset to testing it against data at full scale and repeat the time/resource footprint checks of the third draft.
+
+Below is a simple example of how to time test your code.  The example tests two methods of executing a function - providing a vector of arguments and executing the function separately for each element of the vector.  Since R is an interpreted language, vectorized functions in R run more quickly than the same calculations done as serial expressions because the interpreter has to process each line separately.
+
+```{R Vectorized Vs Serial}
+
+## Define a nonsense function for testing purposes
+NonSense <- function(x){
+	x <- abs(x)
+	y <- choose(x^2 , x)
+	x <- x * y * pi
+	x <- sqrt(x)
+	x <- diff(x)
+	x <- median(x)
+	return(x)
+}
+
+
+## Generate random integers
+random_numbers <- round(runif(min= 1, max= 10^3, n= 2^4))
+time_elapsed <- as.list( rep(NA, 2) )
+names(time_elapsed) <- c("Vectorized", "Serial")
+
+## Execute NonSense() in vectorized form
+temp_file <- rep(NA, 2^4)
+time_elapsed$Vectorized <- Sys.time()
+temp_file <- NonSense(random_numbers)
+time_elapsed$Vectorized <- Sys.time() - time_elapsed$Vectorized
+
+## Execute NonSense() element by element ("Serialized")
+temp_file <- rep(NA, 2^4)
+time_elapsed$Serial <- Sys.time()
+temp_file[1]  <- NonSense(random_numbers[1])
+temp_file[2]  <- NonSense(random_numbers[2])
+temp_file[3]  <- NonSense(random_numbers[3])
+temp_file[4]  <- NonSense(random_numbers[4])
+temp_file[5]  <- NonSense(random_numbers[5])
+temp_file[6]  <- NonSense(random_numbers[6])
+temp_file[7]  <- NonSense(random_numbers[7])
+temp_file[8]  <- NonSense(random_numbers[8])
+temp_file[9]  <- NonSense(random_numbers[9])
+temp_file[10] <- NonSense(random_numbers[10])
+temp_file[11] <- NonSense(random_numbers[11])
+temp_file[12] <- NonSense(random_numbers[12])
+temp_file[13] <- NonSense(random_numbers[13])
+temp_file[14] <- NonSense(random_numbers[14])
+temp_file[15] <- NonSense(random_numbers[15])
+temp_file[16] <- NonSense(random_numbers[16])
+time_elapsed$Serial <- Sys.time() - time_elapsed$Serial
+
+## display time elapsed
+lapply( time_elapsed, round, digits= 3)
+
+## delete temporary variables
+remove(time_elapsed, temp_file, random_numbers, NonSense)
+
+```
+
+In addition to measuring run time for a function, we can also measure run time for all functions within a block of code using `Rprof()` and `summaryRprof()`.  `Rprof()` takes snapshots of R as it executes the code and records which functions were in use during each snapshot.  It writes the sampling data to a text file that is called `Rprof.out` by default.  `summaryRprof()` reads that text file and tabulates how often each function appears.  The percentages sum to greater than one because functions are nested in each other.  For example, in the 20th sample, `var()` was running inside `sd()`, which was running inside `rnorm()`, which as running inside `AddNoise()`.  This corresponds to the second to last line of code in the `AddNoise()` function().  Based on these outputs, a programmer might reasonably conclude that random number generation is responsible for the majority of the computational cost of running this code.
+
+```{R Rprof()}
+
+## make function that adds noise to a dependent variable in
+  ## order to create an imperfect predictor for linear modeling
+AddNoise <- function(x) {
+	## give x an arbitrary scale
+	x <- {x - mean(x)} / sd(x)
+	scale_numbers <- runif(min= -100, max= 1000, n= 2)
+	x <- {x * scale_numbers[1]} + scale_numbers[2]
+	
+	## add data noise to x and express the results
+	x <- x + rnorm(n= length(x), sd= sd(x) / sqrt(length(x)))
+	return(x)
+}
+
+## initialize R profiler to see which functions are responsible
+  ## for extending the run time.
+Rprof()
+
+## create a dataset with a predictor and independent variable
+the_dataset <- data.frame(y= rpois(n= 10^7, lambda= 5))
+the_dataset$x <- AddNoise(the_dataset$y)
+
+## express summary of results from Rprof.
+Rprof(NULL)
+# summaryRprof()$by.total  ## This expression would print:
+
+#              total.time total.pct self.time self.pct
+# "AddNoise"         0.50     65.79      0.00     0.00
+# "rnorm"            0.40     52.63      0.36    47.37
+# "rpois"            0.26     34.21      0.26    34.21
+# "data.frame"       0.26     34.21      0.00     0.00
+# "var"              0.08     10.53      0.08    10.53
+# "sd"               0.08     10.53      0.00     0.00
+# "-"                0.02      2.63      0.02     2.63
+# "/"                0.02      2.63      0.02     2.63
+# "+"                0.02      2.63      0.02     2.63
+
+
+## express a few lines from the underlying Rprof.out file to show how the raw
+  ## data is formatted
+
+# data.frame(
+# 	"SampleNumber"= 38:40,
+# 	"FunctionsInUse"= readLines("Rprof.out")[38:40]
+# 	) ## This expression would print:
+
+#   SampleNumber                 FunctionsInUse
+# 1           18                "/" "AddNoise" 
+# 2           19 "var" "sd" "rnorm" "AddNoise" 
+# 3           20 "var" "sd" "rnorm" "AddNoise" 
+
+## delete demonstration objects and files
+remove(the_dataset, AddNoise)
+file.remove("Rprof.out")
+
+
+```
+
+As we discuss other programming techniques in this chapter, we will apply these time performance measurement strategies in order to understand the pros and cons of programming techniques.
+
+### Loops and Conditionals
+
+#### Loops
+
+Vectorized functions and apply family function are the most efficient methods to execute an operation in bulk in R.  However, there are circumstances in which the next execution of an operations depends on the outcome of the previous execution.  For example, a Fibonacci sequence is a set of integers in which each integer after the first two is the sum of the previous two digits.  _The_ Fibonacci sequence typically starts from 0, 1, in which case the sequence would proceed as:
+
+```
+Start: 0, 1
+0 + 1 = 1
+1 + 1 = 2
+1 + 2 = 3
+2 + 3 = 5
+3 + 5 = 8
+5 + 8 = 13
+```
+
+And so forth.  Fibonacci sequences cannot be generated using vectorized operations or apply family functions because the operation of generating the next digit depends on the result from the previous two attempts to generate digits.  Loops are the standard computational tool for conducting such operations.
+
+R has three looping functions, `repeat`, `while(){}`, and `for(){}`.  It also has tools for deciding what to do during each iteration, including `if(){}` and `else{}`.  This example also uses `print()`, which outputs messages to console in a manner that is cleaner than object expression.
+
+```{R Loops - Fibonacci Demo}
+
+## make a simple Fibonacci sequence generator
+Fibonacci <- function(x) {
+	y <- sum( x[length(x) - 0:1])
+	return(c(x, y))
+}
+
+## repeat will continue to repeat an operations forever, unless you provide a
+  ## break statement. Note the lack of parentheses after repeat.  The looping
+  ## and conditional control words operate differently than the standard R
+  ## function syntax.
+fib_sequence <- 0:1
+repeat {
+	fib_sequence <- Fibonacci(fib_sequence) ## generate the next number
+	if (max(fib_sequence) > 10) break ## end the loop if next number is > 10
+}
+
+fib_sequence
+
+## while() incorporates the stopping condition as an argument
+fib_sequence <- 0:1
+while (max(fib_sequence) <= 10) {
+	fib_sequence <- Fibonacci(fib_sequence) ## generate the next number
+}
+
+fib_sequence
+
+## for() iterates through a defined set of values which can serve as useful
+  ## indices for bracket operations or do other useful work.  
+fib_sequence <- 0:1
+
+for (iteration_value in 1:6) {
+	fib_sequence <- Fibonacci(fib_sequence)
+	
+	print(paste( 'iteration_value=', iteration_value ))
+	print(paste( 'New digit=', fib_sequence[iteration_value + 2] ))
+}
+
+fib_sequence
+
+## delete demonstration objects
+remove(fib_sequence, iteration_value, Fibonacci)
+
+
+```
+
+The key strength of a loop is its ability to make decisions each round.  This is computationally expensive because the R interpreter must reengage each round, but can enable your program to do sophisticated decision-making.  In the example below, the loop checks the clock once per second and announces the time if the current clock second is divisible by 5.  This example also uses `Sys.sleep()`, which is an R function that causes execution of an R script to pause for a specified number of seconds.
+
+```{R Ticking Clock}
+
+the_time <- Sys.time()
+
+repeat {
+	
+	## force R to wait for one second on each iteration of the loop, so that the
+	  ## loop does not iterate too quickly
+	Sys.sleep(1) 
+	
+	## record the current time
+	the_time <- c(the_time, Sys.time()) 
+	
+	## determine if the current clock second is divisible by 5
+	anouncement_decision <- substring(max(the_time), 18, 19)
+	anouncement_decision <- as.numeric(anouncement_decision)
+	
+	## if the current clock second is not divisible by five, print "tick".  If it
+	  ## is divisible by 5, print the current time.
+	if (anouncement_decision %% 5 != 0) {
+		print("tick")
+	} else {
+		print(paste("The current time is", Sys.time()))
+			}
+
+	if (max(the_time) - min(the_time) > 9) break ## end loop after 9 seconds
+	
+}
+
+## delete demonstration objects
+remove(the_time, anouncement_decision)
+
+```
+
+Loops and apply family functions can do many of the same tasks.  However, apply family functions only engage the R interpreter once, which often makes them much more efficient.  Strive to only use loops under three conditions:
+
+1. No apply family function can do the task because the outputs from the last round of calculation serve as inputs for the next.
+
+2. While an apply family function can do the task, it would take too much RAM to process all elements at once so the calculation needs to be done one element at a time.
+
+3. You did side-by-side time trials of your loop and an equivalent apply family function and the loop was consistently faster.  Starting with R v4.0, this is becoming less rare -- v4.0 significantly improved loop efficiency.
+
+To illustrate the nuances of this, here is a side by side performance comparison of `for(){}` and `apply()` on an averaging task.  In this example, `for(){}` has approximately 120-140% of the run time of `apply()`.  However, if you replace the looped line with the one below it (commented out in the example), the performance difference between the two decreases significantly.  In a portion of trials, the loop is actually faster. This change suggests that memory allocation is putting the loop at a disadvantage -- each iteration of R is having to reallocate memory for loop_object because the size of one of its elements has changed and this is dragging down the loop's performance.
+
+```{R for() v lapply}
+
+## CONDUCT A TIME TRIAL ====================
+
+## Note: typically, one would test each expression multiple times and then
+  ## average the results.  This example does a single trial each to make the
+  ## code easier to follower.
+
+## make a large data object
+loop_object <- lapply_object <- mapply(
+	FUN= seq,
+	from= 1,
+	to= 2^{1:20},
+	by= pi * 0.1
+	)
+time_trial <- rep(NA, 2)
+names(time_trial) <- c("for", "lapply")
+
+## use a for(){} loop to calculate means
+
+alternative_loop_result <- rep(NA, length(loop_object))
+
+start_time <- Sys.time()
+for(iter in seq(from= 1, along= loop_object)){
+	loop_object[[iter]] <- mean(loop_object[[iter]]) ## comment line to improve loop performance
+	## alternative_loop_result[iter] <- mean(loop_object[[iter]]) ## uncomment line to improve loop performance
+	}
+time_trial['for'] <- Sys.time() - start_time
+
+## use lapply() to do the same
+start_time <- Sys.time()
+lapply_object <- lapply(lapply_object, mean)
+time_trial['lapply'] <- Sys.time() - start_time
+
+## compare the results (the exact performance will vary from trial to trial
+  ## as well as varying according to your hardware.  For best results, repeat
+  ## your time trial multiple times and then average the results.
+round(time_trial / min(time_trial), 2)
+
+## remove demonstration objects
+remove(time_trial, start_time, lapply_object, loop_object, iter,
+	alternative_loop_result)
+
+```
+
+#### Optimization
+
+Optimization problems form an important subset of "last-result-informs-next" loops.  In an optimization loop, one tries something, observes the results, and then tries something different to get better results.  In R, the `optim()` function does this task.  `optim()` has two key arguments. `fn=` is a function for which you want to find the optimal arguments, formulated so that it will return a "score" and lower scores indicate better results.  `par=` is an initial set of arguments to supply the function. `optim()` starts with those values and tries variations on them until it finds values that produce the lowest score.
+
+To give an example, imagine that you have a geometric point at coordinate (10, 10) and you want to find another point that is exactly 2 units away.  Optimization could be used to find solutions to this problem, as demonstrated below.
+
+```{R optim()}
+ScoreFunction <- function(x) {
+	y <- x[2]
+	x <- x[1]
+  the_distance <- {x - 10}^2 + {y - 10}^2
+  the_distance <- abs(2 - sqrt(the_distance))
+  return(the_distance)
+}
+
+
+## find a solution to this problem, using (0,0) as the initial parameters
+optim(fn= ScoreFunction, par= c(0, 0))
+
+## -- plot how the solutions vary, depending on the initial parameters
+
+## define 441 distinct starting positions
+initial_parameters <- data.frame(
+	row_number= 1:21^2,
+	x_initial= rep(0:20, each= 21),
+	y_initial= rep(0:20, times= 21),
+	x_solution= NA,
+	y_solution= NA
+	)
+
+## in order to provide further demonstrations of loops in action, use a loop
+  ## to test which solution optim() finds, given different starting positions.
+  ## A lapply() or mapply() would likely be more efficient.
+for(iter in initial_parameters$row_number) {
+	
+	initial_parameters[iter, c("x_solution", "y_solution")] <- optim(
+		fn= ScoreFunction,
+		par= initial_parameters[iter, c("x_initial", "y_initial")],
+		control= list(maxit= 10^4)
+			)$par
+	
+}
+
+## color points according to circle quadrant
+initial_parameters$point_colors <- ifelse(initial_parameters$x_initial > 10, 10,
+	0) + ifelse(initial_parameters$y_initial > 10, 1, 0)
+initial_parameters$point_colors <- as.numeric(as.factor(
+	initial_parameters$point_colors))
+initial_parameters$point_colors <- rainbow(n= 4, s= 0.7, v= 0.7)[
+	initial_parameters$point_colors]
+
+## plot all solutions found
+plot.new()
+par(xpd= TRUE)
+plot.window(
+	xlim= range(initial_parameters$x_solution),
+	ylim= range(initial_parameters$x_solution),
+	asp= 1
+	)
+abline(h= 0:20, v= 0:20, col= "gray70")
+points(
+	x= initial_parameters$x_solution,
+	y= initial_parameters$y_solution,
+	pch= 16,
+	cex= 0.5,
+	col= initial_parameters$point_colors
+	)
+text(x= 7.8, y= 12:8, labels= 12:8, font= 2)
+text(y= 7.8, x= 12:8, labels= 12:8, font= 2)
+
+## delete demonstration objects
+remove(initial_parameters, iter, ScoreFunction)
+
+```
+
+In the example above, there are many solutions to this problem, since any point in the ring around (10, 10) qualifies.  `optim()` will find one of those solutions, not all.  While the same initial parameters will always lead to the same solution, similar initial parameters do not necessarily lead to similar solutions. This is why the point colors on the chart (which roughly categorize the initial parameters into four groups) are randomly distributed around the circle.
+
+#### Conditionals
+
+Loops present many good opportunities to use conditionals like `if(){}` and `else{}` but conditionals can be useful outside of loops as well.  For example, conditionals can enable you to toggle into a test mode while you are modifying/debugging code.  This example also uses `warning()` wish is the R function for generating warning messages.
+
+```{R Conditionals for testing}
+
+
+## FOR THIS EXAMPLE, IMAGINE YOU READ IN A 10m ROW DATASET ====================
+
+## create dataset with an independent variable
+large_dataset <- data.frame(
+	x= runif(min= 1, max= 100, n= 10^7),
+	y= NA
+	)
+
+## create a dependent variable with a polynomial relationship to I.V.
+f <- function(x){ {-6 * x^5} + {3 * x^4} + {-5 * x^3} + {3 * x^2} + {-5 * x} }
+large_dataset$y <- f(large_dataset$x)
+remove(f)
+
+
+## YOU COULD CREATE A TESTING MODE LIKE THIS ====================
+
+## settings
+my_settings <- list(
+	test_mode= TRUE
+	)
+
+## if in test mode, take a sample of the dataset
+if (my_settings$test_mode) {
+	
+	## Reduce size of dataset by 80%
+	sample_index <- floor(length(large_dataset$y) * 0.2)
+	set.seed(464)
+	sample_index <- sample(
+		x= seq(along= large_dataset$y),
+		size= sample_index
+		)
+	large_dataset <- large_dataset[sample_index, ]
+	
+	## Throw a warning that script is in test mode
+	warning("Script is currently running in test mode!")
+	
+  } else {
+	
+  	## print start time for script that may run for a long time
+  	print(paste("Script initiated at:", Sys.time()))
+	  print("Script is running in standard mode")
+	
+  }
+
+## conduct some analysis of dataset
+Sigmoid <- function(x){
+	y <- exp(x) + 1
+	y[y == 0] <- NA
+	y <- exp(x) / y
+	return(y)
+	}
+sigmoid_correlation <- cor( Sigmoid(large_dataset$x), Sigmoid(large_dataset$y) )
+
+print(
+	paste(
+		"The analysis indicates a sigmoid correlation of:",
+		round(sigmoid_correlation, 3)
+		)
+	)
+
+## end code with restatement of test mode warning
+if (my_settings$test_mode) warning("Script is currently running in test mode!")
+
+## remove demonstration objects
+remove(sigmoid_correlation, large_dataset, my_settings, Sigmoid)
+
+```
+
+Another common use for conditional expressions is making functions able to adapt to different kinds of inputs.  For example, `sample()` is able to receive either a `x=` and `size=` argument or just a `x=` argument. Below is an example function that uses conditional expression to accomplish a similar result.  The example uses `&&` and `||`.  These operators are forms of the standard logical operators that ignore all but the first element of the logical vector.  They are considered "safer" than the standard operators is circumstances where there should only be one element in the logical vectors evaluated.  The example also uses `stop()`, which is the function for generating an error message.
+
+```{R Function Model Conditionals}
+TwoModeSample <- function(x, size= NULL) {
+	
+	## interpret special case #1
+	if (length(x) == 1 && is.null(size) && is.numeric(x)) {
+		if (x < 1)  return(x) else x <- 1:x
+	}
+	
+	## shuffle x (this is one way of taking a sample)
+	sample_index <- runif(n= length(x))
+	sample_index <- order(sample_index)
+	x <- x[sample_index]
+	
+	## interpret special case #2
+	if (is.null(size)) return(x) else {
+		
+		## error check the size input
+		size <- as.integer(size)
+		if (size < 1 || size > length(x)) stop("Invalid \'size\' argument")
+		
+		## return sample
+		return(x[1:size[1]])
+		
+		}
+	
+}
+
+
+## test function with x= and size= arguments
+TwoModeSample(month.abb, 3)
+
+## test function with x= a vector and no size= argument
+TwoModeSample(month.abb)
+
+## test function with x= a single integer and no size= argument
+TwoModeSample(5)
+TwoModeSample(-5)
+
+## test function with an improperly long size argument (the || prevents this
+  ## from causing problems)
+TwoModeSample(month.abb, 3:4)
+
+## these tests should cause errors and do
+# TwoModeSample(month.abb, -3)
+# TwoModeSample(month.abb, 15)
+```
+
+In the example above, take note of two things:
+
+1. `return()` is used to end the function and express the result whenever the result has been ascertained for a given test case.  When used like this, `return()` causes the function to skip the lines of code that follow it.
+
+2. As with `break` and `repeat` in the loops section, `else` does not have to follow the standard `{}` conventions of R syntax.  In general, it is better to brace than to not brace but either is considered acceptable.
+
+### Error Handling
+
+When programming, errors are not the enemy.  Error and warning messages let you know that something has gone wrong in the code, providing you with an opportunity to resolve the problem.  As a programmer, you should be more worried about things going wrong _without_ errors and warnings.  Here are some tools to consider as you work to manage errors and warnings.
+
+`stop()` is the R function for generating error messages. Use `stop()` to force your code to abort when something happens that should not happen.  One way to do this is to write a `TRUE`/`FALSE` test, pass the test result as an argument to if `if(){}`, and then call `stop()` inside the braces.  While `stop()` will abort the execution of a particular function/line of code, some R GUI will continue to run the lines after an aborted line and others will not.  `try()` prevents an error from causing a function / line to abort.  Instead of generating an error, an errant function encased in `try()`, using the `silent= TRUE` argument, will return a `try-error` class object, as demonstrated below.
+
+```{R try()}
+
+## express a non-existent object to generate an error
+try_output <- try(object_that_does_not_exist, silent= TRUE)
+
+## express the try-error object that results
+class(try_output)
+try_output
+
+## build a hook to react to try-error -- creating missing object with
+  ## default values
+if (any(class(try_output) %in% "try-error")) {
+	object_that_does_not_exist <- rep(0, 10)
+}
+
+## express newly created object
+object_that_does_not_exist
+
+## delete demonstration objects
+remove(try_output, object_that_does_not_exist)
+
+```
+
+`warning()` is the R function for generating warning messages.  You can use it in the same way as `stop()`.  However, a warning message will not prevent a function / line of code from executing.  `warnings()` will enable you to view all of the warning messages thrown during the execution of a script.  `suppressWarnings()` will pass on the expression it encases, while silencing the error messages.  Below is an example of `supressWarnings()` in action
+
+```{R suppressWarnings()}
+## generates a warning
+sqrt(-1)
+
+## silences the warning
+suppressWarnings(sqrt(-1))
+```
+
+`unclass()` strips the customized class attributes from an object.  This will cause the object to display in a more standard object format.  `unclass()` does not change the object itself, just the way R interprets it.  In general, you will find that most package-specific R objects are actually just lists with fancy display methods.
+
+```{R unclass()}
+## this is a t-test object with a t-test class attribute
+t.test(1:10, 11:20)
+
+## this is a t-test object with the attribute stripped, revealing the basic
+  ## list object structure underneath
+unclass(t.test(1:10, 11:20))
+```
+
+`gc()` triggers RAM clean-up.  When you perform operations involving large amounts of data, that data occupies large blocks of RAM.  When you delete large data objects from memory, that memory space is eventually returns to the pool of available memory.  This process is called garbage collection.  Like actual garbage collection, deciding when to do memory garbage collection requires efficiency trade-offs.  Do it too often and you waste time and system resources that you could better use elsewhere.  Do it too infrequently and the metaphorical garbage piles up, taking up space that could be better used to store useful things.  R automatically makes decisions about when to do garbage collection.  However, there are circumstances where you can avoid errors if you manually trigger collection.  For example, if you load a data object that occupies most of your RAM, your first task will likely to be filter, summarize, or transform that data into the smallest possible format that you will need for your analysis.  Your second might be to use `gc()`, triggering garbage collection to free the RAM that the raw data object previously occupied.
+
+The `::` operator enables you to call a function from a package without first loading the package using `library` or in circumstances where the function is masked.  This can be particularly useful for working with parallelized operations, where the threads may have difficulty accessing package dependencies.  Below is an example of `::` in action, used to resolve issues with function masking.
+
+```{R Double Colon}
+
+## load the parallel processing package
+library(parallel)
+
+## use the parallel package's function for detecting the number of cores on your
+  ## machine
+detectCores()
+
+## create a new function with the same name (this is a bad practice but can
+  ## happen when you load packages from different creators.  Since the global
+  ## environment has precedence over package environments, this masks the
+  ## version of detectCores() in the parallel package
+detectCores <- function(){"Cores? What cores?"}
+detectCores()
+
+## using :: you can use it anyway
+parallel::detectCores()
+
+## delete demonstration objects and reset the environment
+remove(detectCores)
+detach(package:parallel)
+
+```
 
 ==========
+
+LESSON WRITING IN PROGRESS... MORE CONTENT COMING SOON
+
 ==========
 
 ### Vocabulary Table for Lesson B5
@@ -29,6 +599,17 @@ In order to understand what each function/operator/constant does, use the `help(
 
 The help documentation may be a difficult to read at first but keep practicing.  Over time, getting useful information from the documentation will become effortless.  Resist the impulse to do a Google search before you have consulted the documentation.  Google results can be of mixed quality - sometimes you will get a thoughtful, efficient solution, sometimes you will get a byzantine work-around that will teach you bad habits.
 
+|Loops			|Conditions		|Error Handling		|Expression						|Object Dissection		|Function Dissection
+|:-					|:-						|:-								|:-										|:-										|:-
+|`repeat{}`	|`if(){}`			|`gc()`								|`cat()`							|`attr()`
+|`while(){}`|`else{}`			|`::`									|`capture.output()`		|`attributes()`
+|`for(){}`	|`&&`					|`stop()`							|`invisible()`				|`slot()`
+|`break`		|`||`					|`unclass()`					|`print()`						|`slotNames()`
+|`next`			||`try()`			|`suppressWarnings()`	|`@`
+|`optim()`	|							|`warnings()`					|`identity()`					|`str()`
+|`Sys.sleep()`|						|`warning()`
+
+
 Conditionals and Loops  |Error Handling |Expression |Object Dissection  |Function Dissection
 |:-		|:-		|:-		|:-		|:-
 |`if(){}`				|`gc()`					|`cat()`							|`attr()`				|`expression()`
@@ -36,7 +617,9 @@ Conditionals and Loops  |Error Handling |Expression |Object Dissection  |Functio
 |`&&`						|`::`						|`invisible()`				|`slot()`				|`formals()`
 |`||`					|`stop()`				|`print()`						|`slotNames()`	|`body()`
 |`for(){}`			|`Sys.sleep()`	|`suppressWarnings()`	|`@`						|`methods()`
-|`while(){}`		|`try()`				|`\u0007`						|`str()`				|`showMethods()`
-|`optim()`			|`unclass()`		|											|								|`getS3method()`
-|`break`				|`warning()`		|											|								|`getAnywhere()`
-|`return()`			|								|											|								|
+|`while(){}`		|`try()`				|`identity()`						|`str()`				|`getAnywhere()`
+|`optim()`			|`unclass()`		|											|								|`Rprof()`
+|`break`				|`warning()`		|											|								|`summaryRprof()`
+|`return()`			|								|											|								|`browser()`
+|`repeat`			|								|											|								|
+|`next`			|								|											|								|
