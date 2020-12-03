@@ -91,7 +91,7 @@ Below are the vocabulary tables for all lessons.
 |`install.packages()`		|`mapply()`		|`environment()`			|`parApply()`
 |`library()`						|`sapply()`		|`rapply()`						|`parLapply()`
 |`search()`							|`tapply()`		|`simplify2array()`		|`stopCluster()`
-|`update.packages()`	
+|`update.packages()`												
 
 ### Vocabulary Table for Lesson B3
 
@@ -124,14 +124,13 @@ Below are the vocabulary tables for all lessons.
 
 ### Vocabulary Table for Lesson B5
 
-Conditionals and Loops  |Error Handling |Expression |Object Dissection  |Function Dissection
-|:-		|:-		|:-		|:-		|:-
-|`if(){}`				|`gc()`					|`cat()`							|`attr()`				|`expression()`
-|`else{}`				|`proc.time()`	|`capture.output()`		|`attributes()`	|`eval()`
-|`&&`						|`::`						|`invisible()`				|`slot()`				|`formals()`
-|`||`					|`stop()`				|`print()`						|`slotNames()`	|`body()`
-|`for(){}`			|`Sys.sleep()`	|`suppressWarnings()`	|`@`						|`methods()`
-|`while(){}`		|`try()`				|`\u0007`						|`str()`				|`showMethods()`
-|`optim()`			|`unclass()`		|											|								|`getS3method()`
-|`break`				|`warning()`		|											|								|`getAnywhere()`
-|`return()`			|								|											|								|
+
+|Loops   |Conditions	|Error Handling|Console Expression	|Analysis Tools
+|:-					|:-				|:-						|:-										|:-							
+|`repeat{}`	|`if(){}`	|`gc()`				|`cat()`							|`attr()`				
+|`while(){}`|`else{}`	|`::`					|`capture.output()`		|`attributes()`	
+|`for(){}`	|`&&`			|`stop()`			|`invisible()`				|`str()`				
+|`break`		|`||`			|`unclass()`	|`print()`						|`Rprof()`					
+|`next`			|					|`try()`			|`suppressWarnings()`	|`summaryRprof()`		
+|`optim()`	|					|`warnings()`	|`identity()`					|`methods()`
+|`Sys.sleep()`|				|`warning()`	|											|`getAnywhere()`

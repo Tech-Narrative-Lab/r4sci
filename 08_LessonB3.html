@@ -516,7 +516,8 @@ EF</code></pre>
 +   )
 &gt; 
 &gt; ## View contents of working directory and all sub-directories,
-&gt;   ## confirming that new files now exist
+&gt;   ## confirming that new files now exist.  This function ignores all of the 
+&gt;   ## textbook files, which would make the outputs unwieldy.
 &gt; ListFilesIgnoreLessons &lt;- function(){
 +   file_list &lt;- list.files(recursive= TRUE, include.dirs= TRUE)
 +   file_list[-grep(&quot;[.](html|Rmd)$&quot;, file_list)]
@@ -525,16 +526,17 @@ EF</code></pre>
 <pre><code>[1] &quot;A_Inputs&quot;                     &quot;A_Inputs/linss2_10e_fine.csv&quot;
 [3] &quot;B_Intermediates&quot;              &quot;B_Intermediates/Hamlet.txt&quot;  
 [5] &quot;B_Intermediates/Numbers.csv&quot;  &quot;C_Outputs&quot;                   
-[7] &quot;CONTRIBUTING.md&quot;              &quot;README.md&quot;                   </code></pre>
+[7] &quot;C_Outputs/ManyNumbers.csv&quot;    &quot;CONTRIBUTING.md&quot;             
+[9] &quot;README.md&quot;                   </code></pre>
 <pre class="r"><code>&gt; ## Move file to new directory and rename
 &gt; file.copy(from= &quot;B_Intermediates/Hamlet.txt&quot;, to= &quot;C_Outputs/Words.txt&quot;)</code></pre>
 <pre><code>[1] TRUE</code></pre>
 <pre class="r"><code>&gt; ListFilesIgnoreLessons()</code></pre>
-<pre><code>[1] &quot;A_Inputs&quot;                     &quot;A_Inputs/linss2_10e_fine.csv&quot;
-[3] &quot;B_Intermediates&quot;              &quot;B_Intermediates/Hamlet.txt&quot;  
-[5] &quot;B_Intermediates/Numbers.csv&quot;  &quot;C_Outputs&quot;                   
-[7] &quot;C_Outputs/Words.txt&quot;          &quot;CONTRIBUTING.md&quot;             
-[9] &quot;README.md&quot;                   </code></pre>
+<pre><code> [1] &quot;A_Inputs&quot;                     &quot;A_Inputs/linss2_10e_fine.csv&quot;
+ [3] &quot;B_Intermediates&quot;              &quot;B_Intermediates/Hamlet.txt&quot;  
+ [5] &quot;B_Intermediates/Numbers.csv&quot;  &quot;C_Outputs&quot;                   
+ [7] &quot;C_Outputs/ManyNumbers.csv&quot;    &quot;C_Outputs/Words.txt&quot;         
+ [9] &quot;CONTRIBUTING.md&quot;              &quot;README.md&quot;                   </code></pre>
 <pre class="r"><code>&gt; ## Delete all files with a given extension, using file.remove()
 &gt;   ## and list.files() in tandem.
 &gt; txt_list &lt;- list.files(pattern= &quot;[.]txt$&quot;, recursive= TRUE)
@@ -546,15 +548,16 @@ EF</code></pre>
 <pre class="r"><code>&gt; ListFilesIgnoreLessons()</code></pre>
 <pre><code>[1] &quot;A_Inputs&quot;                     &quot;A_Inputs/linss2_10e_fine.csv&quot;
 [3] &quot;B_Intermediates&quot;              &quot;B_Intermediates/Numbers.csv&quot; 
-[5] &quot;C_Outputs&quot;                    &quot;CONTRIBUTING.md&quot;             
-[7] &quot;README.md&quot;                   </code></pre>
+[5] &quot;C_Outputs&quot;                    &quot;C_Outputs/ManyNumbers.csv&quot;   
+[7] &quot;CONTRIBUTING.md&quot;              &quot;README.md&quot;                   </code></pre>
 <pre class="r"><code>&gt; ## Create a new directory
 &gt; dir.create(&quot;E_NewDirectory&quot;)
 &gt; ListFilesIgnoreLessons()</code></pre>
 <pre><code>[1] &quot;A_Inputs&quot;                     &quot;A_Inputs/linss2_10e_fine.csv&quot;
 [3] &quot;B_Intermediates&quot;              &quot;B_Intermediates/Numbers.csv&quot; 
-[5] &quot;C_Outputs&quot;                    &quot;CONTRIBUTING.md&quot;             
-[7] &quot;E_NewDirectory&quot;               &quot;README.md&quot;                   </code></pre>
+[5] &quot;C_Outputs&quot;                    &quot;C_Outputs/ManyNumbers.csv&quot;   
+[7] &quot;CONTRIBUTING.md&quot;              &quot;E_NewDirectory&quot;              
+[9] &quot;README.md&quot;                   </code></pre>
 <pre class="r"><code>&gt; dir.create(&quot;E_NewDirectory&quot;) ## note warning if dir. already exists</code></pre>
 <pre><code>Warning in dir.create(&quot;E_NewDirectory&quot;): &#39;E_NewDirectory&#39; already exists</code></pre>
 <pre class="r"><code>&gt; ## Delete remaining demonstration files
@@ -700,7 +703,7 @@ EF</code></pre>
 +   list.files(&quot;B_Intermediates&quot;, recursive= TRUE, full.names= TRUE))
 &gt; remove(all_data, core_cluster, data_roster, GenerateFiles, output_bucket,
 +   file_names)
-&gt; file.remove(c(&quot;B_Intermediates/COMPILEDSourceFiles&quot;))</code></pre>
+&gt; file.remove(&quot;B_Intermediates/COMPILEDSourceFiles&quot;)</code></pre>
 <pre><code>[1] TRUE</code></pre>
 </div>
 <div id="internet-file-retrieval" class="section level3">
@@ -809,7 +812,7 @@ can write   &quot;no&quot;                     </code></pre>
 </div>
 <div id="interface-access" class="section level3">
 <h3>Interface Access</h3>
-<p>In complex coding projects, there are circumstances under which it is useful to let your code use decision rules to find a needed object, rather than hard coding the name of that object. For example, if you loading <code>.RData</code> files in batch from an external source, you may need an approach for identifying the names of the newly loaded objects and sorting / re-packaging them to fit an organizational schema. The <code>get()</code> function retrieves an object based on its name, and the <code>assign()</code> function copies the contents of an object to another copy. Used in tandem with <code>objects()</code> and <code>eapply()</code>, they supply many options for handling arbitrary collections of objects.</p>
+<p>In complex coding projects, there are circumstances under which it is useful to let your code use decision rules to find a needed object, rather than hard coding the name of that object. For example, if you are loading batches of <code>.RData</code> files from an external source, you may need an approach for identifying the names of the newly loaded objects and sorting / re-packaging them to fit an organizational schema. The <code>get()</code> function retrieves an object based on its name, and the <code>assign()</code> function copies the contents of an object to another object Used in tandem with <code>objects()</code> and <code>eapply()</code>, they supply many options for handling arbitrary collections of objects.</p>
 <pre class="r"><code>&gt; ## Create three objects of lengths that randomly vary each run
 &gt; RandomVector &lt;- function(){
 +   rpois(
@@ -825,7 +828,7 @@ can write   &quot;no&quot;                     </code></pre>
 &gt; remove(RandomVector)
 &gt; 
 &gt; object.a</code></pre>
-<pre><code>[1] 3 4 4 7 2 3 3</code></pre>
+<pre><code>[1] 5 2 3 5 3 5 3 1</code></pre>
 <pre class="r"><code>&gt; ## determine which object is longest
 &gt; long.vector &lt;- environment()
 &gt; long.vector &lt;- eapply(env= long.vector, FUN= length)
@@ -833,13 +836,13 @@ can write   &quot;no&quot;                     </code></pre>
 &gt; long.vector &lt;- long.vector[long.vector == max( long.vector )]
 &gt; long.vector &lt;- names(long.vector)[1]
 &gt; long.vector</code></pre>
-<pre><code>[1] &quot;object.b&quot;</code></pre>
+<pre><code>[1] &quot;object.c&quot;</code></pre>
 <pre class="r"><code>&gt; ## create new object with &quot;longest&quot; in title to hold the longest vector
 &gt; assign(x= paste(&quot;longest&quot;, long.vector, sep= &quot;.&quot;), value= get(x= long.vector))
 &gt; remove(list= c(long.vector, &quot;long.vector&quot;))
 &gt; 
 &gt; objects()</code></pre>
-<pre><code>[1] &quot;longest.object.b&quot; &quot;object.a&quot;         &quot;object.c&quot;        </code></pre>
+<pre><code>[1] &quot;longest.object.c&quot; &quot;object.a&quot;         &quot;object.b&quot;        </code></pre>
 <pre class="r"><code>&gt; ## Delete demonstration objects
 &gt; remove( list= objects()[grepl(&quot;object.[abc]&quot;, objects())])</code></pre>
 <p>Thinking more broadly about the R processing environment, the <code>options()</code> and <code>source()</code> functions provide ways to make significant changes to R’s behavior. The <code>options()</code> function supplies access to R’s settings. Here are some options to keep in mind:</p>

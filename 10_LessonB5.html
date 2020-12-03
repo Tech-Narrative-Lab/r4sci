@@ -432,7 +432,7 @@ summary {
 Time difference of 0.002 secs
 
 $Serial
-Time difference of 0.036 secs</code></pre>
+Time difference of 0.031 secs</code></pre>
 <pre class="r"><code>&gt; ## delete temporary variables
 &gt; remove(time_elapsed, temp_file, random_numbers, NonSense)</code></pre>
 <p>In addition to measuring run time for a function, we can also measure run time for all functions within a block of code using <code>Rprof()</code> and <code>summaryRprof()</code>. <code>Rprof()</code> takes snapshots of R as it executes the code and records which functions were in use during each snapshot. It writes the sampling data to a text file that is called <code>Rprof.out</code> by default. <code>summaryRprof()</code> reads that text file and tabulates how often each function appears. The percentages sum to greater than one because functions are nested in each other. For example, in the 20th sample, <code>var()</code> was running inside <code>sd()</code>, which was running inside <code>rnorm()</code>, which as running inside <code>AddNoise()</code>. This corresponds to the second to last line of code in the <code>AddNoise()</code> function(). Based on these outputs, a programmer might reasonably conclude that random number generation is responsible for the majority of the computational cost of running this code.</p>
@@ -585,15 +585,15 @@ Time difference of 0.036 secs</code></pre>
 +   if (max(the_time) - min(the_time) &gt; 9) break ## end loop after 9 seconds
 +   
 + }</code></pre>
-<pre><code>[1] &quot;tick&quot;
-[1] &quot;tick&quot;
-[1] &quot;tick&quot;
-[1] &quot;The current time is 2020-12-01 11:26:50&quot;
+<pre><code>[1] &quot;The current time is 2020-12-03 11:36:20&quot;
 [1] &quot;tick&quot;
 [1] &quot;tick&quot;
 [1] &quot;tick&quot;
 [1] &quot;tick&quot;
-[1] &quot;The current time is 2020-12-01 11:26:55&quot;</code></pre>
+[1] &quot;The current time is 2020-12-03 11:36:25&quot;
+[1] &quot;tick&quot;
+[1] &quot;tick&quot;
+[1] &quot;tick&quot;</code></pre>
 <pre class="r"><code>&gt; ## delete demonstration objects
 &gt; remove(the_time, anouncement_decision)</code></pre>
 <p>Loops and apply family functions can do many of the same tasks. However, apply family functions only engage the R interpreter once, which often makes them much more efficient. Strive to only use loops under three conditions:</p>
@@ -640,7 +640,7 @@ Time difference of 0.036 secs</code></pre>
 &gt;   ## your time trial multiple times and then average the results.
 &gt; round(time_trial / min(time_trial), 2)</code></pre>
 <pre><code>   for lapply 
-  1.09   1.00 </code></pre>
+  1.22   1.00 </code></pre>
 <pre class="r"><code>&gt; ## remove demonstration objects
 &gt; remove(time_trial, start_time, lapply_object, loop_object, iter,
 +   alternative_loop_result)</code></pre>
@@ -792,7 +792,7 @@ NULL</code></pre>
 +       round(sigmoid_correlation, 3)
 +       )
 +   )</code></pre>
-<pre><code>[1] &quot;The analysis indicates a sigmoid correlation of: -0.292&quot;</code></pre>
+<pre><code>[1] &quot;The analysis indicates a sigmoid correlation of: -0.291&quot;</code></pre>
 <pre class="r"><code>&gt; ## end code with restatement of test mode warning
 &gt; if (my_settings$test_mode) warning(&quot;Script is currently running in test mode!&quot;)</code></pre>
 <pre><code>Warning: Script is currently running in test mode!</code></pre>
@@ -853,6 +853,8 @@ NULL</code></pre>
 </div>
 <div id="error-handling" class="section level3">
 <h3>Error Handling</h3>
+<div id="tools-for-solving-specific-error-problems" class="section level4">
+<h4>Tools for Solving Specific Error Problems</h4>
 <p>When programming, errors are not the enemy. Error and warning messages let you know that something has gone wrong in the code, providing you with an opportunity to resolve the problem. As a programmer, you should be more worried about things going wrong <em>without</em> errors and warnings. Here are some tools to consider as you work to manage errors and warnings.</p>
 <p><code>stop()</code> is the R function for generating error messages. Use <code>stop()</code> to force your code to abort when something happens that should not happen. One way to do this is to write a <code>TRUE</code>/<code>FALSE</code> test, pass the test result as an argument to if <code>if(){}</code>, and then call <code>stop()</code> inside the braces. While <code>stop()</code> will abort the execution of a particular function/line of code, some R GUI will continue to run the lines after an aborted line and others will not. <code>try()</code> prevents an error from causing a function / line to abort. Instead of generating an error, an errant function encased in <code>try()</code>, using the <code>silent= TRUE</code> argument, will return a <code>try-error</code> class object, as demonstrated below.</p>
 <pre class="r"><code>&gt; ## express a non-existent object to generate an error
@@ -960,32 +962,512 @@ $data.name
 <pre class="r"><code>&gt; ## delete demonstration objects and reset the environment
 &gt; remove(detectCores)
 &gt; detach(package:parallel)</code></pre>
+</div>
+<div id="tools-for-solving-specific-console-output-problems" class="section level4">
+<h4>Tools for Solving Specific Console Output Problems</h4>
+<p>Keep the amount of expressions (as opposed to assignments) in your code to a minimum. If a line of code does not change any object, it is likely cluttering your script without providing benefit. However, there are circumstances where it is important to enable your script to communicate with you (or anyone else who is running your code). R offers a variety of tools for generating messages or interacting with the expressed messages of other programmers.</p>
+<p><code>identity()</code>, <code>print()</code>, and <code>cat()</code> each enable you to express arguments to console. <code>print()</code> and <code>cat()</code> express their arguments to the console, regardless of whether they are buried in layers of code like functions and loops. <code>identity()</code> expresses its arguments using standard expression. It is equivalent to defining the function <code>function(x){x}</code>. In contrast to <code>cat()</code> and <code>print()</code>, it will only express its argument within the environment (or loop) that contains it.</p>
+<p>While <code>cat()</code> and <code>print</code> are similar, <code>cat()</code> works differently than <code>print()</code> in at least three ways. First, it will combine multiple expressions into one output. Second, it bypasses object expression and directly prints messages to the console. Third, since it bypasses expression, you cannot assign its output to an object using just the <code>&lt;-</code> operator.</p>
+<p>Below is a demonstration of the three functions in action.</p>
+<pre class="r"><code>&gt; ## use print()/cat() to express output directly to console
+&gt; identity(&quot;I know who I am!&quot;)</code></pre>
+<pre><code>[1] &quot;I know who I am!&quot;</code></pre>
+<pre class="r"><code>&gt; print(&quot;I am a machine that puts ink on paper!&quot;)</code></pre>
+<pre><code>[1] &quot;I am a machine that puts ink on paper!&quot;</code></pre>
+<pre class="r"><code>&gt; cat(&quot;I am small, furry carnivore.&quot;, &quot;Meow!&quot;, &quot;Purrrrrr!&quot;)</code></pre>
+<pre><code>I am small, furry carnivore. Meow! Purrrrrr!</code></pre>
+<pre class="r"><code>&gt; ## define a function to test expression option inside a loop inside a function
+&gt; DemonstrationFunction &lt;- function(expr, FUN) {
++   for (iter in 1:10) {
++       if (iter == 7) { FUN(expr) }
++       }
++ }
+&gt; 
+&gt; ## test whether each function can express through multiple code layers
+&gt; the_expression &lt;- &quot;This is a demonstration&quot;
+&gt; DemonstrationFunction(the_expression, identity)
+&gt; DemonstrationFunction(the_expression, print)</code></pre>
+<pre><code>[1] &quot;This is a demonstration&quot;</code></pre>
+<pre class="r"><code>&gt; DemonstrationFunction(the_expression, cat)</code></pre>
+<pre><code>This is a demonstration</code></pre>
+<pre class="r"><code>&gt; ## test how each function responds to assignment
+&gt; self_identification &lt;- identity(&quot;I know who I am!&quot;)
+&gt; self_identification</code></pre>
+<pre><code>[1] &quot;I know who I am!&quot;</code></pre>
+<pre class="r"><code>&gt; printer &lt;- print(&quot;I am a machine that puts ink on paper!&quot;)</code></pre>
+<pre><code>[1] &quot;I am a machine that puts ink on paper!&quot;</code></pre>
+<pre class="r"><code>&gt; printer</code></pre>
+<pre><code>[1] &quot;I am a machine that puts ink on paper!&quot;</code></pre>
+<pre class="r"><code>&gt; kitty_cat &lt;- cat(&quot;I am small, furry carnivore.&quot;, &quot;Meow!&quot;, &quot;Purrrrrr!&quot;)</code></pre>
+<pre><code>I am small, furry carnivore. Meow! Purrrrrr!</code></pre>
+<pre class="r"><code>&gt; kitty_cat</code></pre>
+<pre><code>NULL</code></pre>
+<p>You may wish to get rid of the communications that have been built into some of the functions you use. Alternately, you may wish to capture the non-expression console outputs for other functions you use. <code>invisible()</code> prevents functions from showing up in the terminal. As discussed earlier, <code>supressWarnings()</code> performs a similar service for warnings messages. Conversely, <code>capture.output()</code> will capture the messages that a function outputs to console, even when the function does not express those messages as assignable output.</p>
+<pre class="r"><code>&gt; ##  invisible() suppresses console text; leaves assignment operations untouched
+&gt; invisible(&quot;I am very happy!&quot;)
+&gt; very_expressive &lt;- invisible(&quot;I am very happy!&quot;)
+&gt; very_expressive</code></pre>
+<pre><code>[1] &quot;I am very happy!&quot;</code></pre>
+<pre class="r"><code>&gt; ## capture.output() diverts console output to the assignment destination object,
+&gt;   ## even when assignment would typically come up empty
+&gt; kitty_cat &lt;- capture.output(
++   cat(&quot;I am small, furry carnivore.&quot;, &quot;Meow!&quot;, &quot;Purrrrrr!&quot;))
+&gt; kitty_cat</code></pre>
+<pre><code>[1] &quot;I am small, furry carnivore. Meow! Purrrrrr!&quot;</code></pre>
+<pre class="r"><code>&gt; ## used in tandem invisible() and capture.output() can completely muzzle print()
+&gt; printer &lt;- &quot;I am a machine that puts ink on paper!&quot;
+&gt; invisible(print(printer))</code></pre>
+<pre><code>[1] &quot;I am a machine that puts ink on paper!&quot;</code></pre>
+<pre class="r"><code>&gt; capture.output(print(printer))</code></pre>
+<pre><code>[1] &quot;[1] \&quot;I am a machine that puts ink on paper!\&quot;&quot;</code></pre>
+<pre class="r"><code>&gt; invisible(capture.output(print(printer)))
+&gt; 
+&gt; ## delete demonstration objects
+&gt; remove(DemonstrationFunction, kitty_cat, printer, sample_index,
++   self_identification, the_expression, TwoModeSample, very_expressive)</code></pre>
+</div>
+</div>
+<div id="analyzing-objects-and-functions" class="section level3">
+<h3>Analyzing Objects and Functions</h3>
+<div id="analyzing-objects" class="section level4">
+<h4>Analyzing Objects</h4>
+<p>Lists are the favored object structure for the specialized objects underlying most packages because a list can hold an arbitrary number of objects within it. If you <code>unclass()</code> most specialty objects in R, you will find a list underneath. However, since lists nest inside other lists, complex list objects can be difficult to understand at a glance. While it takes some practice before <code>str()</code> outputs become intuitive, this function can be powerful tool for making sense of complex lists.</p>
+<pre class="r"><code>&gt; ## generate a list with complex sub-lists
+&gt; x &lt;- 1:10
+&gt; y &lt;- x^2
+&gt; complex_list &lt;- list(
++   &quot;A&quot;= list(
++       &quot;String&quot;= paste(letters, LETTERS),
++       &quot;Integers&quot;= 100:110
++     ),
++   &quot;B&quot;= list(
++       &quot;T Test List&quot;= unclass(t.test(x, y)),
++       &quot;Factors&quot;= as.factor(month.abb)
++           )
++ )
+&gt; 
+&gt; ## use str() to analyse the object, starting with the top level
+&gt; str(complex_list, max.level= 1)</code></pre>
+<pre><code>List of 2
+ $ A:List of 2
+ $ B:List of 2</code></pre>
+<pre class="r"><code>&gt; ## adjust max.level to dive deeper into the list - 2 levels
+&gt; str(complex_list, max.level= 2)</code></pre>
+<pre><code>List of 2
+ $ A:List of 2
+  ..$ String  : chr [1:26] &quot;a A&quot; &quot;b B&quot; &quot;c C&quot; &quot;d D&quot; ...
+  ..$ Integers: int [1:11] 100 101 102 103 104 105 106 107 108 109 ...
+ $ B:List of 2
+  ..$ T Test List:List of 10
+  ..$ Factors    : Factor w/ 12 levels &quot;Apr&quot;,&quot;Aug&quot;,&quot;Dec&quot;,..: 5 4 8 1 9 7 6 2 12 11 ...</code></pre>
+<pre class="r"><code>&gt; ## adjust max.level to dive deeper into the list - 3 levels
+&gt; str(complex_list, max.level= 3)</code></pre>
+<pre><code>List of 2
+ $ A:List of 2
+  ..$ String  : chr [1:26] &quot;a A&quot; &quot;b B&quot; &quot;c C&quot; &quot;d D&quot; ...
+  ..$ Integers: int [1:11] 100 101 102 103 104 105 106 107 108 109 ...
+ $ B:List of 2
+  ..$ T Test List:List of 10
+  .. ..$ statistic  : Named num -3.04
+  .. .. ..- attr(*, &quot;names&quot;)= chr &quot;t&quot;
+  .. ..$ parameter  : Named num 9.14
+  .. .. ..- attr(*, &quot;names&quot;)= chr &quot;df&quot;
+  .. ..$ p.value    : num 0.0137
+  .. ..$ conf.int   : num [1:2] -57.48 -8.52
+  .. .. ..- attr(*, &quot;conf.level&quot;)= num 0.95
+  .. ..$ estimate   : Named num [1:2] 5.5 38.5
+  .. .. ..- attr(*, &quot;names&quot;)= chr [1:2] &quot;mean of x&quot; &quot;mean of y&quot;
+  .. ..$ null.value : Named num 0
+  .. .. ..- attr(*, &quot;names&quot;)= chr &quot;difference in means&quot;
+  .. ..$ stderr     : num 10.8
+  .. ..$ alternative: chr &quot;two.sided&quot;
+  .. ..$ method     : chr &quot;Welch Two Sample t-test&quot;
+  .. ..$ data.name  : chr &quot;x and y&quot;
+  ..$ Factors    : Factor w/ 12 levels &quot;Apr&quot;,&quot;Aug&quot;,&quot;Dec&quot;,..: 5 4 8 1 9 7 6 2 12 11 ...</code></pre>
+<pre class="r"><code>&gt; ## remove demonstration objects
+&gt; remove(complex_list, x, y)</code></pre>
+<p>Meta-data is information about a body of data. In R, there are multiple options for attaching meta-data to an object. We have already encountered meta-data in the form of <code>names()</code>, <code>dimnames()</code>, and <code>class()</code>. Each of these are “attributes” of objects. The <code>attributes()</code> function will express all of the attributes currently attached to an object. <code>attr()</code> can retrieve a specific attribute by name or enable you to add or edit attributes.</p>
+<pre class="r"><code>&gt; ## make a dataset
+&gt; a_dataset &lt;- data.frame(
++   x= round(seq(from= 1/24, to= 23/24, length.out= 12) * 100),
++   y= month.name,
++   z= as.logical({1:12} %% 2)
++   )
+&gt; head(a_dataset)</code></pre>
+<pre><code>   x        y     z
+1  4  January  TRUE
+2 12 February FALSE
+3 21    March  TRUE
+4 29    April FALSE
+5 38      May  TRUE
+6 46     June FALSE</code></pre>
+<pre class="r"><code>&gt; ## explore its existing attributes
+&gt; attributes(a_dataset)</code></pre>
+<pre><code>$names
+[1] &quot;x&quot; &quot;y&quot; &quot;z&quot;
+
+$class
+[1] &quot;data.frame&quot;
+
+$row.names
+ [1]  1  2  3  4  5  6  7  8  9 10 11 12</code></pre>
+<pre class="r"><code>&gt; attr(a_dataset, &quot;row.names&quot;)</code></pre>
+<pre><code> [1]  1  2  3  4  5  6  7  8  9 10 11 12</code></pre>
+<pre class="r"><code>&gt; rownames(a_dataset) # this function does the same attribute pull</code></pre>
+<pre><code> [1] &quot;1&quot;  &quot;2&quot;  &quot;3&quot;  &quot;4&quot;  &quot;5&quot;  &quot;6&quot;  &quot;7&quot;  &quot;8&quot;  &quot;9&quot;  &quot;10&quot; &quot;11&quot; &quot;12&quot;</code></pre>
+<pre class="r"><code>&gt; attr(a_dataset, &quot;class&quot;)</code></pre>
+<pre><code>[1] &quot;data.frame&quot;</code></pre>
+<pre class="r"><code>&gt; class(a_dataset) # this function does the same attribute pull</code></pre>
+<pre><code>[1] &quot;data.frame&quot;</code></pre>
+<pre class="r"><code>&gt; ## change the row.names attribute to month.abb
+&gt; head(a_dataset)</code></pre>
+<pre><code>   x        y     z
+1  4  January  TRUE
+2 12 February FALSE
+3 21    March  TRUE
+4 29    April FALSE
+5 38      May  TRUE
+6 46     June FALSE</code></pre>
+<pre class="r"><code>&gt; attr(a_dataset, &quot;row.names&quot;) &lt;- month.abb
+&gt; head(a_dataset)</code></pre>
+<pre><code>     x        y     z
+Jan  4  January  TRUE
+Feb 12 February FALSE
+Mar 21    March  TRUE
+Apr 29    April FALSE
+May 38      May  TRUE
+Jun 46     June FALSE</code></pre>
+<pre class="r"><code>&gt; ## add a new attribute
+&gt; attr(a_dataset, &quot;short.months&quot;) &lt;- &quot;Feb&quot;
+&gt; attributes(a_dataset)</code></pre>
+<pre><code>$names
+[1] &quot;x&quot; &quot;y&quot; &quot;z&quot;
+
+$class
+[1] &quot;data.frame&quot;
+
+$row.names
+ [1] &quot;Jan&quot; &quot;Feb&quot; &quot;Mar&quot; &quot;Apr&quot; &quot;May&quot; &quot;Jun&quot; &quot;Jul&quot; &quot;Aug&quot; &quot;Sep&quot; &quot;Oct&quot; &quot;Nov&quot; &quot;Dec&quot;
+
+$short.months
+[1] &quot;Feb&quot;</code></pre>
+<pre class="r"><code>&gt; ## delete demonstration object
+&gt; remove(a_dataset)</code></pre>
+</div>
+<div id="analyzing-functions" class="section level4">
+<h4>Analyzing functions</h4>
+<p>As discussed in the Conditionals section, many R functions are adaptive. Depending on the characteristics of the objects supplied to its arguments, the function will do different things. R accomplishes this by attaching “methods” to a “generic” function, where each method is a separate function. Methods are hidden a layer deeper in the code to prevent confusion and make the user experience easier. However, there are times when analyzing a method in detail will enable you to resolve errors, improve efficiency and better document procedures.</p>
+<p>Below is a demonstration of how to retrieve a method. <code>methods()</code> will express the available methods for a generic function. <code>getAnywhere()</code> will enable you to retrieve them.</p>
+<pre class="r"><code>&gt; ## the summary() function does different things, depending on the class of the
+&gt;   ## object
+&gt; a_dataframe &lt;- data.frame(x= as.factor(month.abb), y= 1:12, z= month.name)
+&gt; a_list &lt;- list(x= as.factor(month.abb), y= 1:12, z= month.name)
+&gt; a_factor &lt;- as.factor(month.abb)
+&gt; 
+&gt; ## express the results (as a reminder, expressions should be written directly
+&gt;   ## into your console, not saved to script
+&gt; summary(a_dataframe)</code></pre>
+<pre><code>       x           y              z            
+ Apr    :1   Min.   : 1.00   Length:12         
+ Aug    :1   1st Qu.: 3.75   Class :character  
+ Dec    :1   Median : 6.50   Mode  :character  
+ Feb    :1   Mean   : 6.50                     
+ Jan    :1   3rd Qu.: 9.25                     
+ Jul    :1   Max.   :12.00                     
+ (Other):6                                     </code></pre>
+<pre class="r"><code>&gt; summary(a_list)</code></pre>
+<pre><code>  Length Class  Mode     
+x 12     factor numeric  
+y 12     -none- numeric  
+z 12     -none- character</code></pre>
+<pre class="r"><code>&gt; summary(a_factor)</code></pre>
+<pre><code>Apr Aug Dec Feb Jan Jul Jun Mar May Nov Oct Sep 
+  1   1   1   1   1   1   1   1   1   1   1   1 </code></pre>
+<pre class="r"><code>&gt; ## express methods summary() can access
+&gt; methods(summary)</code></pre>
+<pre><code> [1] summary.aov                    summary.aovlist*              
+ [3] summary.aspell*                summary.check_packages_in_dir*
+ [5] summary.connection             summary.data.frame            
+ [7] summary.Date                   summary.default               
+ [9] summary.ecdf*                  summary.factor                
+[11] summary.glm                    summary.infl*                 
+[13] summary.lm                     summary.loess*                
+[15] summary.manova                 summary.matrix                
+[17] summary.mlm*                   summary.nls*                  
+[19] summary.packageStatus*         summary.POSIXct               
+[21] summary.POSIXlt                summary.ppr*                  
+[23] summary.prcomp*                summary.princomp*             
+[25] summary.proc_time              summary.rlang_error*          
+[27] summary.rlang_trace*           summary.srcfile               
+[29] summary.srcref                 summary.stepfun               
+[31] summary.stl*                   summary.table                 
+[33] summary.tukeysmooth*           summary.warnings              
+see &#39;?methods&#39; for accessing help and source code</code></pre>
+<pre class="r"><code>&gt; ## retrieve a specific method and make sure it works
+&gt;   ## for summary.factor(), the getAnywhere() is not necessary.  However, it
+&gt;   ## will be necessary in some cases, so I will demonstrate it here.
+&gt; RetrievedMethod &lt;- getAnywhere(summary.factor)$obj[[1]]
+&gt; RetrievedMethod(a_factor)</code></pre>
+<pre><code>Apr Aug Dec Feb Jan Jul Jun Mar May Nov Oct Sep 
+  1   1   1   1   1   1   1   1   1   1   1   1 </code></pre>
+<pre class="r"><code>&gt; ## delete demonstration objects
+&gt; remove(a_dataframe, a_list, a_factor, RetrievedMethod)</code></pre>
+<p>Once you have retrieved a method, you can apply various techniques to understand how it works and what its limitations might be. <code>Rprof()</code> and <code>summaryRprof()</code> can make clear what components are drawing most heavily on computational resources. If the function is well-written, these should be the parts of the function that critical tasks. Doing a line by line dissection can you help gain further insight.</p>
+<pre class="r"><code>&gt; ## make a test object
+&gt; test_factor &lt;- sample(state.abb, size= 10^8, replace= TRUE)
+&gt; test_factor &lt;- factor(test_factor, levels= state.abb)
+&gt; 
+&gt; ## profile function to understand what components draw the most resources
+&gt; Rprof()
+&gt; summary.factor(test_factor)</code></pre>
+<pre><code>     AL      AK      AZ      AR      CA      CO      CT      DE      FL      GA 
+2000097 1998889 1998499 2001433 2000984 1998109 2002013 2000599 2000333 1998800 
+     HI      ID      IL      IN      IA      KS      KY      LA      ME      MD 
+2000105 2003034 1996989 1999421 1998843 1998271 2001608 1998032 1999160 2000406 
+     MA      MI      MN      MS      MO      MT      NE      NV      NH      NJ 
+1997317 1999511 2001365 1999773 2001134 1999830 1998787 1999017 1999463 1999702 
+     NM      NY      NC      ND      OH      OK      OR      PA      RI      SC 
+2001575 2001214 2000480 2001115 2001198 1999071 2001315 1999366 1998433 2003646 
+     SD      TN      TX      UT      VT      VA      WA      WV      WI      WY 
+2000509 2000086 2000756 2001581 1999609 2000669 2000487 1999849 1997926 1999591 </code></pre>
+<pre class="r"><code>&gt; Rprof(NULL)
+&gt; profile_results &lt;- summaryRprof()
+&gt; file.remove(&quot;Rprof.out&quot;)</code></pre>
+<pre><code>[1] TRUE</code></pre>
+<pre class="r"><code>&gt; ## express profile results - indicates that function ran in roughly 2.5 seconds
+&gt;   ## and that table() accounts nearly 90 percent of the run time
+&gt; profile_results</code></pre>
+<pre><code>$by.self
+             self.time self.pct total.time total.pct
+&quot;table&quot;           2.08    63.03       2.62     79.39
+&quot;is.na&quot;           0.64    19.39       0.64     19.39
+&quot;any&quot;             0.26     7.88       0.26      7.88
+&quot;as.integer&quot;      0.24     7.27       0.24      7.27
+&quot;tabulate&quot;        0.08     2.42       0.08      2.42
+
+$by.total
+                      total.time total.pct self.time self.pct
+&quot;block_exec&quot;                3.30    100.00      0.00     0.00
+&quot;call_block&quot;                3.30    100.00      0.00     0.00
+&quot;eval&quot;                      3.30    100.00      0.00     0.00
+&quot;evaluate_call&quot;             3.30    100.00      0.00     0.00
+&quot;evaluate::evaluate&quot;        3.30    100.00      0.00     0.00
+&quot;evaluate&quot;                  3.30    100.00      0.00     0.00
+&quot;handle&quot;                    3.30    100.00      0.00     0.00
+&quot;in_dir&quot;                    3.30    100.00      0.00     0.00
+&quot;knitr::knit&quot;               3.30    100.00      0.00     0.00
+&quot;process_file&quot;              3.30    100.00      0.00     0.00
+&quot;process_group.block&quot;       3.30    100.00      0.00     0.00
+&quot;process_group&quot;             3.30    100.00      0.00     0.00
+&quot;rmarkdown::render&quot;         3.30    100.00      0.00     0.00
+&quot;summary.factor&quot;            3.30    100.00      0.00     0.00
+&quot;timing_fn&quot;                 3.30    100.00      0.00     0.00
+&quot;withCallingHandlers&quot;       3.30    100.00      0.00     0.00
+&quot;withVisible&quot;               3.30    100.00      0.00     0.00
+&quot;table&quot;                     2.62     79.39      2.08    63.03
+&quot;is.na&quot;                     0.64     19.39      0.64    19.39
+&quot;any&quot;                       0.26      7.88      0.26     7.88
+&quot;as.integer&quot;                0.24      7.27      0.24     7.27
+&quot;tabulate&quot;                  0.08      2.42      0.08     2.42
+&quot;array&quot;                     0.08      2.42      0.00     0.00
+
+$sample.interval
+[1] 0.02
+
+$sampling.time
+[1] 3.3</code></pre>
+<pre class="r"><code>&gt; ## delete demonstraiton objects
+&gt; remove(profile_results)</code></pre>
+<p>Once you have profiled the function, you can do a line by line dissection. Here is a process you might follow.</p>
+<p>Step one: copy/paste the function into a script and remove the function packaging.</p>
+<pre class="r"><code>&gt; ## pull function into R (express it, then copy/paste and do line-by-line analysis
+&gt; 
+&gt; object &lt;- test_factor[1:10^3] # make erstwhile arguments freestanding objects
+&gt;   # so that you can test each line to see how it is changing the argument objects
+&gt; maxsum &lt;- 10^2
+&gt; 
+&gt; ## function (object, maxsum = 100L, ...) { # comment out function packaging
+&gt;     nas &lt;- is.na(object)
+&gt;     ll &lt;- levels(object)
+&gt;     if (ana &lt;- any(nas)) maxsum &lt;- maxsum - 1L
+&gt;     tbl &lt;- table(object)
+&gt;     tt &lt;- c(tbl)
+&gt;     names(tt) &lt;- dimnames(tbl)[[1L]]
+&gt;     if (length(ll) &gt; maxsum) {
++         drop &lt;- maxsum:length(ll)
++         o &lt;- sort.list(tt, decreasing = TRUE)
++         tt &lt;- c(tt[o[-drop]], `(Other)` = sum(tt[o[drop]]))
++     }
+&gt;     if (ana) c(tt, `NA&#39;s` = sum(nas)) else tt</code></pre>
+<pre><code>AL AK AZ AR CA CO CT DE FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT 
+34 18  9 23 20 18 21 17 10 24 26 14 22 24 20 19 17 20 14 28 20 15 20 24 18 25 
+NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY 
+22 19 16 24 27 14 19 24 26 25 19 21 17 17 19  9 23 18 13 25 17 31 18 17 </code></pre>
+<pre class="r"><code>&gt; ## } # comment out function packaging</code></pre>
+<p>Step two: determine what each line does. Sometimes, you will be able to do this just by looking at the code. In other cases, you will need to run the lines and inspect how the argument objects are changing from line to line. This is why you make the arguments into freestanding objects.</p>
+<pre class="r"><code>&gt; ## pull function into R (express it, then copy/paste and do line-by-line analysis
+&gt; 
+&gt; object &lt;- test_factor[1:10^3] # make erstwhile arguments freestanding objects
+&gt; maxsum &lt;- 10^2 # the documentation says this limits how many factors levels to
+&gt;   # show for the table counting occurance of factors... this prevents console
+&gt;   ## flood if there are more than 100 unique factors in the object
+&gt; 
+&gt; ## function (object, maxsum = 100L, ...) { # comment out function packaging
+&gt;     nas &lt;- is.na(object) # detect NA (logical vector)
+&gt;     ll &lt;- levels(object) # find the levels of the factor object
+&gt;     if (ana &lt;- any(nas)) maxsum &lt;- maxsum - 1L # special handling instructions
+&gt;       # if NA found, drop the last element to be printed this makes room for an
+&gt;       # NA count to be tacked on at the bottom
+&gt;     tbl &lt;- table(object) # count how often each factor appears in object
+&gt;     tt &lt;- c(tbl) # converts table to integer, while preserving the element names
+&gt;     names(tt) &lt;- dimnames(tbl)[[1L]] # safety code to make sure names aren&#39;t lost
+&gt;     if (length(ll) &gt; maxsum) { ## console flood prevention (see maxsum note)
++       ## will also drop NA element from table under a specific edge case
++         drop &lt;- maxsum:length(ll) ## index of which elements to drop
++         o &lt;- sort.list(tt, decreasing = TRUE) ## makes sure least common factors
++           # get dropped from the occurrence count table
++         tt &lt;- c(tt[o[-drop]], `(Other)` = sum(tt[o[drop]])) # drop least common factors
++           ## from table, but then sum dropped counts into an &quot;(other)&quot; category
++     }
+&gt;     if (ana) c(tt, `NA&#39;s` = sum(nas)) else tt # tack on NA&#39;s if any were found</code></pre>
+<pre><code>AL AK AZ AR CA CO CT DE FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT 
+34 18  9 23 20 18 21 17 10 24 26 14 22 24 20 19 17 20 14 28 20 15 20 24 18 25 
+NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY 
+22 19 16 24 27 14 19 24 26 25 19 21 17 17 19  9 23 18 13 25 17 31 18 17 </code></pre>
+<pre class="r"><code>&gt; ## } # comment out function packaging</code></pre>
+<p>Step three: summary what each meaningful chunk of code does. Rearrange lines if needed.</p>
+<pre class="r"><code>&gt; ## pull function into R (express it, then copy/paste and do line-by-line analysis
+&gt; 
+&gt; object &lt;- test_factor[1:10^3] # make erstwhile arguments freestanding objects
+&gt; maxsum &lt;- 10^2 # the documentation says this limits how many factors levels to
+&gt;   # show for the table counting occurance of factors... this prevents console
+&gt;   ## flood if there are more than 100 unique factors in the object
+&gt; 
+&gt; ## function (object, maxsum = 100L, ...) { # comment out function packaging
+&gt; 
+&gt; 
+&gt; 
+&gt; 
+&gt;   ## DETECT NAs; LAY GROUND WORK FOR NA HANDING AT END OF FUNCTION
+&gt; 
+&gt;     nas &lt;- is.na(object) # detect NA (logical vector)
+&gt;     if (ana &lt;- any(nas)) maxsum &lt;- maxsum - 1L # special handling instructions
+&gt;       # if NA found, drop the last element to be printed this makes room for an
+&gt;       # NA count to be tacked on at the bottom
+&gt;     
+&gt;   ## COUNT HOW OFTEN EACH UNIQUE FACTOR APPEARS
+&gt;     
+&gt;     tbl &lt;- table(object) # count how often each factor appears in object
+&gt;     tt &lt;- c(tbl) # converts table to integer, while preserving the element names
+&gt;     names(tt) &lt;- dimnames(tbl)[[1L]] # safety code to make sure names aren&#39;t lost
+&gt;     
+&gt;   ## DROP RARE FACTOR COUNTS IF TABLE IS TOO BIG, SUM DROPPED FACTOR COUNTS AS
+&gt;     ## AN &quot;OTHER&quot; CATEGORY
+&gt;     
+&gt;      ll &lt;- levels(object) # find the levels of the factor object
+&gt;       ## (moved from original spot as line #2   
+&gt;     if (length(ll) &gt; maxsum) { ## console flood prevention (see maxsum note)
++       ## will also drop NA element from table under a specific edge case
++         drop &lt;- maxsum:length(ll) ## index of which elements to drop
++         o &lt;- sort.list(tt, decreasing = TRUE) ## makes sure least common factors
++           # get dropped from the occurrence count table
++         tt &lt;- c(tt[o[-drop]], `(Other)` = sum(tt[o[drop]])) # drop least common factors
++           ## from table, but then sum dropped counts into an &quot;(other)&quot; category
++     }
+&gt;      
+&gt;      
+&gt;   ## TACK ON AN NA CATGORY IF NA WERE FOUND
+&gt;      
+&gt;     if (ana) c(tt, `NA&#39;s` = sum(nas)) else tt # tack on NA&#39;s if any were found</code></pre>
+<pre><code>AL AK AZ AR CA CO CT DE FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT 
+34 18  9 23 20 18 21 17 10 24 26 14 22 24 20 19 17 20 14 28 20 15 20 24 18 25 
+NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY 
+22 19 16 24 27 14 19 24 26 25 19 21 17 17 19  9 23 18 13 25 17 31 18 17 </code></pre>
+<pre class="r"><code>&gt;        ## this set-up (NA detection code at the front of a function, NA handling
+&gt;        ## code at the back) is common among R functions.
+&gt;         
+&gt; ## } # comment out function packaging
+&gt;      
+&gt; 
+&gt; ## delete demonstration objects
+&gt; remove(ana, ll, maxsum, nas, tbl, test_factor, tt, object)</code></pre>
+<p>When you analyze a function like this, you may discover assumptions built into the code that differ from what you thought or what your project requires. You can then better drop these assumptions or devise remedies as needed. Even if the function does exactly what you expect, there still may be opportunities to develop more efficient code. In this case, a natural performance question is whether an alternative to the existing code may perform better. We can test this using the time trial approach.</p>
+<p>From <code>Rprof()</code> we know that <code>table()</code> is driving run time. For our line-by-line analysis, we know that this is reasonable because the summary consists of a frequency count of factors and <code>table()</code> provides that count. The rest of the code consists of special modifications to handle unusual situations (“edge cases”) where the number of unique factors is really big or the factor vector contains <code>NA</code>s. Perhaps an alternative to <code>table()</code>, such as <code>tapply(x, x, length)</code> would run quicker? Let’s find out!</p>
+<pre class="r"><code>&gt; ## create modified version of the function
+&gt; FactorSummary &lt;- function (object, maxsum = 100L) {
++   
++     ## detect NAs
++     nas &lt;- is.na(object)
++     if (ana &lt;- any(nas)) maxsum &lt;- maxsum - 1L
++     
++     ## Count occurrences of each unique factor
++     tbl &lt;- tapply(object, object, length) #swap tapply() in for table()
++     tt &lt;- c(tbl)
++     names(tt) &lt;- dimnames(tbl)[[1L]]
++     
++     ## Sum least common factors as &quot;Other&quot; if too many unique factors
++     ll &lt;- levels(object)
++     if (length(ll) &gt; maxsum) {
++         drop &lt;- maxsum:length(ll)
++         o &lt;- sort.list(tt, decreasing = TRUE)
++         tt &lt;- c(tt[o[-drop]], `(Other)` = sum(tt[o[drop]]))
++     }
++     
++     ## Count NAs if applicable
++     if (ana) c(tt, `NA&#39;s` = sum(nas)) else tt
++ }
+&gt; 
+&gt; ## Create object to store the results of the time trials
+&gt; trial_results &lt;- array(NA, dim= c(2^3, 2))
+&gt; colnames(trial_results) &lt;- c(&quot;table&quot;, &quot;tapply&quot;)
+&gt; 
+&gt; ## generate large test object
+&gt; test_factor &lt;- sample(state.abb, size= 10^8, replace= TRUE)
+&gt; test_factor &lt;- factor(test_factor, levels= state.abb)
+&gt; test_factor[2^{2:10}] &lt;- NA
+&gt; 
+&gt; # pre-initialize start time variable so all trials have level playing field 
+&gt; trial_time &lt;- Sys.time() 
+&gt; 
+&gt; for (iter in seq(nrow(trial_results))) {
++   
++   ## time summary.factor()
++   trial_time &lt;- Sys.time()
++   invisible(summary.factor(test_factor, maxsum= 10))
++   trial_results[iter, &quot;table&quot;] &lt;- Sys.time() - trial_time
++   
++   ## time FactorSummary()
++   trial_time &lt;- Sys.time()
++   invisible(FactorSummary(test_factor, maxsum= 10))
++   trial_results[iter, &quot;tapply&quot;] &lt;- Sys.time() - trial_time    
++   
++   }
+&gt; 
+&gt; ## calculate results
+&gt; trial_results &lt;- colMeans(trial_results)
+&gt; trial_results &lt;- trial_results / min(trial_results)
+&gt; 
+&gt; ## conclusion: table() yields significantly lower run times than tapply() for
+&gt;   ## summary.factor()
+&gt; round(trial_results, 2)</code></pre>
+<pre><code> table tapply 
+  1.00   1.46 </code></pre>
 <p>==========</p>
-<p>LESSON WRITING IN PROGRESS… MORE CONTENT COMING SOON</p>
-<p>==========</p>
+</div>
 </div>
 <div id="vocabulary-table-for-lesson-b5" class="section level3">
 <h3>Vocabulary Table for Lesson B5</h3>
 <p>In order to program effectively, you will need to memorize basic functions, operators, and constants. Write each of the functions/operators/constants below on a flash card. On the back of each card, write a succinct definition of what it does and a example of a line code you could enter into console that uses it. Drill with these cards until you have memorized them. Then drill again, coming up with a fresh example for each and testing that example in the console.</p>
 <p>In order to understand what each function/operator/constant does, use the <code>help()</code> function to pull the documentation for it. For example, <code>help(&quot;objects&quot;)</code> would pull up the documentation for the function <code>objects()</code>. This document includes a description of what the function does (“Description” section), a list of all the arguments that can be given to the function (“Arguments” section), and examples of how to use the function (“Examples” section) at the bottom. Only copy the definition or example from the documentation to your flash card if you absolutely understand what it does. Otherwise, substitute your own.</p>
 <p>The help documentation may be a difficult to read at first but keep practicing. Over time, getting useful information from the documentation will become effortless. Resist the impulse to do a Google search before you have consulted the documentation. Google results can be of mixed quality - sometimes you will get a thoughtful, efficient solution, sometimes you will get a byzantine work-around that will teach you bad habits.</p>
-<table style="width:100%;">
-<colgroup>
-<col width="16%"></col>
-<col width="16%"></col>
-<col width="16%"></col>
-<col width="16%"></col>
-<col width="16%"></col>
-<col width="16%"></col>
-</colgroup>
+<table>
 <thead>
 <tr class="header">
 <th align="left">Loops</th>
 <th align="left">Conditions</th>
 <th align="left">Error Handling</th>
-<th align="left">Expression</th>
-<th align="left">Object Dissection</th>
-<th align="left">Function Dissection</th>
+<th align="left">Console Expression</th>
+<th align="left">Analysis Tools</th>
 </tr>
 </thead>
 <tbody>
@@ -995,7 +1477,6 @@ $data.name
 <td align="left"><code>gc()</code></td>
 <td align="left"><code>cat()</code></td>
 <td align="left"><code>attr()</code></td>
-<td align="left"></td>
 </tr>
 <tr class="even">
 <td align="left"><code>while(){}</code></td>
@@ -1003,144 +1484,41 @@ $data.name
 <td align="left"><code>::</code></td>
 <td align="left"><code>capture.output()</code></td>
 <td align="left"><code>attributes()</code></td>
-<td align="left"></td>
 </tr>
 <tr class="odd">
 <td align="left"><code>for(){}</code></td>
 <td align="left"><code>&amp;&amp;</code></td>
 <td align="left"><code>stop()</code></td>
 <td align="left"><code>invisible()</code></td>
-<td align="left"><code>slot()</code></td>
-<td align="left"></td>
+<td align="left"><code>str()</code></td>
 </tr>
 <tr class="even">
 <td align="left"><code>break</code></td>
 <td align="left"><code>||</code></td>
 <td align="left"><code>unclass()</code></td>
 <td align="left"><code>print()</code></td>
-<td align="left"><code>slotNames()</code></td>
-<td align="left"></td>
+<td align="left"><code>Rprof()</code></td>
 </tr>
 <tr class="odd">
 <td align="left"><code>next</code></td>
 <td align="left"></td>
 <td align="left"><code>try()</code></td>
 <td align="left"><code>suppressWarnings()</code></td>
-<td align="left"><code>@</code></td>
-<td align="left"></td>
+<td align="left"><code>summaryRprof()</code></td>
 </tr>
 <tr class="even">
 <td align="left"><code>optim()</code></td>
 <td align="left"></td>
 <td align="left"><code>warnings()</code></td>
 <td align="left"><code>identity()</code></td>
-<td align="left"><code>str()</code></td>
-<td align="left"></td>
-</tr>
-<tr class="odd">
-<td align="left"><code>Sys.sleep()</code></td>
-<td align="left"></td>
-<td align="left"><code>warning()</code></td>
-<td align="left"></td>
-<td align="left"></td>
-<td align="left"></td>
-</tr>
-</tbody>
-</table>
-<table>
-<colgroup>
-<col width="20%"></col>
-<col width="20%"></col>
-<col width="20%"></col>
-<col width="20%"></col>
-<col width="20%"></col>
-</colgroup>
-<thead>
-<tr class="header">
-<th align="left">Conditionals and Loops</th>
-<th align="left">Error Handling</th>
-<th align="left">Expression</th>
-<th align="left">Object Dissection</th>
-<th align="left">Function Dissection</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left"><code>if(){}</code></td>
-<td align="left"><code>gc()</code></td>
-<td align="left"><code>cat()</code></td>
-<td align="left"><code>attr()</code></td>
-<td align="left"><code>expression()</code></td>
-</tr>
-<tr class="even">
-<td align="left"><code>else{}</code></td>
-<td align="left"><code>proc.time()</code></td>
-<td align="left"><code>capture.output()</code></td>
-<td align="left"><code>attributes()</code></td>
-<td align="left"><code>eval()</code></td>
-</tr>
-<tr class="odd">
-<td align="left"><code>&amp;&amp;</code></td>
-<td align="left"><code>::</code></td>
-<td align="left"><code>invisible()</code></td>
-<td align="left"><code>slot()</code></td>
-<td align="left"><code>formals()</code></td>
-</tr>
-<tr class="even">
-<td align="left"><code>||</code></td>
-<td align="left"><code>stop()</code></td>
-<td align="left"><code>print()</code></td>
-<td align="left"><code>slotNames()</code></td>
-<td align="left"><code>body()</code></td>
-</tr>
-<tr class="odd">
-<td align="left"><code>for(){}</code></td>
-<td align="left"><code>Sys.sleep()</code></td>
-<td align="left"><code>suppressWarnings()</code></td>
-<td align="left"><code>@</code></td>
 <td align="left"><code>methods()</code></td>
 </tr>
-<tr class="even">
-<td align="left"><code>while(){}</code></td>
-<td align="left"><code>try()</code></td>
-<td align="left"><code>identity()</code></td>
-<td align="left"><code>str()</code></td>
-<td align="left"><code>getAnywhere()</code></td>
-</tr>
 <tr class="odd">
-<td align="left"><code>optim()</code></td>
-<td align="left"><code>unclass()</code></td>
+<td align="left"><code>Sys.sleep()</code></td>
 <td align="left"></td>
-<td align="left"></td>
-<td align="left"><code>Rprof()</code></td>
-</tr>
-<tr class="even">
-<td align="left"><code>break</code></td>
 <td align="left"><code>warning()</code></td>
 <td align="left"></td>
-<td align="left"></td>
-<td align="left"><code>summaryRprof()</code></td>
-</tr>
-<tr class="odd">
-<td align="left"><code>return()</code></td>
-<td align="left"></td>
-<td align="left"></td>
-<td align="left"></td>
-<td align="left"><code>browser()</code></td>
-</tr>
-<tr class="even">
-<td align="left"><code>repeat</code></td>
-<td align="left"></td>
-<td align="left"></td>
-<td align="left"></td>
-<td align="left"></td>
-</tr>
-<tr class="odd">
-<td align="left"><code>next</code></td>
-<td align="left"></td>
-<td align="left"></td>
-<td align="left"></td>
-<td align="left"></td>
+<td align="left"><code>getAnywhere()</code></td>
 </tr>
 </tbody>
 </table>

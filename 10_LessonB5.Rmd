@@ -508,6 +508,8 @@ In the example above, take note of two things:
 
 ### Error Handling
 
+#### Tools for Solving Specific Error Problems
+
 When programming, errors are not the enemy.  Error and warning messages let you know that something has gone wrong in the code, providing you with an opportunity to resolve the problem.  As a programmer, you should be more worried about things going wrong _without_ errors and warnings.  Here are some tools to consider as you work to manage errors and warnings.
 
 `stop()` is the R function for generating error messages. Use `stop()` to force your code to abort when something happens that should not happen.  One way to do this is to write a `TRUE`/`FALSE` test, pass the test result as an argument to if `if(){}`, and then call `stop()` inside the braces.  While `stop()` will abort the execution of a particular function/line of code, some R GUI will continue to run the lines after an aborted line and others will not.  `try()` prevents an error from causing a function / line to abort.  Instead of generating an error, an errant function encased in `try()`, using the `silent= TRUE` argument, will return a `try-error` class object, as demonstrated below.
@@ -585,9 +587,388 @@ detach(package:parallel)
 
 ```
 
-==========
+#### Tools for Solving Specific Console Output Problems
 
-LESSON WRITING IN PROGRESS... MORE CONTENT COMING SOON
+Keep the amount of expressions (as opposed to assignments) in your code to a minimum.  If a line of code does not change any object, it is likely cluttering your script without providing benefit.  However, there are circumstances where it is important to enable your script to communicate with you (or anyone else who is running your code). R offers a variety of tools for generating messages or interacting with the expressed messages of other programmers.
+
+`identity()`, `print()`, and `cat()` each enable you to express arguments to console.  `print()` and `cat()` express their arguments to the console, regardless of whether they are buried in layers of code like functions and loops.  `identity()` expresses its arguments using standard expression.  It is equivalent to defining the function `function(x){x}`.  In contrast to `cat()` and `print()`, it will only express its argument within the environment (or loop) that contains it.  
+
+While `cat()` and `print` are similar, `cat()` works differently than `print()` in at least three ways.  First, it will combine multiple expressions into one output.  Second, it bypasses object expression and directly prints messages to the console.  Third, since it bypasses expression, you cannot assign its output to an object using just the `<-` operator.
+
+Below is a demonstration of the three functions in action.
+
+```{R print() and cat()}
+
+## use print()/cat() to express output directly to console
+identity("I know who I am!")
+print("I am a machine that puts ink on paper!")
+cat("I am small, furry carnivore.", "Meow!", "Purrrrrr!")
+
+## define a function to test expression option inside a loop inside a function
+DemonstrationFunction <- function(expr, FUN) {
+	for (iter in 1:10) {
+		if (iter == 7) { FUN(expr) }
+		}
+}
+
+## test whether each function can express through multiple code layers
+the_expression <- "This is a demonstration"
+DemonstrationFunction(the_expression, identity)
+DemonstrationFunction(the_expression, print)
+DemonstrationFunction(the_expression, cat)
+
+## test how each function responds to assignment
+self_identification <- identity("I know who I am!")
+self_identification
+
+printer <- print("I am a machine that puts ink on paper!")
+printer
+
+kitty_cat <- cat("I am small, furry carnivore.", "Meow!", "Purrrrrr!")
+kitty_cat
+```
+
+You may wish to get rid of the communications that have been built into some of the functions you use.  Alternately, you may wish to capture the non-expression console outputs for other functions you use. `invisible()` prevents functions from showing up in the terminal.  As discussed earlier, `supressWarnings()` performs a similar service for warnings messages.  Conversely, `capture.output()` will capture the messages that a function outputs to console, even when the function does not express those messages as assignable output.
+
+```{R invisible() and capture.output()}
+
+##  invisible() suppresses console text; leaves assignment operations untouched
+invisible("I am very happy!")
+very_expressive <- invisible("I am very happy!")
+very_expressive
+
+## capture.output() diverts console output to the assignment destination object,
+  ## even when assignment would typically come up empty
+kitty_cat <- capture.output(
+	cat("I am small, furry carnivore.", "Meow!", "Purrrrrr!"))
+kitty_cat
+
+## used in tandem invisible() and capture.output() can completely muzzle print()
+printer <- "I am a machine that puts ink on paper!"
+invisible(print(printer))
+capture.output(print(printer))
+invisible(capture.output(print(printer)))
+
+## delete demonstration objects
+remove(DemonstrationFunction, kitty_cat, printer, sample_index,
+	self_identification, the_expression, TwoModeSample, very_expressive)
+```
+
+### Analyzing Objects and Functions
+
+
+#### Analyzing Objects
+
+Lists are the favored object structure for the specialized objects underlying most packages because a list can hold an arbitrary number of objects within it. If you `unclass()` most specialty objects in R, you will find a list underneath.  However, since lists nest inside other lists, complex list objects can be difficult to understand at a glance.  While it takes some practice before `str()` outputs become intuitive, this function can be powerful tool for making sense of complex lists.
+
+```{R str()}
+
+## generate a list with complex sub-lists
+x <- 1:10
+y <- x^2
+complex_list <- list(
+	"A"= list(
+		"String"= paste(letters, LETTERS),
+		"Integers"= 100:110
+	  ),
+	"B"= list(
+		"T Test List"= unclass(t.test(x, y)),
+		"Factors"= as.factor(month.abb)
+			)
+)
+
+## use str() to analyse the object, starting with the top level
+str(complex_list, max.level= 1)
+
+## adjust max.level to dive deeper into the list - 2 levels
+str(complex_list, max.level= 2)
+
+## adjust max.level to dive deeper into the list - 3 levels
+str(complex_list, max.level= 3)
+
+## remove demonstration objects
+remove(complex_list, x, y)
+
+```
+
+Meta-data is information about a body of data.  In R, there are multiple options for attaching meta-data to an object.  We have already encountered meta-data in the form of `names()`, `dimnames()`, and `class()`.  Each of these are "attributes" of objects.  The `attributes()` function will express all of the attributes currently attached to an object.  `attr()` can retrieve a specific attribute by name or enable you to add or edit attributes.
+
+```{R Attributes}
+
+## make a dataset
+a_dataset <- data.frame(
+	x= round(seq(from= 1/24, to= 23/24, length.out= 12) * 100),
+	y= month.name,
+	z= as.logical({1:12} %% 2)
+	)
+head(a_dataset)
+
+## explore its existing attributes
+attributes(a_dataset)
+
+attr(a_dataset, "row.names")
+rownames(a_dataset) # this function does the same attribute pull
+
+attr(a_dataset, "class")
+class(a_dataset) # this function does the same attribute pull
+
+## change the row.names attribute to month.abb
+head(a_dataset)
+attr(a_dataset, "row.names") <- month.abb
+head(a_dataset)
+
+## add a new attribute
+attr(a_dataset, "short.months") <- "Feb"
+attributes(a_dataset)
+
+## delete demonstration object
+remove(a_dataset)
+
+```
+
+#### Analyzing functions
+
+As discussed in the Conditionals section, many R functions are adaptive.  Depending on the characteristics of the objects supplied to its arguments, the function will do different things. R accomplishes this by attaching "methods" to a "generic" function, where each method is a separate function.  Methods are hidden a layer deeper in the code to prevent confusion and make the user experience easier.  However, there are times when analyzing a method in detail will enable you to resolve errors, improve efficiency and better document procedures. 
+
+Below is a demonstration of how to retrieve a method.  `methods()` will express the available methods for a generic function.  `getAnywhere()` will enable you to retrieve them.
+
+```{R Method Retrieval}
+
+## the summary() function does different things, depending on the class of the
+  ## object
+a_dataframe <- data.frame(x= as.factor(month.abb), y= 1:12, z= month.name)
+a_list <- list(x= as.factor(month.abb), y= 1:12, z= month.name)
+a_factor <- as.factor(month.abb)
+
+## express the results (as a reminder, expressions should be written directly
+  ## into your console, not saved to script
+summary(a_dataframe)
+summary(a_list)
+summary(a_factor)
+
+## express methods summary() can access
+methods(summary)
+
+## retrieve a specific method and make sure it works
+  ## for summary.factor(), the getAnywhere() is not necessary.  However, it
+  ## will be necessary in some cases, so I will demonstrate it here.
+RetrievedMethod <- getAnywhere(summary.factor)$obj[[1]]
+RetrievedMethod(a_factor)
+
+## delete demonstration objects
+remove(a_dataframe, a_list, a_factor, RetrievedMethod)
+
+```
+
+Once you have retrieved a method, you can apply various techniques to understand how it works and what its limitations might be. `Rprof()` and `summaryRprof()` can make clear what components are drawing most heavily on computational resources.  If the function is well-written, these should be the parts of the function that critical tasks.  Doing a line by line dissection can you help gain further insight.
+
+```{R Function Dissection}
+## make a test object
+test_factor <- sample(state.abb, size= 10^8, replace= TRUE)
+test_factor <- factor(test_factor, levels= state.abb)
+
+## profile function to understand what components draw the most resources
+Rprof()
+summary.factor(test_factor)
+Rprof(NULL)
+profile_results <- summaryRprof()
+file.remove("Rprof.out")
+
+## express profile results - indicates that function ran in roughly 2.5 seconds
+  ## and that table() accounts nearly 90 percent of the run time
+profile_results
+
+## delete demonstraiton objects
+remove(profile_results)
+
+```
+
+Once you have profiled the function, you can do a line by line dissection.  Here is a process you might follow.
+
+Step one: copy/paste the function into a script and remove the function packaging.
+
+```{R Function Dissection, Step 1}
+
+## pull function into R (express it, then copy/paste and do line-by-line analysis
+
+object <- test_factor[1:10^3] # make erstwhile arguments freestanding objects
+  # so that you can test each line to see how it is changing the argument objects
+maxsum <- 10^2
+
+## function (object, maxsum = 100L, ...) { # comment out function packaging
+    nas <- is.na(object)
+    ll <- levels(object)
+    if (ana <- any(nas)) maxsum <- maxsum - 1L
+    tbl <- table(object)
+    tt <- c(tbl)
+    names(tt) <- dimnames(tbl)[[1L]]
+    if (length(ll) > maxsum) {
+        drop <- maxsum:length(ll)
+        o <- sort.list(tt, decreasing = TRUE)
+        tt <- c(tt[o[-drop]], `(Other)` = sum(tt[o[drop]]))
+    }
+    if (ana) c(tt, `NA's` = sum(nas)) else tt
+## } # comment out function packaging
+
+```
+
+Step two: determine what each line does.  Sometimes, you will be able to do this just by looking at the code.  In other cases, you will need to run the lines and inspect how the argument objects are changing from line to line.  This is why you make the arguments into freestanding objects.
+
+```{R Function Dissection, Step 2}
+
+## pull function into R (express it, then copy/paste and do line-by-line analysis
+
+object <- test_factor[1:10^3] # make erstwhile arguments freestanding objects
+maxsum <- 10^2 # the documentation says this limits how many factors levels to
+  # show for the table counting occurance of factors... this prevents console
+  ## flood if there are more than 100 unique factors in the object
+
+## function (object, maxsum = 100L, ...) { # comment out function packaging
+    nas <- is.na(object) # detect NA (logical vector)
+    ll <- levels(object) # find the levels of the factor object
+    if (ana <- any(nas)) maxsum <- maxsum - 1L # special handling instructions
+      # if NA found, drop the last element to be printed this makes room for an
+      # NA count to be tacked on at the bottom
+    tbl <- table(object) # count how often each factor appears in object
+    tt <- c(tbl) # converts table to integer, while preserving the element names
+    names(tt) <- dimnames(tbl)[[1L]] # safety code to make sure names aren't lost
+    if (length(ll) > maxsum) { ## console flood prevention (see maxsum note)
+    	## will also drop NA element from table under a specific edge case
+        drop <- maxsum:length(ll) ## index of which elements to drop
+        o <- sort.list(tt, decreasing = TRUE) ## makes sure least common factors
+          # get dropped from the occurrence count table
+        tt <- c(tt[o[-drop]], `(Other)` = sum(tt[o[drop]])) # drop least common factors
+          ## from table, but then sum dropped counts into an "(other)" category
+    }
+    if (ana) c(tt, `NA's` = sum(nas)) else tt # tack on NA's if any were found
+        
+## } # comment out function packaging
+
+```
+
+Step three: summary what each meaningful chunk of code does. Rearrange lines if needed.
+
+```{R Function Dissection, Step 3}
+
+## pull function into R (express it, then copy/paste and do line-by-line analysis
+
+object <- test_factor[1:10^3] # make erstwhile arguments freestanding objects
+maxsum <- 10^2 # the documentation says this limits how many factors levels to
+  # show for the table counting occurance of factors... this prevents console
+  ## flood if there are more than 100 unique factors in the object
+
+## function (object, maxsum = 100L, ...) { # comment out function packaging
+
+
+
+
+  ## DETECT NAs; LAY GROUND WORK FOR NA HANDING AT END OF FUNCTION
+
+    nas <- is.na(object) # detect NA (logical vector)
+    if (ana <- any(nas)) maxsum <- maxsum - 1L # special handling instructions
+      # if NA found, drop the last element to be printed this makes room for an
+      # NA count to be tacked on at the bottom
+    
+  ## COUNT HOW OFTEN EACH UNIQUE FACTOR APPEARS
+    
+    tbl <- table(object) # count how often each factor appears in object
+    tt <- c(tbl) # converts table to integer, while preserving the element names
+    names(tt) <- dimnames(tbl)[[1L]] # safety code to make sure names aren't lost
+    
+  ## DROP RARE FACTOR COUNTS IF TABLE IS TOO BIG, SUM DROPPED FACTOR COUNTS AS
+    ## AN "OTHER" CATEGORY
+    
+     ll <- levels(object) # find the levels of the factor object
+      ## (moved from original spot as line #2   
+    if (length(ll) > maxsum) { ## console flood prevention (see maxsum note)
+    	## will also drop NA element from table under a specific edge case
+        drop <- maxsum:length(ll) ## index of which elements to drop
+        o <- sort.list(tt, decreasing = TRUE) ## makes sure least common factors
+          # get dropped from the occurrence count table
+        tt <- c(tt[o[-drop]], `(Other)` = sum(tt[o[drop]])) # drop least common factors
+          ## from table, but then sum dropped counts into an "(other)" category
+    }
+     
+     
+  ## TACK ON AN NA CATGORY IF NA WERE FOUND
+     
+    if (ana) c(tt, `NA's` = sum(nas)) else tt # tack on NA's if any were found
+       ## this set-up (NA detection code at the front of a function, NA handling
+       ## code at the back) is common among R functions.
+        
+## } # comment out function packaging
+     
+
+## delete demonstration objects
+remove(ana, ll, maxsum, nas, tbl, test_factor, tt, object)
+
+```
+
+When you analyze a function like this, you may discover assumptions built into the code that differ from what you thought or what your project requires.  You can then better drop these assumptions or devise remedies as needed.  Even if the function does exactly what you expect, there still may be opportunities to develop more efficient code.  In this case, a natural performance question is whether an alternative to the existing code may perform better.  We can test this using the time trial approach.
+
+From `Rprof()` we know that `table()` is driving run time.  For our line-by-line analysis, we know that this is reasonable because the summary consists of a frequency count of factors and `table()` provides that count.  The rest of the code consists of special modifications to handle unusual situations ("edge cases") where the number of unique factors is really big or the factor vector contains `NA`s.  Perhaps an alternative to `table()`, such as `tapply(x, x, length)` would run quicker? Let's find out!
+
+```{R Time Trial - table() vs tapply()}
+
+## create modified version of the function
+FactorSummary <- function (object, maxsum = 100L) {
+	
+	  ## detect NAs
+    nas <- is.na(object)
+    if (ana <- any(nas)) maxsum <- maxsum - 1L
+    
+    ## Count occurrences of each unique factor
+    tbl <- tapply(object, object, length) #swap tapply() in for table()
+    tt <- c(tbl)
+    names(tt) <- dimnames(tbl)[[1L]]
+    
+    ## Sum least common factors as "Other" if too many unique factors
+    ll <- levels(object)
+    if (length(ll) > maxsum) {
+        drop <- maxsum:length(ll)
+        o <- sort.list(tt, decreasing = TRUE)
+        tt <- c(tt[o[-drop]], `(Other)` = sum(tt[o[drop]]))
+    }
+    
+    ## Count NAs if applicable
+    if (ana) c(tt, `NA's` = sum(nas)) else tt
+}
+
+## Create object to store the results of the time trials
+trial_results <- array(NA, dim= c(2^3, 2))
+colnames(trial_results) <- c("table", "tapply")
+
+## generate large test object
+test_factor <- sample(state.abb, size= 10^8, replace= TRUE)
+test_factor <- factor(test_factor, levels= state.abb)
+test_factor[2^{2:10}] <- NA
+
+# pre-initialize start time variable so all trials have level playing field 
+trial_time <- Sys.time() 
+
+for (iter in seq(nrow(trial_results))) {
+	
+	## time summary.factor()
+	trial_time <- Sys.time()
+	invisible(summary.factor(test_factor, maxsum= 10))
+	trial_results[iter, "table"] <- Sys.time() - trial_time
+	
+	## time FactorSummary()
+	trial_time <- Sys.time()
+	invisible(FactorSummary(test_factor, maxsum= 10))
+	trial_results[iter, "tapply"] <- Sys.time() - trial_time	
+	
+	}
+
+## calculate results
+trial_results <- colMeans(trial_results)
+trial_results <- trial_results / min(trial_results)
+
+## conclusion: table() yields significantly lower run times than tapply() for
+  ## summary.factor()
+round(trial_results, 2)
+
+```
 
 ==========
 
@@ -599,27 +980,12 @@ In order to understand what each function/operator/constant does, use the `help(
 
 The help documentation may be a difficult to read at first but keep practicing.  Over time, getting useful information from the documentation will become effortless.  Resist the impulse to do a Google search before you have consulted the documentation.  Google results can be of mixed quality - sometimes you will get a thoughtful, efficient solution, sometimes you will get a byzantine work-around that will teach you bad habits.
 
-|Loops			|Conditions		|Error Handling		|Expression						|Object Dissection		|Function Dissection
-|:-					|:-						|:-								|:-										|:-										|:-
-|`repeat{}`	|`if(){}`			|`gc()`								|`cat()`							|`attr()`
-|`while(){}`|`else{}`			|`::`									|`capture.output()`		|`attributes()`
-|`for(){}`	|`&&`					|`stop()`							|`invisible()`				|`slot()`
-|`break`		|`||`					|`unclass()`					|`print()`						|`slotNames()`
-|`next`			||`try()`			|`suppressWarnings()`	|`@`
-|`optim()`	|							|`warnings()`					|`identity()`					|`str()`
-|`Sys.sleep()`|						|`warning()`
-
-
-Conditionals and Loops  |Error Handling |Expression |Object Dissection  |Function Dissection
-|:-		|:-		|:-		|:-		|:-
-|`if(){}`				|`gc()`					|`cat()`							|`attr()`				|`expression()`
-|`else{}`				|`proc.time()`	|`capture.output()`		|`attributes()`	|`eval()`
-|`&&`						|`::`						|`invisible()`				|`slot()`				|`formals()`
-|`||`					|`stop()`				|`print()`						|`slotNames()`	|`body()`
-|`for(){}`			|`Sys.sleep()`	|`suppressWarnings()`	|`@`						|`methods()`
-|`while(){}`		|`try()`				|`identity()`						|`str()`				|`getAnywhere()`
-|`optim()`			|`unclass()`		|											|								|`Rprof()`
-|`break`				|`warning()`		|											|								|`summaryRprof()`
-|`return()`			|								|											|								|`browser()`
-|`repeat`			|								|											|								|
-|`next`			|								|											|								|
+|Loops   |Conditions	|Error Handling|Console Expression	|Analysis Tools
+|:-					|:-				|:-						|:-										|:-							
+|`repeat{}`	|`if(){}`	|`gc()`				|`cat()`							|`attr()`				
+|`while(){}`|`else{}`	|`::`					|`capture.output()`		|`attributes()`	
+|`for(){}`	|`&&`			|`stop()`			|`invisible()`				|`str()`				
+|`break`		|`||`			|`unclass()`	|`print()`						|`Rprof()`					
+|`next`			|					|`try()`			|`suppressWarnings()`	|`summaryRprof()`		
+|`optim()`	|					|`warnings()`	|`identity()`					|`methods()`
+|`Sys.sleep()`|				|`warning()`	|											|`getAnywhere()`
