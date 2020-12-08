@@ -1,0 +1,386 @@
+---
+  title: Test 3 (A1-B2)
+---
+
+[Go to the Table of Contents](00_TableOfContents.html)
+
+## Test Problems
+
+Valid Answers: Vocabulary Tables A1-B2
+
+Directions: Each test question declares a function that does the same thing as a function, operator, or built-in object listed in vocabulary table A1, A2, A3, A4, A5, B1 or B2.  Determine which vocabulary table function does the same thing as the declared function in the test question.  Aim to complete this 25-question test in 200 minutes (8 minutes per question).
+
+### [01]
+```{R "$"}
+## Given:
+## arg_one: is a list; names() != NULL
+## arg_two: is a character vector; length() == 1
+
+MysteryOperator <- function(arg_one, arg_two) {
+	output <- arg_one[[arg_two]]
+	return(output)
+}
+
+```
+
+### [02]
+```{R "lower.tri()"}
+## Given:
+## arg_one: is an array; length(dim()) == 2
+## Other arguments left at default settings
+
+MysteryFunction <- function(arg_one) {
+  output <- outer(
+  	X= 1:dim(arg_one)[1],
+  	Y= 1:dim(arg_one)[2],
+  	FUN= ">"
+  	)
+  return(output)
+}
+
+```
+
+### [03]
+```{R "rbind()"}
+## Given:
+## arg_one: is an array or vector, min(dim()) >= 2
+## arg_two: is an array or vector, min(dim()) >= 2
+## Other arguments left at default settings
+
+MysteryFunction <- function(arg_one, arg_two) {
+	object_one <- aperm(arg_one, perm= 2:1)
+	object_two <- aperm(arg_two, perm= 2:1)
+	output <- cbind(object_one, object_two)
+	output <- aperm(output, perm= 2:1)
+	return(output)
+}
+
+```
+
+### [04]
+```{R "colSums()"}
+## Given:
+## arg_one: is an array; length(dim()) == 2
+## Other arguments left at default settings
+
+MysteryFunction <- function(arg_one) {
+	output <- rep(1, dim(arg_one)[1])
+	output <- output %*% arg_one
+	dim(output) <- NULL
+	return(output)
+}
+
+```
+
+### [05]
+```{R "outer()"}
+## Given:
+## arg_one: is a numeric vector; length(arg_one) >= 1
+## arg_two: is a numeric vector; length() == length(arg_one)
+## Other arguments left at default settings
+
+MysteryFunction <- function(arg_one, arg_two) {
+	object_zero <- array(dim= c(length(arg_one), length(arg_two)))
+	object_one <- arg_one[slice.index(object_zero, MARGIN= 1)]
+	object_two <- arg_two[slice.index(object_zero, MARGIN= 2)]
+	output <- object_one * object_two
+	dim(output) <- dim(object_zero)
+	return(output)
+}
+
+```
+
+### [06]
+```{R "rowMeans()"}
+## Given:
+## arg_one: is a numeric array
+
+MysteryFunction <- function(arg_one) {
+	output <- apply(arg_one, 1, mean)
+	return(output)
+}
+```
+
+### [07]
+```{R "sapply()"}
+## Given:
+## arg_one: is a list
+## arg_two: is a function
+
+MysteryFunction <- function(arg_one, arg_two) {
+	output <- lapply(arg_one, arg_two)
+	output <- simplify2array(output)
+	return(output)
+	}
+
+```
+
+### [08]
+```{R "apply()"}
+## Given:
+## arg_one: is an array
+## arg_two: is an integer vector, length() and max() <= length(dim(arg_one))
+## arg_three: is a function
+
+MysteryFunction <- function(arg_one, arg_two, arg_three) {
+  object_one <- as.list(arg_two)
+  object_one <- lapply(object_one, slice.index, x= arg_one)
+  outputs <- tapply(arg_one, object_one, arg_three)
+  dimnames(outputs) <- dimnames(arg_one)[arg_two]
+  outputs
+}
+
+```
+
+### [09]*
+```{R "cut()"}
+## Given:
+## arg_one: is a numeric vector; length() >= 2
+## arg_two: is an integer vector; length() == 1;  >1
+## Ignore small differences in outputs 
+
+MysteryFunction <- function(arg_one, arg_two) {
+	object_two <- seq(from= min(arg_one), to= max(arg_one),
+		length.out= arg_two + 1)
+	object_two[1] <- object_two[1] -diff(range(arg_one))/1000
+	object_one <- outer(arg_one,object_two, ">")
+	object_one <- apply(object_one, 1, function(x){max(which(x))})
+	object_two <- round(object_two, 2)
+	object_two <- paste( "(", object_two[-length(object_two)],
+		",", object_two[-1], "]", sep= "")
+	object_one <- as.factor(object_two)[object_one]
+	return(object_one)
+}
+
+```
+
+### [10]
+```{R "quantile()"}
+## Given:
+## arg_one: is a numeric vector
+## Other arguments left at default settings
+
+MysteryFunction <- function(arg_one){
+	arg_one <- sort(arg_one)
+	obj_zero <- seq(from= 0, to= 1, by= 0.25)
+	obj_zero <- obj_zero * {length(arg_one) - 1} + 1
+	obj_one <- 1 - cbind(
+		obj_zero - floor(obj_zero),
+	  ceiling(obj_zero) - obj_zero
+		)
+	obj_one <- obj_one / rowSums(obj_one)
+	obj_two <- cbind(
+		arg_one[floor(obj_zero)],
+		arg_one[ceiling(obj_zero)]
+		)
+	obj_two <- rowSums(obj_one * obj_two)
+	names(obj_two) <- seq(from= 0, to= 100, by= 25)
+	names(obj_two) <- paste(names(obj_two), "%", sep="")
+	return(obj_two)
+	}
+
+```
+
+### [11]
+```{R "match()"}
+## Given:
+## arg_one: is a vector
+## arg_two: is a vector, mode() == mode(arg_one)
+
+MysteryFunction <- function(arg_one, arg_two) {
+	object_two <- 1:length(arg_two)
+	names(object_two) <- arg_two
+	output <- object_two[as.character(arg_one)]
+	names(output) <- NULL
+	return(output)
+}
+
+```
+
+### [12]
+```{R "substring()"}
+## Given:
+## arg_one: is a character vector
+## arg_two: is a vector of positive integers
+## arg_three: is a vector of positive integer, where each element is greater
+  ## than the corresponding element of arg_two; length() == length(arg_two)
+  ## If length(arg_two) is not a multiple of Length(arg_one); ignore the warning
+    ## messages about uneven recycling.
+
+MysteryFunction <- function(arg_one, arg_two, arg_three){
+	output <- strsplit(arg_one, split="")
+	FunctionOne <- function(x, y, z) {x[y:z]}
+	output <- mapply(x= output, y= arg_two, z= arg_three,
+		FUN= FunctionOne, SIMPLIFY= FALSE)
+	output <- sapply(output, paste, collapse= "")
+	return(output)
+}
+```
+
+### [13]
+```{R "length()"}
+## Given:
+## arg_one: is a vector; length() >= 1
+
+MysteryFunction <- function(arg_one) {
+	output <- as.character(arg_one)
+	output <- gsub(output, pattern= "∆", replacement= "x" )
+	output <- paste(output, collapse="∆" )
+	output <- gsub(output, pattern= "[^∆]", replacement= "")
+	output <- nchar(output) + 1
+	return(output)
+}
+
+```
+
+### [14]
+```{R "rank()"}
+## Given:
+## arg_one: is a vector; length() >= 1
+
+MysteryFunction <- function(arg_one) {
+	object_one <- sort(arg_one)
+	output <- as.numeric(as.factor(object_one))
+	output <- tapply(1:length(output), output, mean)[output]
+	object_one <- match(arg_one, object_one)
+	output <- output[object_one]
+	names(output) <- NULL
+	return(output)
+}
+
+```
+
+### [15]*
+```{R "parApply()"}
+## Given:
+## arg_one: is an array
+## arg_two: is an integer vector; length() == 1; each element
+  ## is <= length(dim(arg_two))
+## arg_three: is a function
+
+MysteryFunction <- function(arg_one, arg_two, arg_three) {
+	library(parallel)
+	output <- tapply(arg_one, slice.index(arg_one, arg_two), list)
+	output <- lapply(output, FUN= unlist)
+	names(output) <- NULL
+	object_zero <- floor(detectCores() * 0.8)
+	object_zero <- makeCluster(object_zero)
+	output <- parLapply(output, fun= arg_three, cl= object_zero)
+	output <- simplify2array(output)
+	stopCluster(object_zero)
+	detach(package:parallel)
+	return(output)
+}
+
+```
+
+### [16]
+```{R "agrep()"}
+## Given:
+## arg_one: is a single element vector containing a regular expression
+## arg_two: is a character vector
+## Other arguments left at default settings
+
+MysteryFunction <- function(arg_one, arg_two) {
+	object_one <- adist(arg_one, arg_two) / nchar(arg_one)
+	object_one <- which(object_one <= 0.1)
+	return(object_one)
+}
+
+```
+
+### [17]
+```{R "grep()"}
+## Given: 
+## arg_one: is a single element vector containing a regular expression
+## arg_two: is a character vector
+
+MysteryFunction <- function(arg_one, arg_two) {
+	object_one <- gregexpr(arg_one, arg_two)
+	object_one <- sapply(object_one, max)
+	object_one <- object_one != -1
+	object_one <- which(object_one)
+	return(object_one)
+}
+
+```
+
+### [18]
+```{R "do.call()"}
+# You have a list object with 120 elements, where each element contains a data frame.  Each data frame contains survey results from 100 respondents, where each row indicates a respondent and each column holds the answers from respondents to a particular survey question.  You wish to combine all of these data frames into a single 120,000 row data frame.  What function could help you accomplish this?
+
+## do.call() with what= rbind
+## do.call() with what= cbind
+## rapply() with what= rbind
+## rapply() with what= cbind 
+## sapply() with what= rbind
+## sapply() with what= cbind
+```
+
+### [19]
+```{R "eapply()"}
+# Your environment contains 3,142 objects.  Each object is a vector of the percent of a US county's population living below the poverty line in each year between 1900-2020.  Which functions could help you compile that data to one 121 row x 3,142 column dataset?
+
+## eapply() combined with simplify2array()
+## eapply() combined with cbind()
+## apply() combined with simplify2array()
+## apply() combined with cbind()
+## rapply() combined with simplify2array()
+## rapply() combined with cbind()
+```
+
+### [20]
+```{R "mapply()"}
+# You develop SimulationFunction(), which has three arguments: x, y, and z.  Each argument can be set to one of three settings, altering the behavior of the simulation.  You wish to run the simulation for all 3^3 = 27 combinations of x, y, z to understand how combinations of different settings change the simulation's outcome. What function could help you run SimulationFunction() for each of the 27 possible combinations of arguments?
+
+## mapply()
+## eapply()
+## lapply()
+## rapply()
+## sapply()
+## tapply()
+```
+
+### [21]
+```{R "rapply()"}
+# You receive data object "the_data" that holds tweets.  The object is a list of users, and within each user list element is a list object of tweets (one tweet per list element). You wish to calculate the number of characters in each tweet, so that you can next calculate the average number of characters for each user.  What function could help you calculate the number of characters in each tweet?
+
+## rapply() with f= nchar
+## rapply() with f= length
+## sapply() with FUN= nchar
+## sapply() with FUN= length
+## tapply() with INDEX= names(the_data) and FUN= nchar
+## tapply() with INDEX= names(the_data) and FUN= length
+```
+
+## Test Answers
+
+(Scroll down for the test answers)
+
+...
+
+...
+
+...
+
+...
+
+...
+
+...
+
+...
+
+...
+
+...
+
+...
+
+|_					|_					|_						|_					|_
+|:-					|:-					|:-						|:-					|:-
+|1. `$`					|2. `lower_tri()`		|3. `rbind()`		|4. `colSums()`	|5. `outer()`
+|6. `rowMeans()`|7. `sapply()`			|8. `apply()`		|9. `cut()`			|10. `quantile()`
+|11. `match()`	|12. `substring()`	|13. `length()`	|14. `rank()`		|15. `parApply()`
+|16. `agrep()`	|17. `grep()`				|18. `do.call()`|19. `eapply()`	|20. `mapply()`	
+|21. `rapply()`
